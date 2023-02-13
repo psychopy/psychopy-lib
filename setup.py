@@ -79,11 +79,6 @@ if platform == 'win32':
     pass
 elif platform == 'darwin':
     dataExtensions.extend(['*.icns'])
-elif platform == 'posix':
-    dataFiles += [('share/applications',
-                   ['psychopy/app/Resources/psychopy.desktop']),
-                  ('share/pixmaps',
-                   ['psychopy/app/Resources/psychopy.png'])]
 
 setup(name='PsychoPy',
       packages=packages,
