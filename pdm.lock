@@ -2024,27 +2024,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "pyqt5"
-version = "5.15.9"
-requires_python = ">=3.7"
-summary = "Python bindings for the Qt cross platform application toolkit"
-dependencies = [
-    "PyQt5-Qt5>=5.15.2",
-    "PyQt5-sip<13,>=12.11",
-]
-
-[[package]]
-name = "pyqt5-qt5"
-version = "5.15.2"
-summary = "The subset of a Qt installation needed by PyQt5."
-
-[[package]]
-name = "pyqt5-sip"
-version = "12.11.1"
-requires_python = ">=3.7"
-summary = "The sip module support for PyQt5"
-
-[[package]]
 name = "pyserial"
 version = "3.5"
 summary = "Python Serial Port Extension"
@@ -2272,16 +2251,6 @@ requires_python = ">=3.7"
 summary = "A built-package format for Python"
 
 [[package]]
-name = "wxpython"
-version = "4.2.0"
-summary = "Cross platform GUI toolkit for Python, \"Phoenix\" version"
-dependencies = [
-    "numpy; python_version >= \"3.0\"",
-    "pillow",
-    "six",
-]
-
-[[package]]
 name = "xarray"
 version = "2023.1.0"
 requires_python = ">=3.8"
@@ -2309,7 +2278,7 @@ summary = "Backport of pathlib-compatible object wrapper for zip files"
 
 [metadata]
 lock_version = "4.1"
-content_hash = "sha256:8b40c1d707334aecd38f0101626ef559f62de03832429cc0e93784de71ec8302"
+content_hash = "sha256:d3522ef417ea846252c60bdcf374f779dffc63de77732671c618ca3cb9533cfc"
 
 [metadata.files]
 "arabic-reshaper 3.0.0" = [
@@ -4075,42 +4044,6 @@ content_hash = "sha256:8b40c1d707334aecd38f0101626ef559f62de03832429cc0e93784de7
     {url = "https://files.pythonhosted.org/packages/13/e8/4f38eb30c4dae36634a53c5b2cd73b517ea3607e10d00f61f2494449cec0/pypiwin32-223.tar.gz", hash = "sha256:71be40c1fbd28594214ecaecb58e7aa8b708eabfa0125c8a109ebd51edbd776a"},
     {url = "https://files.pythonhosted.org/packages/d0/1b/2f292bbd742e369a100c91faa0483172cd91a1a422a6692055ac920946c5/pypiwin32-223-py3-none-any.whl", hash = "sha256:67adf399debc1d5d14dffc1ab5acacb800da569754fafdc576b2a039485aa775"},
 ]
-"pyqt5 5.15.9" = [
-    {url = "https://files.pythonhosted.org/packages/28/99/78db05e606dbb4a9425c159e7f1f64b69683c16ee3dcd0f97ed9ede6b205/PyQt5-5.15.9-cp37-abi3-manylinux_2_17_x86_64.whl", hash = "sha256:dd5ce10e79fbf1df29507d2daf99270f2057cdd25e4de6fbf2052b46c652e3a5"},
-    {url = "https://files.pythonhosted.org/packages/55/5d/8df8a2aa0de6588965d048fca9306cf15a5801be3078f195e8f8f41fa863/PyQt5-5.15.9-cp37-abi3-win_amd64.whl", hash = "sha256:e030d795df4cbbfcf4f38b18e2e119bcc9e177ef658a5094b87bb16cac0ce4c5"},
-    {url = "https://files.pythonhosted.org/packages/5c/46/b4b6eae1e24d9432905ef1d4e7c28b6610e28252527cdc38f2a75997d8b5/PyQt5-5.15.9.tar.gz", hash = "sha256:dc41e8401a90dc3e2b692b411bd5492ab559ae27a27424eed4bd3915564ec4c0"},
-    {url = "https://files.pythonhosted.org/packages/77/c7/82f92662afdd85b69d126353d498f71e0fce03cbf1c01b700e0e495adf16/PyQt5-5.15.9-cp37-abi3-macosx_10_13_x86_64.whl", hash = "sha256:883ba5c8a348be78c8be6a3d3ba014c798e679503bce00d76c666c2dc6afe828"},
-    {url = "https://files.pythonhosted.org/packages/f3/b5/00a3c80a4c738e92e9d9e144c9bb5bd9d0842bac5517c63d42e7c9633826/PyQt5-5.15.9-cp37-abi3-win32.whl", hash = "sha256:e45c5cc15d4fd26ab5cb0e5cdba60691a3e9086411f8e3662db07a5a4222a696"},
-]
-"pyqt5-qt5 5.15.2" = [
-    {url = "https://files.pythonhosted.org/packages/1c/7e/ce7c66a541a105fa98b41d6405fe84940564695e29fc7dccf6d9e8c5f898/PyQt5_Qt5-5.15.2-py3-none-win32.whl", hash = "sha256:9cc7a768b1921f4b982ebc00a318ccb38578e44e45316c7a4a850e953e1dd327"},
-    {url = "https://files.pythonhosted.org/packages/37/97/5d3b222b924fa2ed4c2488925155cd0b03fd5d09ee1cfcf7c553c11c9f66/PyQt5_Qt5-5.15.2-py3-none-win_amd64.whl", hash = "sha256:750b78e4dba6bdf1607febedc08738e318ea09e9b10aea9ff0d73073f11f6962"},
-    {url = "https://files.pythonhosted.org/packages/62/09/99a222b0360616250fb2e6003a54e43a2a06b0774f0f8d5daafb86a2c375/PyQt5_Qt5-5.15.2-py3-none-macosx_10_13_intel.whl", hash = "sha256:76980cd3d7ae87e3c7a33bfebfaee84448fd650bad6840471d6cae199b56e154"},
-    {url = "https://files.pythonhosted.org/packages/83/d4/241a6a518d0bcf0a9fcdcbad5edfed18d43e884317eab8d5230a2b27e206/PyQt5_Qt5-5.15.2-py3-none-manylinux2014_x86_64.whl", hash = "sha256:1988f364ec8caf87a6ee5d5a3a5210d57539988bf8e84714c7d60972692e2f4a"},
-]
-"pyqt5-sip 12.11.1" = [
-    {url = "https://files.pythonhosted.org/packages/12/b0/861445409edac9b9f6ec47fc8661faa4cc975682e432876394e0bf9aeb7e/PyQt5_sip-12.11.1-cp39-cp39-manylinux_2_5_x86_64.manylinux1_x86_64.whl", hash = "sha256:b077fb4383536f51382f5516f0347328a4f338c6ccc4c268cc358643bef1b838"},
-    {url = "https://files.pythonhosted.org/packages/24/47/2e5bbb8bf3d651baa9f1cea52c07902bad2262f9967ab6e077794a595180/PyQt5_sip-12.11.1-cp38-cp38-win32.whl", hash = "sha256:3358c584832f0ac9fd1ad3623d8a346c705f43414df1fcd0cb285a6ef51fec08"},
-    {url = "https://files.pythonhosted.org/packages/2a/b0/5d5abf0b72866ff1b820ddeee97b169f365cba69e488462294fb563e35a9/PyQt5_sip-12.11.1-cp310-cp310-manylinux_2_5_x86_64.manylinux1_x86_64.whl", hash = "sha256:19b06164793177146c7f7604fe8389f44221a7bde196f2182457eb3e4229fa88"},
-    {url = "https://files.pythonhosted.org/packages/2c/89/76397c76969a0084fef70f72dbb12e8ccbc084b052626876baec6648d8cd/PyQt5_sip-12.11.1-cp37-cp37m-win32.whl", hash = "sha256:b714f550ea6ddae94fd7acae531971e535f4a4e7277b62eb44e7c649cf3f03d0"},
-    {url = "https://files.pythonhosted.org/packages/2e/b4/3279ea444a8c196c564e5608b17915e0e534d5ddca1cc5d5139e5fa6e372/PyQt5_sip-12.11.1-cp37-cp37m-manylinux_2_5_x86_64.manylinux1_x86_64.whl", hash = "sha256:dd163d9cffc4a56ebb9dd6908c0f0cb0caff8080294d41f4fb60fc3be63ca434"},
-    {url = "https://files.pythonhosted.org/packages/30/78/09bafc5b84fcc8f8a71b1909d564737be52fb9b1a62b3571863ac4946e92/PyQt5_sip-12.11.1-cp38-cp38-win_amd64.whl", hash = "sha256:f9691c6f4d899ca762dd54442a1be158c3e52017f583183da6ef37d5bae86595"},
-    {url = "https://files.pythonhosted.org/packages/50/da/9a62941675078e88f5f7717f7cdee48948d9181742a5d1545fb7fb5728a4/PyQt5_sip-12.11.1-cp37-cp37m-win_amd64.whl", hash = "sha256:d09b2586235deab7a5f2e28e4bde9a70c0b3730fa84f2590804a9932414136a3"},
-    {url = "https://files.pythonhosted.org/packages/5f/c1/0861c98f047f00b3c1383e1c66acca8bd33770bb741acc2aea425f94324c/PyQt5_sip-12.11.1-cp310-cp310-macosx_10_9_universal2.whl", hash = "sha256:a40a39a6136a90e10c31510295c2be924564fc6260691501cdde669bdc5edea5"},
-    {url = "https://files.pythonhosted.org/packages/71/ed/9c7f26c63be23d6567533c2f04986c1e0f7c15477fe1460a8b891596f9b4/PyQt5_sip-12.11.1-cp37-cp37m-macosx_10_9_x86_64.whl", hash = "sha256:b355d56483edc79dcba30be947a6b700856bb74beb90539e14cc4d92b9bad152"},
-    {url = "https://files.pythonhosted.org/packages/75/92/b231c018fa209e1d7c828e82c6d2a70357aab9af9b3a6cb4830df5ee775d/PyQt5_sip-12.11.1-cp311-cp311-macosx_10_9_universal2.whl", hash = "sha256:7218f6a1cefeb0b2fc26b89f15011f841aa4cd77786ccd863bf9792347fa38a8"},
-    {url = "https://files.pythonhosted.org/packages/82/dd/5cf96fcc789167651aa5057361abd8f734e3c7ebbca0686225c19d524ec3/PyQt5_sip-12.11.1-cp38-cp38-macosx_10_9_x86_64.whl", hash = "sha256:9a6f9c058564d0ac573561036299f54c452ae78b7d2a65d7c2d01685e6dca50d"},
-    {url = "https://files.pythonhosted.org/packages/8c/c2/d44c193daa57d66bacfc6e27c72461658abc09a4ac00632b26d8a5ba290c/PyQt5_sip-12.11.1-cp310-cp310-win_amd64.whl", hash = "sha256:54dad6c2e5dab14e46f6822a889bbb1515bbd2061762273af10d26566d649bd9"},
-    {url = "https://files.pythonhosted.org/packages/8d/84/3219f64d79a640f67511fb7193ff170ade5fe285bbf4b33634ac7aa51b01/PyQt5_sip-12.11.1-cp311-cp311-manylinux_2_5_x86_64.manylinux1_x86_64.whl", hash = "sha256:6b1113538082a7dd63b908587f61ce28ba4c7b8341e801fdf305d53a50a878ab"},
-    {url = "https://files.pythonhosted.org/packages/a0/7a/12be88a80579d86502cd1278546bcf042dfd5602f9015c95f2376968b16c/PyQt5_sip-12.11.1-cp38-cp38-manylinux_2_5_x86_64.manylinux1_x86_64.whl", hash = "sha256:fc920c0e0d5050474d2d6282b478e4957548bf1dce58e1b0678914514dc70064"},
-    {url = "https://files.pythonhosted.org/packages/a7/18/2bde6ed61aff0c447f960415617e87696435fa5561591a512c2602e7ca8a/PyQt5_sip-12.11.1-cp310-cp310-win32.whl", hash = "sha256:3afb1d1c07adcfef5c8bb12356a2ec2ec094f324af4417735d43b1ecaf1bb1a4"},
-    {url = "https://files.pythonhosted.org/packages/d0/a4/60993b82efeefa76683188f1a5c236e7e7d767480b68a125af9757b46028/PyQt5_sip-12.11.1-cp39-cp39-win_amd64.whl", hash = "sha256:bd935cc46dfdbb89c21042c1db2e46a71f25693af57272f146d6d9418e2934f1"},
-    {url = "https://files.pythonhosted.org/packages/d2/f4/4c3e5fc1584f5a2964cfc89bf420cfcc59aba0b1f2d08446e2b491a21ed5/PyQt5_sip-12.11.1.tar.gz", hash = "sha256:97d3fbda0f61edb1be6529ec2d5c7202ae83aee4353e4b264a159f8c9ada4369"},
-    {url = "https://files.pythonhosted.org/packages/de/ba/5324b58445a8a8edfa33837a1bfc450b5369293238153f5ca918d99dba44/PyQt5_sip-12.11.1-cp311-cp311-win32.whl", hash = "sha256:ac5f7ed06213d3bb203e33037f7c1a0716584c21f4f0922dcc044750e3659b80"},
-    {url = "https://files.pythonhosted.org/packages/f4/87/22720971ced2287173069b12c9d44daf4c7646d5ec072a3fec4276a6d2bb/PyQt5_sip-12.11.1-cp39-cp39-win32.whl", hash = "sha256:5c152878443c3e951d5db7df53509d444708dc06a121c267b548146be06b87f8"},
-    {url = "https://files.pythonhosted.org/packages/f5/35/5f1238b79840bea3f64543d63d8cb331b39fc1d9b8e7d1b54700b4079e9a/PyQt5_sip-12.11.1-cp311-cp311-win_amd64.whl", hash = "sha256:4f0497e2f5eeaea9f5a67b0e55c501168efa86df4e53aace2a46498b87bc55c1"},
-    {url = "https://files.pythonhosted.org/packages/fc/98/04d535b498088ca43153cfdbc29b6665c10dc0a91816ba768f59517c15fb/PyQt5_sip-12.11.1-cp39-cp39-macosx_10_9_universal2.whl", hash = "sha256:0bc81cb9e171d29302d393775f95cfa01b7a15f61b199ab1812976e5c4cb2cb9"},
-]
 "pyserial 3.5" = [
     {url = "https://files.pythonhosted.org/packages/07/bc/587a445451b253b285629263eb51c2d8e9bcea4fc97826266d186f96f558/pyserial-3.5-py2.py3-none-any.whl", hash = "sha256:c4451db6ba391ca6ca299fb3ec7bae67a5c55dde170964c7a14ceefec02f2cf0"},
     {url = "https://files.pythonhosted.org/packages/1e/7d/ae3f0a63f41e4d2f6cb66a5b57197850f919f59e558159a4dd3a818f5082/pyserial-3.5.tar.gz", hash = "sha256:3c77e014170dfffbd816e6ffc205e9842efb10be9f58ec16d3e8675b4925cddb"},
@@ -4453,19 +4386,6 @@ content_hash = "sha256:8b40c1d707334aecd38f0101626ef559f62de03832429cc0e93784de7
 "wheel 0.40.0" = [
     {url = "https://files.pythonhosted.org/packages/61/86/cc8d1ff2ca31a312a25a708c891cf9facbad4eae493b3872638db6785eb5/wheel-0.40.0-py3-none-any.whl", hash = "sha256:d236b20e7cb522daf2390fa84c55eea81c5c30190f90f29ae2ca1ad8355bf247"},
     {url = "https://files.pythonhosted.org/packages/fc/ef/0335f7217dd1e8096a9e8383e1d472aa14717878ffe07c4772e68b6e8735/wheel-0.40.0.tar.gz", hash = "sha256:cd1196f3faee2b31968d626e1731c94f99cbdb67cf5a46e4f5656cbee7738873"},
-]
-"wxpython 4.2.0" = [
-    {url = "https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-22.04/wxPython-4.2.0-cp310-cp310-linux_x86_64.whl", hash = "sha256:9cacff8e2e34d26bb097af68a8944f400a0b18c38ded817974e8828257b9c5d9"},
-    {url = "https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-22.04/wxPython-4.2.0-cp38-cp38-linux_x86_64.whl", hash = "sha256:650d09ad45f8aded74cc3030eb53f8f578dc58e41c3820b6b3d1a864a75b3683"},
-    {url = "https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-22.04/wxPython-4.2.0-cp39-cp39-linux_x86_64.whl", hash = "sha256:91b63eaaf0702bef889b3c5dbeba222ed47d22fe0214ef8a311342674ee2f78b"},
-    {url = "https://files.pythonhosted.org/packages/10/1c/26ed299dbd8f81b46a76945a93223259194732796fb4979af7bd85cb7eb6/wxPython-4.2.0-cp38-cp38-win_amd64.whl", hash = "sha256:8a278028b0a92a7ff9bcf022faf92ebfe35f53b61ca486338c46f207c4faaa4a"},
-    {url = "https://files.pythonhosted.org/packages/27/15/08812cf54cf68809cfc8409d503402c0038b2d06b71559646700ef8913b3/wxPython-4.2.0-cp39-cp39-macosx_10_10_universal2.whl", hash = "sha256:f79b8103ec62bff14bb653c9aa17a55fb1398a465b3b9371bcd80272eb1e3152"},
-    {url = "https://files.pythonhosted.org/packages/28/9f/26ceeefbe5b24782e7e80642652f18dfdbcc941a7933366c1cfee8ff9c03/wxPython-4.2.0-cp310-cp310-macosx_10_10_universal2.whl", hash = "sha256:f15b04aca27fe5b42af5eeb3952ab9a2cf7d6b375bf237b76f0c9d9ab3bf08c8"},
-    {url = "https://files.pythonhosted.org/packages/b4/c6/577e6ac545bdf51080cef8590fbae82900f7217c2d9100311eaf2b5c2485/wxPython-4.2.0-cp39-cp39-win_amd64.whl", hash = "sha256:8b53eb64549996a04f773bdec92b4612ecf7d622e9bbdeb85249062a469a5eb2"},
-    {url = "https://files.pythonhosted.org/packages/bc/d7/f62e574d9cf376a59ad435b1238500899f8cf9b32151ae0f8fb995cd6d0e/wxPython-4.2.0-cp37-cp37m-win_amd64.whl", hash = "sha256:7894b4d3fbbf726d8315d08d030b881bd29ed7476bc5f6ae90262064de2a664e"},
-    {url = "https://files.pythonhosted.org/packages/d9/33/b616c7ed4742be6e0d111ca375b41379607dc7cc7ac7ff6aead7a5a0bf53/wxPython-4.2.0.tar.gz", hash = "sha256:663cebc4509d7e5d113518865fe274f77f95434c5d57bc386ed58d65ceed86c7"},
-    {url = "https://files.pythonhosted.org/packages/ef/1e/c651e38fafdc20eb1253ffc852efd7163d9d302a0811f2f01279126d0f15/wxPython-4.2.0-cp38-cp38-macosx_11_0_universal2.whl", hash = "sha256:0edf70129a9c5554d0f788c7cd37e60e7d326a14d4370df43870cc637c2534f3"},
-    {url = "https://files.pythonhosted.org/packages/fd/c2/b7907188ebef513acb54daffba0224578966acbd7726deb85fe4192f1b2f/wxPython-4.2.0-cp310-cp310-win_amd64.whl", hash = "sha256:3bc788f046ee80f41c814ab2f75f87b0d0cd42fd3fb950815199c7be57b5ae12"},
 ]
 "xarray 2023.1.0" = [
     {url = "https://files.pythonhosted.org/packages/30/05/c52545c83de39d5ccb3f0b06d9bb3ebde74ea0e775b7da5f2f8e11ab4879/xarray-2023.1.0.tar.gz", hash = "sha256:7bee552751ff1b29dab8b7715726e5ecb56691ac54593cf4881dff41978ce0cd"},
