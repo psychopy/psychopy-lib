@@ -2251,6 +2251,16 @@ requires_python = ">=3.7"
 summary = "A built-package format for Python"
 
 [[package]]
+name = "wxpython"
+version = "4.2.0"
+summary = "Cross platform GUI toolkit for Python, \"Phoenix\" version"
+dependencies = [
+    "numpy; python_version >= \"3.0\"",
+    "pillow",
+    "six",
+]
+
+[[package]]
 name = "xarray"
 version = "2023.1.0"
 requires_python = ">=3.8"
@@ -2278,7 +2288,7 @@ summary = "Backport of pathlib-compatible object wrapper for zip files"
 
 [metadata]
 lock_version = "4.1"
-content_hash = "sha256:d3522ef417ea846252c60bdcf374f779dffc63de77732671c618ca3cb9533cfc"
+content_hash = "sha256:453a54aeb79b5dc087d89b3779cc625f588e8d92ee3ef4430a0d2b3121065cbe"
 
 [metadata.files]
 "arabic-reshaper 3.0.0" = [
@@ -4269,6 +4279,7 @@ content_hash = "sha256:d3522ef417ea846252c60bdcf374f779dffc63de77732671c618ca3cb
     {url = "https://files.pythonhosted.org/packages/50/ff/26a4ee48d0b66625a4e4028a055b9f25bc9d7c7b2d17d21a45137621a50d/soundfile-0.12.1-py2.py3-none-win_amd64.whl", hash = "sha256:0d86924c00b62552b650ddd28af426e3ff2d4dc2e9047dae5b3d8452e0a49a77"},
     {url = "https://files.pythonhosted.org/packages/6f/96/5ff33900998bad58d5381fd1acfcdac11cbea4f08fc72ac1dc25ffb13f6a/soundfile-0.12.1.tar.gz", hash = "sha256:e8e1017b2cf1dda767aef19d2fd9ee5ebe07e050d430f77a0a7c66ba08b8cdae"},
     {url = "https://files.pythonhosted.org/packages/71/87/31d2b9ed58975cec081858c01afaa3c43718eb0f62b5698a876d94739ad0/soundfile-0.12.1-py2.py3-none-macosx_11_0_arm64.whl", hash = "sha256:bceaab5c4febb11ea0554566784bcf4bc2e3977b53946dda2b12804b4fe524a8"},
+    {url = "https://files.pythonhosted.org/packages/ad/bd/0602167a213d9184fc688b1086dc6d374b7ae8c33eccf169f9b50ce6568c/soundfile-0.12.1-py2.py3-none-manylinux_2_17_x86_64.whl", hash = "sha256:2dc3685bed7187c072a46ab4ffddd38cef7de9ae5eb05c03df2ad569cf4dacbc"},
     {url = "https://files.pythonhosted.org/packages/c1/07/7591f4efd29e65071c3a61b53725036ea8f73366a4920a481ebddaf8d0ca/soundfile-0.12.1-py2.py3-none-manylinux_2_31_x86_64.whl", hash = "sha256:074247b771a181859d2bc1f98b5ebf6d5153d2c397b86ee9e29ba602a8dfe2a6"},
     {url = "https://files.pythonhosted.org/packages/c8/73/059c84343be6509b480013bf1eeb11b96c5f9eb48deff8f83638011f6b2c/soundfile-0.12.1-py2.py3-none-macosx_10_9_x86_64.whl", hash = "sha256:d922be1563ce17a69582a352a86f28ed8c9f6a8bc951df63476ffc310c064bfa"},
 ]
@@ -4386,6 +4397,19 @@ content_hash = "sha256:d3522ef417ea846252c60bdcf374f779dffc63de77732671c618ca3cb
 "wheel 0.40.0" = [
     {url = "https://files.pythonhosted.org/packages/61/86/cc8d1ff2ca31a312a25a708c891cf9facbad4eae493b3872638db6785eb5/wheel-0.40.0-py3-none-any.whl", hash = "sha256:d236b20e7cb522daf2390fa84c55eea81c5c30190f90f29ae2ca1ad8355bf247"},
     {url = "https://files.pythonhosted.org/packages/fc/ef/0335f7217dd1e8096a9e8383e1d472aa14717878ffe07c4772e68b6e8735/wheel-0.40.0.tar.gz", hash = "sha256:cd1196f3faee2b31968d626e1731c94f99cbdb67cf5a46e4f5656cbee7738873"},
+]
+"wxpython 4.2.0" = [
+    {url = "https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-22.04/wxPython-4.2.0-cp310-cp310-linux_x86_64.whl", hash = "sha256:9cacff8e2e34d26bb097af68a8944f400a0b18c38ded817974e8828257b9c5d9"},
+    {url = "https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-22.04/wxPython-4.2.0-cp38-cp38-linux_x86_64.whl", hash = "sha256:650d09ad45f8aded74cc3030eb53f8f578dc58e41c3820b6b3d1a864a75b3683"},
+    {url = "https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-22.04/wxPython-4.2.0-cp39-cp39-linux_x86_64.whl", hash = "sha256:91b63eaaf0702bef889b3c5dbeba222ed47d22fe0214ef8a311342674ee2f78b"},
+    {url = "https://files.pythonhosted.org/packages/10/1c/26ed299dbd8f81b46a76945a93223259194732796fb4979af7bd85cb7eb6/wxPython-4.2.0-cp38-cp38-win_amd64.whl", hash = "sha256:8a278028b0a92a7ff9bcf022faf92ebfe35f53b61ca486338c46f207c4faaa4a"},
+    {url = "https://files.pythonhosted.org/packages/27/15/08812cf54cf68809cfc8409d503402c0038b2d06b71559646700ef8913b3/wxPython-4.2.0-cp39-cp39-macosx_10_10_universal2.whl", hash = "sha256:f79b8103ec62bff14bb653c9aa17a55fb1398a465b3b9371bcd80272eb1e3152"},
+    {url = "https://files.pythonhosted.org/packages/28/9f/26ceeefbe5b24782e7e80642652f18dfdbcc941a7933366c1cfee8ff9c03/wxPython-4.2.0-cp310-cp310-macosx_10_10_universal2.whl", hash = "sha256:f15b04aca27fe5b42af5eeb3952ab9a2cf7d6b375bf237b76f0c9d9ab3bf08c8"},
+    {url = "https://files.pythonhosted.org/packages/b4/c6/577e6ac545bdf51080cef8590fbae82900f7217c2d9100311eaf2b5c2485/wxPython-4.2.0-cp39-cp39-win_amd64.whl", hash = "sha256:8b53eb64549996a04f773bdec92b4612ecf7d622e9bbdeb85249062a469a5eb2"},
+    {url = "https://files.pythonhosted.org/packages/bc/d7/f62e574d9cf376a59ad435b1238500899f8cf9b32151ae0f8fb995cd6d0e/wxPython-4.2.0-cp37-cp37m-win_amd64.whl", hash = "sha256:7894b4d3fbbf726d8315d08d030b881bd29ed7476bc5f6ae90262064de2a664e"},
+    {url = "https://files.pythonhosted.org/packages/d9/33/b616c7ed4742be6e0d111ca375b41379607dc7cc7ac7ff6aead7a5a0bf53/wxPython-4.2.0.tar.gz", hash = "sha256:663cebc4509d7e5d113518865fe274f77f95434c5d57bc386ed58d65ceed86c7"},
+    {url = "https://files.pythonhosted.org/packages/ef/1e/c651e38fafdc20eb1253ffc852efd7163d9d302a0811f2f01279126d0f15/wxPython-4.2.0-cp38-cp38-macosx_11_0_universal2.whl", hash = "sha256:0edf70129a9c5554d0f788c7cd37e60e7d326a14d4370df43870cc637c2534f3"},
+    {url = "https://files.pythonhosted.org/packages/fd/c2/b7907188ebef513acb54daffba0224578966acbd7726deb85fe4192f1b2f/wxPython-4.2.0-cp310-cp310-win_amd64.whl", hash = "sha256:3bc788f046ee80f41c814ab2f75f87b0d0cd42fd3fb950815199c7be57b5ae12"},
 ]
 "xarray 2023.1.0" = [
     {url = "https://files.pythonhosted.org/packages/30/05/c52545c83de39d5ccb3f0b06d9bb3ebde74ea0e775b7da5f2f8e11ab4879/xarray-2023.1.0.tar.gz", hash = "sha256:7bee552751ff1b29dab8b7715726e5ecb56691ac54593cf4881dff41978ce0cd"},
