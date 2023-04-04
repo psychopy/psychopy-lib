@@ -50,36 +50,28 @@ dependencies = [
     "freetype-py",
     "python-bidi>=0.4.2",
     "arabic-reshaper>=3.0.0",
-    "javascripthon>=0.12",
     "websocket_client",  # new in 2023.2 for session.py
     # for the app
     "markdown-it-py",
     "requests>=2.28.2",
     "future>=0.18.3",  # to support legacy versions in useVersion
     # pavlovia connections
-    "python-gitlab",
-    "gitpython",
     "cryptography>=39.0.2",  # for sshkeys
     # psychoJS conversions
     "astunparse",
-    "esprima",
     "jedi >= 0.16",
     # hardware
     "pyserial",
     "pyparallel; platform_system != \"Darwin\"",
     # movie backends
     "ffpyplayer",
-    "opencv-python",
     # platform specific
-    "python-vlc == 3.0.11115; platform_system == \"Windows\"",
-    "python-vlc >= 3.0.12118; platform_system != \"Windows\"",
     "pypiwin32; platform_system == \"Windows\"",
     "pyobjc-core < 8.0; platform_system == \"Darwin\"",
     "pyobjc-framework-Quartz < 8.0; platform_system == \"Darwin\"",
     "pyobjc < 8.0; platform_system == \"Darwin\"",
     "python-xlib; platform_system == \"Linux\"",
     "pyyaml>=6.0",
-    "pypi-search>=1.2.1",
     "openpyxl>=3.1.2",
 ]
 
