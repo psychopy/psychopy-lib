@@ -6,7 +6,6 @@ from copy import deepcopy
 from pathlib import Path
 from xml.etree.ElementTree import Element
 import re
-import wx.__version__
 from psychopy import logging, plugins
 from psychopy.experiment.components import Param, _translate
 from psychopy.experiment.routines.eyetracker_calibrate import EyetrackerCalibrationRoutine
@@ -21,6 +20,12 @@ import shutil
 import hashlib
 from pkg_resources import parse_version
 import ast  # for doing literal eval to convert '["a","b"]' to a list
+
+try:
+    import wx.__version__
+    wx_version = wx.__version__
+except ModuleNotFoundError:
+    wx_version = "4.2"  # this won't matter if not in an app anyway!
 
 
 def readTextFile(relPath):
@@ -196,9 +201,9 @@ class SettingsComponent:
         self.params['Use version'] = Param(
             useVersion, valType='str', inputType="choice",
             # search for options locally only by default, otherwise sluggish
-            allowedVals=versions._versionFilter(versions.versionOptions(), wx.__version__)
+            allowedVals=versions._versionFilter(versions.versionOptions(), wx_version)
                         + ['']
-                        + versions._versionFilter(versions.availableVersions(), wx.__version__),
+                        + versions._versionFilter(versions.availableVersions(), wx_version),
             hint=_translate("The version of PsychoPy to use when running "
                             "the experiment."),
             label=_localized["Use version"], categ='Basic')
@@ -1518,7 +1523,7 @@ class SettingsComponent:
         requestedScreenNumber = int(self.params['Screen'].val)
         nScreens = 10
         # try:
-        #     nScreens = wx.Display.GetCount()
+        #     nScreens = wx.Display.GetCount()  # NO, don't rely on wx being present
         # except Exception:
         #     # will fail if application hasn't been created (e.g. in test
         #     # environments)
@@ -1661,6 +1666,77 @@ class SettingsComponent:
                                  units=units)
         buff.writeIndentedLines(code)
 
+    def writePauseCode(self, buff):
+        # Open function def
+        code = (
+            'def pauseExperiment(thisExp, inputs=None, win=None, timers=[], playbackComponents=[]):\n'
+            '    """\n'
+            '    Pause this experiment, preventing the flow from advancing to the next routine until resumed.\n'
+            '    \n'
+            '    Parameters\n'
+            '    ==========\n'
+            '    thisExp : psychopy.data.ExperimentHandler\n'
+            '        Handler object for this experiment, contains the data to save and information about \n'
+            '        where to save it to.\n'
+            '    inputs : dict\n'
+            '        Dictionary of input devices by name.\n'
+            '    win : psychopy.visual.Window\n'
+            '        Window for this experiment.\n'
+            '    timers : list, tuple\n'
+            '        List of timers to reset once pausing is finished.\n'
+            '    playbackComponents : list, tuple\n'
+            '        List of any components with a `pause` method which need to be paused.\n'
+            '    """'
+        )
+        buff.writeIndentedLines(code)
+        buff.setIndentLevel(+1, relative=True)
+
+        # handle pausing
+        code = (
+            "# if we are not paused, do nothing\n"
+            "if thisExp.status != PAUSED:\n"
+            "    return\n"
+            "\n"
+            "# pause any playback components\n"
+            "for comp in playbackComponents:\n"
+            "    comp.pause()\n"
+            "# prevent components from auto-drawing\n"
+            "win.stashAutoDraw()\n"
+            "# run a while loop while we wait to unpause\n"
+            "while thisExp.status == PAUSED:\n"
+        )
+        if self.params['Enable Escape'].val:
+            code += (
+            "    # make sure we have a keyboard\n"
+            "    if inputs is None:\n"
+            "        inputs = {\n"
+            "            'defaultKeyboard': keyboard.Keyboard(backend=%(keyboardBackend)s)\n"
+            "        }\n"
+            "    # check for quit (typically the Esc key)\n"
+            "    if inputs['defaultKeyboard'].getKeys(keyList=['escape']):\n"
+            "        thisExp.status = FINISHED\n"
+            )
+        code += (
+            "    # flip the screen\n"
+            "    win.flip()\n"
+            "# if stop was requested while paused, quit\n"
+            "if thisExp.status == FINISHED:\n"
+            "    endExperiment(thisExp, inputs=inputs, win=win)\n"
+            "# resume any playback components\n"
+            "for comp in playbackComponents:\n"
+            "    comp.play()\n"
+            "# restore auto-drawn components\n"
+            "win.retrieveAutoDraw()\n"
+            "# reset any timers\n"
+            "for timer in timers:\n"
+            "    timer.reset()\n"
+        )
+        buff.writeIndentedLines(code % self.params)
+
+        # Exit function def
+        buff.setIndentLevel(-1, relative=True)
+        buff.writeIndentedLines("\n")
+
     def writeEndCode(self, buff):
         """Write code for end of experiment (e.g. close log file).
         """
@@ -1678,7 +1754,7 @@ class SettingsComponent:
             '        where to save it to.\n'
             '    inputs : dict\n'
             '        Dictionary of input devices by name.\n'
-            '    psychopy.visual.Window\n'
+            '    win : psychopy.visual.Window\n'
             '        Window to close.\n'
             '    """\n'
         )
