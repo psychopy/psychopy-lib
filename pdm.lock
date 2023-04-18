@@ -2014,6 +2014,14 @@ version = "306"
 summary = "Python for Window Extensions"
 
 [[package]]
+name = "pywinhook"
+version = "1.6.2"
+summary = "A pyHook module fork from Peter P. with some updates."
+dependencies = [
+    "pywin32",
+]
+
+[[package]]
 name = "pyyaml"
 version = "6.0"
 requires_python = ">=3.6"
@@ -2169,7 +2177,7 @@ summary = "Backport of pathlib-compatible object wrapper for zip files"
 [metadata]
 lock_version = "4.2"
 groups = ["default", "egi", "legacy", "tests"]
-content_hash = "sha256:326450d9ef08d268b9c806926e653d49ea5333ae25a6b6d160034d2df0f72f0c"
+content_hash = "sha256:0014df20f84332945a8a9dca3a372cf3fd0fe72a9d9671d29d1804f5d22f5561"
 
 [metadata.files]
 "arabic-reshaper 3.0.0" = [
@@ -3847,6 +3855,15 @@ content_hash = "sha256:326450d9ef08d268b9c806926e653d49ea5333ae25a6b6d160034d2df
     {url = "https://files.pythonhosted.org/packages/91/20/f744bff1da8f43388498503634378dbbefbe493e65675f2cc52f7185c2c2/pywin32-306-cp311-cp311-win_arm64.whl", hash = "sha256:70dba0c913d19f942a2db25217d9a1b726c278f483a919f1abfed79c9cf64d3a"},
     {url = "https://files.pythonhosted.org/packages/d3/d6/891894edec688e72c2e308b3243fad98b4066e1839fd2fe78f04129a9d31/pywin32-306-cp310-cp310-win_amd64.whl", hash = "sha256:84f4471dbca1887ea3803d8848a1616429ac94a4a8d05f4bc9c5dcfd42ca99c8"},
     {url = "https://files.pythonhosted.org/packages/fa/80/a6b22e031590cc5f4fcbd5bf4bcf63a9dabce9d59065f53add99a8caaec5/pywin32-306-cp38-cp38-win_amd64.whl", hash = "sha256:e8ac1ae3601bee6ca9f7cb4b5363bf1c0badb935ef243c4733ff9a393b1690c0"},
+]
+"pywinhook 1.6.2" = [
+    {url = "https://files.pythonhosted.org/packages/29/d0/0a5e6bb1e603a7729a4c2d44881cccdd7526371a99020422270c4ec4740e/pyWinhook-1.6.2-cp39-cp39-win_amd64.whl", hash = "sha256:26e9408ccabe393244f7a164fa82b3cab0c7fc6bf96957a9f35732ec59fedf1c"},
+    {url = "https://files.pythonhosted.org/packages/4c/1f/9a1bb037a098c64aedad3812aa5dabad293c0d0bde08117e40891de8b0cc/pyWinhook-1.6.2-cp27-cp27m-win_amd64.whl", hash = "sha256:78bc1c3af385fd67e9ddfc7ab5a4f1c599d67347df471d628ece50e12911586b"},
+    {url = "https://files.pythonhosted.org/packages/65/0f/03ebec3eb79a06b130b6ec165ba263e72c2e15aa406c2ed49fe4d07a37e5/pyWinhook-1.6.2-cp311-cp311-win_amd64.whl", hash = "sha256:c478bf3142ab63cc0fac83250228269113f25b06f2a9142e5772fbb9429d67b8"},
+    {url = "https://files.pythonhosted.org/packages/65/8d/c016eb56e6c4a0aa27abd45eb62605c53f20087405a728c5ff61c0149ad1/pyWinhook-1.6.2-cp38-cp38-win_amd64.whl", hash = "sha256:f3b20103cec8908f72254f1574bb166f29ce6a95fae9520e071b411d9e3e6f21"},
+    {url = "https://files.pythonhosted.org/packages/8b/b0/9295fc63473b17eb89346005139fb87eb0c7f2db6b88a069a8126fad8dc6/pyWinhook-1.6.2-cp310-cp310-win_amd64.whl", hash = "sha256:ee2862dce5af02e54879fa9117e78cb736f8cc31e07a18ae6399ee33f4537b53"},
+    {url = "https://files.pythonhosted.org/packages/ce/d1/6dcf4a17f425a5e3e2c011bac622dacae3128e96fd038b3e6f56c0e7a032/pyWinhook-1.6.2.zip", hash = "sha256:18fe2f63245d8a2f9d83f8d9c385e3695a6363badd50d492eb3e7f6f06a01c0c"},
+    {url = "https://files.pythonhosted.org/packages/e5/e4/90cb3befd74cf266003d2a86a84b48100d4f3c3e38fc0e2594b42a71ea4a/pyWinhook-1.6.2-cp37-cp37m-win_amd64.whl", hash = "sha256:14d9bea43fce652e027399bcc800a148fb4e41b2801cfb9347f1b47d0fb59d0e"},
 ]
 "pyyaml 6.0" = [
     {url = "https://files.pythonhosted.org/packages/02/25/6ba9f6bb50a3d4fbe22c1a02554dc670682a07c8701d1716d19ddea2c940/PyYAML-6.0-cp310-cp310-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_12_x86_64.manylinux2010_x86_64.whl", hash = "sha256:f84fbc98b019fef2ee9a1cb3ce93e3187a6df0b2538a651bfb890254ba9f90b5"},
