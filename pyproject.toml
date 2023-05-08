@@ -38,6 +38,7 @@ dependencies = [
     "psychtoolbox",
     # for iohub
     "pywinhook; platform_system == \"Windows\"",
+    "gevent",
     "psutil",
     "tables",
     "pyzmq",
@@ -70,7 +71,7 @@ dependencies = [
     "python-xlib; platform_system == \"Linux\"",
     "pyyaml>=6.0",
     "openpyxl>=3.1.2",
-    "setuptools<=66.1.1",
+    "setuptools>=67.7.2",
 ]
 
 [project.optional-dependencies]  # This is optional dependencies
@@ -80,6 +81,7 @@ tests = [
     "pytest",
     "pytest-codecov",
     "pytest-cov",
+    "pytest-asyncio",
     "flake8",
     "xmlschema",
 ]
