@@ -4,6 +4,7 @@ import sys
 import shutil
 import threading
 import time
+import traceback
 from pathlib import Path
 
 from psychopy import experiment, logging, constants, data
@@ -106,6 +107,7 @@ class Session:
     """
 
     _queue = []
+    _results = []
 
     def __init__(self,
                  root,
@@ -166,16 +168,25 @@ class Session:
         # Create attribute to keep self running
         self._alive = True
         # Show waiting message
-        self.win.showMessage(_translate(
-            "Waiting to start experiment..."
-        ))
-        self.win.color = "grey"
+        if self.win is not None:
+            self.win.showMessage(_translate(
+                "Waiting to start..."
+            ))
+            self.win.color = "grey"
         # Process any calls
         while self._alive:
             # Empty the queue of any tasks
             while len(self._queue):
+                # Run the task
                 method, args, kwargs = self._queue.pop(0)
-                method(*args, **kwargs)
+                retval = method(*args, **kwargs)
+                # Store its output
+                self._results.append({
+                    'method': method.__name__,
+                    'args': args,
+                    'kwargs': kwargs,
+                    'returned': retval
+                })
             # Flip the screen and give a little time to sleep
             if self.win is not None:
                 self.win.flip()
@@ -270,6 +281,26 @@ class Session:
 
         return True
 
+    def getStatus(self):
+        """
+        Get an overall status flag for this Session. Will be one of either:
+
+        Returns
+        -------
+        int
+            A value `psychopy.constants`, either:
+            - NOT_STARTED: If no experiment is running
+            - STARTED: If an experiment is running
+            - PAUSED: If an experiment is paused
+            - FINISHED: If an experiment is in the process of terminating
+        """
+        if self.currentExperiment is None:
+            # If no current experiment, return NOT_STARTED
+            return constants.NOT_STARTED
+        else:
+            # Otherwise, return status of experiment handler
+            return self.currentExperiment.status
+
     def getExpInfoFromExperiment(self, key):
         """
         Get the global-level expInfo object from one of this Session's experiments. This will contain all of
@@ -353,6 +384,8 @@ class Session:
             expInfo = self.getExpInfoFromExperiment(key)
         # Run the setupWindow method
         self.win = self.experiments[key].setupWindow(expInfo=expInfo, win=self.win)
+        # Set window title to signify that we're in a Session
+        self.win.title = "PsychoPy Session"
 
         return True
 
@@ -397,6 +430,9 @@ class Session:
             # If win is None, make a Window
             from psychopy.visual import Window
             self.win = Window(**params)
+            self.win.showMessage(_translate(
+                "Waiting to start..."
+            ))
         else:
             # otherwise, just set the attributes which are safe to set
             self.win.color = params.get('color', self.win.color)
@@ -404,6 +440,8 @@ class Session:
             self.win.backgroundImage = params.get('backgroundImage', self.win.backgroundImage)
             self.win.backgroundFit = params.get('backgroundFit', self.win.backgroundFit)
             self.win.units = params.get('units', self.win.units)
+        # Set window title to signify that we're in a Session
+        self.win.title = "PsychoPy Session"
 
         return True
 
@@ -525,6 +563,7 @@ class Session:
         bool or None
             True if the operation completed/queued successfully
         """
+        err = None
         # If not in main thread and not requested blocking, use queue and return now
         if threading.current_thread() != threading.main_thread() and not blocking:
             # The queue is emptied each iteration of the while loop in `Session.start`
@@ -554,27 +593,44 @@ class Session:
         self.experiments[key].run.__globals__['logFile'] = self.logFile
         # Setup inputs
         self.setupInputsFromExperiment(key, expInfo=expInfo)
+        # Log start
+        logging.info(_translate(
+            "Running experiment via Session: name={key}, expInfo={expInfo}"
+        ).format(key=key, expInfo=expInfo))
         # Run this experiment
-        self.experiments[key].run(
-            expInfo=expInfo,
-            thisExp=thisExp,
-            win=self.win,
-            inputs=self.inputs,
-            thisSession=self
-        )
+        try:
+            self.experiments[key].run(
+                expInfo=expInfo,
+                thisExp=thisExp,
+                win=self.win,
+                inputs=self.inputs,
+                thisSession=self
+            )
+        except Exception as _err:
+            err = _err
         # Reinstate autodraw stimuli
         self.win.retrieveAutoDraw()
         # Restore original chdir
         os.chdir(str(self.root))
         # Store ExperimentHandler
         self.runs.append(thisExp)
+        # Save data
+        self.saveCurrentExperimentData()
         # Mark ExperimentHandler as no longer current
         self.currentExperiment = None
         # Display waiting text
         self.win.showMessage(_translate(
-            "Waiting to start experiment..."
+            "Waiting to start..."
         ))
         self.win.color = "grey"
+        # Raise any errors now
+        if err is not None:
+            raise err
+        # Log finished and flush logs
+        logging.info(_translate(
+            "Finished running experiment via Session: name={key}, expInfo={expInfo}"
+        ).format(key=key, expInfo=expInfo))
+        logging.flush()
 
         return True
 
@@ -633,7 +689,7 @@ class Session:
         # warn and return failed if no experiment is running
         if self.currentExperiment is None:
             logging.warn(
-                _translate("Could not pause experiment as there is none "
+                _translate("Could not stop experiment as there is none "
                            "running.")
             )
             return False
@@ -700,6 +756,41 @@ class Session:
 
         return True
 
+    def saveCurrentExperimentData(self, blocking=True):
+        """
+        Call `.saveExperimentData` on the currently running experiment - if
+        there is one.
+
+        Parameters
+        ----------
+        blocking : bool
+            Should calling this method block the current thread?
+
+            If True (default), the method runs as normal and won't return until
+            completed.
+            If False, the method is added to a `queue` and will be run by the
+            while loop within `Session.start`. This will block the main thread,
+            but won't block the thread this method was called from.
+
+            If not using multithreading, this value is ignored. If you don't
+            know what multithreading is, you probably aren't using it - it's
+            difficult to do by accident!
+
+        Returns
+        -------
+        bool or None
+            True if the operation completed/queued successfully, False if there
+            was no current experiment running
+        """
+        if self.currentExperiment is None:
+            return False
+
+        return self.saveExperimentData(
+            key=self.currentExperiment.name,
+            thisExp=self.currentExperiment,
+            blocking=blocking
+        )
+
     def sendToLiaison(self, value):
         """
         Send data to this Session's `Liaison` object.
@@ -752,6 +843,7 @@ if __name__ == "__main__":
         from psychopy import liaison
         # Create liaison server
         liaisonServer = liaison.WebSocketServer()
+        session.liaison = liaisonServer
         # Add session to liaison server
         liaisonServer.registerMethods(session, "session")
         # Create thread to run liaison server in
