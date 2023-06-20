@@ -71,7 +71,7 @@ dependencies = [
     "python-xlib; platform_system == \"Linux\"",
     "pyyaml",
     "openpyxl",
-    "setuptools>=67.8.0",
+    "setuptools>=68.0.0",
 ]
 
 [project.optional-dependencies]  # This is optional dependencies
