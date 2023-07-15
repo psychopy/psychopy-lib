@@ -2011,7 +2011,7 @@ dependencies = [
 
 [[package]]
 name = "zipp"
-version = "3.16.1"
+version = "3.16.2"
 requires_python = ">=3.8"
 summary = "Backport of pathlib-compatible object wrapper for zip files"
 
@@ -3985,9 +3985,9 @@ content_hash = "sha256:574e9f2f24b57a1eeaa127e0b8239f88a7f870399a28c2b1932f6505a
     {url = "https://files.pythonhosted.org/packages/57/bc/fa321ace7c71b48ddc1874b1db618d41ce775defab57387e90eccdb95590/xmlschema-2.3.1-py3-none-any.whl", hash = "sha256:eac0e10957723689ff0691785da4ffee1e95df3a874e685a179047f7bf07f8fb"},
     {url = "https://files.pythonhosted.org/packages/d9/ed/135f08d89431805a82806d22d2331eaff833c1157756a5752f54b6ffabfb/xmlschema-2.3.1.tar.gz", hash = "sha256:2eb426c5710833a05610c22c8766713a1b87e9405e3eca0b7c658375bf7ec810"},
 ]
-"zipp 3.16.1" = [
-    {url = "https://files.pythonhosted.org/packages/a1/3b/385e3b43200af0b9a13d03c234efbd9d40c6d73ab63fde1c097a2daacdea/zipp-3.16.1-py3-none-any.whl", hash = "sha256:0b37c326d826d5ca35f2b9685cd750292740774ef16190008b00a0227c256fe0"},
-    {url = "https://files.pythonhosted.org/packages/ef/76/5a9e1553f00ee55a6de6b3c176aa4c859c7f64b9bbdc48804df174dee890/zipp-3.16.1.tar.gz", hash = "sha256:857b158da2cbf427b376da1c24fd11faecbac5a4ac7523c3607f8a01f94c2ec0"},
+"zipp 3.16.2" = [
+    {url = "https://files.pythonhosted.org/packages/8c/08/d3006317aefe25ea79d3b76c9650afabaf6d63d1c8443b236e7405447503/zipp-3.16.2-py3-none-any.whl", hash = "sha256:679e51dd4403591b2d6838a48de3d283f3d188412a9782faadf845f298736ba0"},
+    {url = "https://files.pythonhosted.org/packages/e2/45/f3b987ad5bf9e08095c1ebe6352238be36f25dd106fde424a160061dce6d/zipp-3.16.2.tar.gz", hash = "sha256:ebc15946aa78bd63458992fc81ec3b6f7b1e92d51c35e6de1c3804e73b799147"},
 ]
 "zope-event 5.0" = [
     {url = "https://files.pythonhosted.org/packages/46/c2/427f1867bb96555d1d34342f1dd97f8c420966ab564d58d18469a1db8736/zope.event-5.0.tar.gz", hash = "sha256:bac440d8d9891b4068e2b5a2c5e2c9765a9df762944bda6955f96bb9b91e67cd"},
