@@ -685,11 +685,11 @@ files = [
 
 [[package]]
 name = "json-tricks"
-version = "3.17.1"
+version = "3.17.2"
 summary = "Extra features for Python's JSON: comments, order, numpy, pandas, datetimes, and many more! Simple but customizable."
 files = [
-    {file = "json_tricks-3.17.1-py2.py3-none-any.whl", hash = "sha256:f66340efee16f610a81f67ba90822ec4c2630459f50ed9c708d6d0f93f7beb2f"},
-    {file = "json_tricks-3.17.1.tar.gz", hash = "sha256:9a41a67634cd721a05acce545e53722848baa53fab7cf96fa22b6ff1dbf10a8f"},
+    {file = "json_tricks-3.17.2-py2.py3-none-any.whl", hash = "sha256:51386e5a97d17a6778e78d9bb5aa6f67e3219424d38d5e79d4098bc03fae9d60"},
+    {file = "json_tricks-3.17.2.tar.gz", hash = "sha256:9d153d9f2d9ce69a6e81bce1bde61091e27437c11fee4f02b151dd6296c95c71"},
 ]
 
 [[package]]
@@ -3854,12 +3854,12 @@ files = [
 
 [[package]]
 name = "urllib3"
-version = "2.0.3"
+version = "2.0.4"
 requires_python = ">=3.7"
 summary = "HTTP library with thread-safe connection pooling, file post, and more."
 files = [
-    {file = "urllib3-2.0.3-py3-none-any.whl", hash = "sha256:48e7fafa40319d358848e1bc6809b208340fafe2096f1725d05d67443d0483d1"},
-    {file = "urllib3-2.0.3.tar.gz", hash = "sha256:bee28b5e56addb8226c96f7f13ac28cb4c301dd5ea8a6ca179c0b9835e032825"},
+    {file = "urllib3-2.0.4-py3-none-any.whl", hash = "sha256:de7df1803967d2c2a98e4b11bb7d6bd9210474c46e8a0401514e3a42a75ebde4"},
+    {file = "urllib3-2.0.4.tar.gz", hash = "sha256:8d22f86aae8ef5e410d4f539fde9ce6b2113a001bb4d189e0aed70642d602b11"},
 ]
 
 [[package]]
