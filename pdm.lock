@@ -6,7 +6,7 @@ groups = ["default"]
 cross_platform = true
 static_urls = false
 lock_version = "4.3"
-content_hash = "sha256:43ee9d0bba25d2ebcef36028bdc3dccb0203543cbfc03a8ff3c1e2eba5791873"
+content_hash = "sha256:72648277f636bd930c2b76c9b46778e3d43aaf7669b62559d38e3ecdd856c2c2"
 
 [[package]]
 name = "arabic-reshaper"
@@ -391,12 +391,12 @@ files = [
 
 [[package]]
 name = "elementpath"
-version = "4.1.4"
+version = "4.1.5"
 requires_python = ">=3.7"
 summary = "XPath 1.0/2.0/3.0/3.1 parsers and selectors for ElementTree and lxml"
 files = [
-    {file = "elementpath-4.1.4-py3-none-any.whl", hash = "sha256:e7c6d25546dfb381a2c9cde3b78c0c40f52811e06eb810faf019e16c531a74bf"},
-    {file = "elementpath-4.1.4.tar.gz", hash = "sha256:f991c42ff66fa06e219141ccf65890261e6635b448e7d4c2d8b62dc5bf1de9e8"},
+    {file = "elementpath-4.1.5-py3-none-any.whl", hash = "sha256:2ac1a2fb31eb22bbbf817f8cf6752f844513216263f0e3892c8e79782fe4bb55"},
+    {file = "elementpath-4.1.5.tar.gz", hash = "sha256:c2d6dc524b29ef751ecfc416b0627668119d8812441c555d7471da41d4bacb8d"},
 ]
 
 [[package]]
