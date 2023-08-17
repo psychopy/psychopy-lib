@@ -6,7 +6,7 @@ groups = ["default"]
 cross_platform = true
 static_urls = false
 lock_version = "4.3"
-content_hash = "sha256:74b8ae7a71f5e0ff1a578bd991ce9387712ec9062667f251ee588ee70c044d48"
+content_hash = "sha256:07469813a78da705a165924dda1988c440b4ed265741e0cce7b9eda5cd2c9de7"
 
 [[package]]
 name = "arabic-reshaper"
