@@ -514,11 +514,11 @@ files = [
 
 [[package]]
 name = "json-tricks"
-version = "3.17.2"
+version = "3.17.3"
 summary = "Extra features for Python's JSON: comments, order, numpy, pandas, datetimes, and many more! Simple but customizable."
 files = [
-    {file = "json_tricks-3.17.2-py2.py3-none-any.whl", hash = "sha256:51386e5a97d17a6778e78d9bb5aa6f67e3219424d38d5e79d4098bc03fae9d60"},
-    {file = "json_tricks-3.17.2.tar.gz", hash = "sha256:9d153d9f2d9ce69a6e81bce1bde61091e27437c11fee4f02b151dd6296c95c71"},
+    {file = "json_tricks-3.17.3-py2.py3-none-any.whl", hash = "sha256:8ba11cb66a09532945c05c7374a72b857dfc3870b2d145125edd508f4027dff9"},
+    {file = "json_tricks-3.17.3.tar.gz", hash = "sha256:71561eedad7c22dde019e9a38ff8c46ebd91da789e31e2513f627dd2cbbdbf56"},
 ]
 
 [[package]]
