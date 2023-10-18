@@ -255,36 +255,12 @@ files = [
 
 [[package]]
 name = "cython"
-version = "3.0.3"
+version = "3.0.4"
 requires_python = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
 summary = "The Cython compiler for writing C extensions in the Python language."
 files = [
-    {file = "Cython-3.0.3-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:85073ab414ff432d2a39d36cb49c39ce69f30b53daccc7699bfad0ce3d1b539a"},
-    {file = "Cython-3.0.3-cp310-cp310-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:30c1d9bd2bcb9b1a195dd23b359771857df8ebd4a1038fb37dd155d3ea38c09c"},
-    {file = "Cython-3.0.3-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:9296f332523d5c550ebae694483874d255264cff3281372f25ea5f2739b96651"},
-    {file = "Cython-3.0.3-cp310-cp310-manylinux_2_5_i686.manylinux1_i686.manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:d52ed47edbf48392dd0f419135e7ff59673f6b32d27d3ffc9e61a515571c050d"},
-    {file = "Cython-3.0.3-cp310-cp310-musllinux_1_1_aarch64.whl", hash = "sha256:6f63e959d13775472d37e731b2450d120e8db87e956e2de74475e8f17a89b1fb"},
-    {file = "Cython-3.0.3-cp310-cp310-musllinux_1_1_x86_64.whl", hash = "sha256:22d268c3023f405e13aa0c1600389794694ab3671614f8e782d89a1055da0858"},
-    {file = "Cython-3.0.3-cp310-cp310-win32.whl", hash = "sha256:51850f277660f67171135515e45edfc8815f723ff20768e39cb9785b2671062f"},
-    {file = "Cython-3.0.3-cp310-cp310-win_amd64.whl", hash = "sha256:bff1fec968a6b2ca452ae9bff6d6d0bf8486427d4d791e85543240266b6915e0"},
-    {file = "Cython-3.0.3-cp38-cp38-macosx_10_9_x86_64.whl", hash = "sha256:4e956383e57d00b1fa6449b5ec03b9fa5fce2afd41ef3e518bee8e7c89f1616c"},
-    {file = "Cython-3.0.3-cp38-cp38-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:1ec9e15b821ef7e3c38abe9e4df4e6dda7af159325bc358afd5a3c2d5027ccfe"},
-    {file = "Cython-3.0.3-cp38-cp38-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:18f4fb7cc6ad8e99e8f387ebbcded171a701bfbfd8cd3fd46156bf44bb4fd968"},
-    {file = "Cython-3.0.3-cp38-cp38-manylinux_2_5_i686.manylinux1_i686.manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:b50f4f75f89e7eef2ed9c9b60746bc4ab1ba2bc0dff64587133db2b63e068f09"},
-    {file = "Cython-3.0.3-cp38-cp38-musllinux_1_1_aarch64.whl", hash = "sha256:5545d20d7a1c0cf17559152f7f4a465c3d5caace82dd051f82e2d753ae9fd956"},
-    {file = "Cython-3.0.3-cp38-cp38-musllinux_1_1_x86_64.whl", hash = "sha256:1571b045ec1cb15c152c3949f3bd53ee0fa66d434271ea3d225658d99b7e721a"},
-    {file = "Cython-3.0.3-cp38-cp38-win32.whl", hash = "sha256:3db04801fd15d826174f63ff45878d4b1e62aff27cf1ea96b186581052d24446"},
-    {file = "Cython-3.0.3-cp38-cp38-win_amd64.whl", hash = "sha256:75d42c8423ab299396f3c938445730600e32e4a2f0298f6f9df4d4a698fe8e16"},
-    {file = "Cython-3.0.3-cp39-cp39-macosx_10_9_x86_64.whl", hash = "sha256:48bae87b657009e5648c21d4a92de9f3dc6fed3e35e92957fa8a07a18cea2313"},
-    {file = "Cython-3.0.3-cp39-cp39-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:6ccde14ddc4b424435cb5722aa1529c254bbf3611e1ad9baea12d25e9c049361"},
-    {file = "Cython-3.0.3-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:4c8e5afcc19861c3b22faafbe906c7e1b23f0595073ac10e21a80dec9e60e7dd"},
-    {file = "Cython-3.0.3-cp39-cp39-manylinux_2_5_i686.manylinux1_i686.manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:0e1c9385e99eef299396b9a1e39790e81819446c6a83e249f6f0fc71a64f57a0"},
-    {file = "Cython-3.0.3-cp39-cp39-musllinux_1_1_aarch64.whl", hash = "sha256:d49d20db27c9cfcf45bb1fbf68f777bd1e04e4b949e4e5172d9ee8c9419bc792"},
-    {file = "Cython-3.0.3-cp39-cp39-musllinux_1_1_x86_64.whl", hash = "sha256:d12591939af93c59defea6fc5320ca099eb44e4694e3b2cbe72fb24406079b97"},
-    {file = "Cython-3.0.3-cp39-cp39-win32.whl", hash = "sha256:9f40b27545d583fd7df0d3c1b76b3bcaf8a72dbd8d83d5486af2384015660de8"},
-    {file = "Cython-3.0.3-cp39-cp39-win_amd64.whl", hash = "sha256:74ba0f11b384246b7965169f08bf67d426e4957fee5c165571340217a9b43cfc"},
-    {file = "Cython-3.0.3-py2.py3-none-any.whl", hash = "sha256:176953a8a2532e34a589625a40c934ff339088f2bf4ddaa2e5cb77b05ca0c25c"},
-    {file = "Cython-3.0.3.tar.gz", hash = "sha256:327309301b01f729f173a94511cb2280c87ba03c89ed428e88f913f778245030"},
+    {file = "Cython-3.0.4-py2.py3-none-any.whl", hash = "sha256:e5e2859f97e9cceb8e70b0934c56157038b8b083245898593008162a70536d7e"},
+    {file = "Cython-3.0.4.tar.gz", hash = "sha256:2e379b491ee985d31e5faaf050f79f4a8f59f482835906efe4477b33b4fbe9ff"},
 ]
 
 [[package]]
@@ -3512,12 +3488,12 @@ files = [
 
 [[package]]
 name = "urllib3"
-version = "2.0.6"
+version = "2.0.7"
 requires_python = ">=3.7"
 summary = "HTTP library with thread-safe connection pooling, file post, and more."
 files = [
-    {file = "urllib3-2.0.6-py3-none-any.whl", hash = "sha256:7a7c7003b000adf9e7ca2a377c9688bbc54ed41b985789ed576570342a375cd2"},
-    {file = "urllib3-2.0.6.tar.gz", hash = "sha256:b19e1a85d206b56d7df1d5e683df4a7725252a964e3993648dd0fb5a1c157564"},
+    {file = "urllib3-2.0.7-py3-none-any.whl", hash = "sha256:fdb6d215c776278489906c2f8916e6e7d4f5a9b602ccbcfdf7f016fc8da0596e"},
+    {file = "urllib3-2.0.7.tar.gz", hash = "sha256:c97dfde1f7bd43a71c8d2a58e369e9b2bf692d1334ea9f9cae55add7d0dd0f84"},
 ]
 
 [[package]]
