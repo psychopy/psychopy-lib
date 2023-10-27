@@ -1,7 +1,7 @@
 import json
-
 from psychopy import layout, logging
-from psychopy.tools.attributetools import attributeSetter
+from psychopy.localization import _translate
+from psychopy.hardware import keyboard
 
 
 class PhotodiodeResponse:
@@ -28,7 +28,7 @@ class PhotodiodeResponse:
 
 
 class BasePhotodiode:
-    def __init__(self, parent):
+    def __init__(self, parent, threshold=None, pos=None, size=None, units=None):
         # get serial parent from port (if photodiode manages its own parent, this needs to be handled by the subclass)
         self.parent = parent
         # attribute in which to store current state
@@ -37,6 +37,13 @@ class BasePhotodiode:
         self.responses = []
         # list of listener objects
         self.listeners = []
+        # set initial threshold
+        if threshold is not None:
+            self.setThreshold(threshold)
+        # store position params
+        self.pos = pos
+        self.size = size
+        self.units = units
 
     def clearResponses(self):
         self.parent.dispatchMessages()
@@ -112,6 +119,8 @@ class BasePhotodiode:
             Size of the area of certainty. Essentially, the size of the last (smallest) rectangle which the photodiode
             was able to detect.
         """
+        # keyboard to check for escape
+        kb = keyboard.Keyboard(name="photodiodeValidatorKeyboard")
         # stash autodraw
         win.stashAutoDraw()
         # import visual here - if they're using this function, it's already in the stack
@@ -168,6 +177,9 @@ class BasePhotodiode:
                 win.flip()
                 # dispatch parent messages
                 self.parent.dispatchMessages()
+                # check for escape before entering recursion
+                if kb.getKeys(['escape']):
+                    return
                 # poll photodiode
                 if self.state:
                     # if it detected this rectangle, recur
@@ -175,41 +187,97 @@ class BasePhotodiode:
             # if none of these have returned, rect is too small to cover the whole photodiode, so return
             return
 
+        # reset state
+        self.state = None
+        self.parent.dispatchMessages()
+        self.clearResponses()
         # recursively shrink rect around the photodiode
         scanQuadrants()
         # clear all the events created by this process
+        self.state = None
+        self.parent.dispatchMessages()
         self.clearResponses()
         # reinstate autodraw
         win.retrieveAutoDraw()
         # flip
         win.flip()
 
+        # set size/pos/units
+        self.units = "norm"
+        self.size = rect.size * 2
+        self.pos = rect.pos + rect.size / (-2, 2)
+
         return (
-            layout.Size(rect.pos + rect.size / (-2, 2), units="norm", win=win),
-            layout.Size(rect.size * 2, units="norm", win=win)
+            layout.Position(self.pos, units="norm", win=win),
+            layout.Position(self.size, units="norm", win=win),
         )
 
     def findThreshold(self, win):
+        # keyboard to check for escape/continue
+        kb = keyboard.Keyboard(name="photodiodeValidatorKeyboard")
         # stash autodraw
         win.stashAutoDraw()
         # import visual here - if they're using this function, it's already in the stack
         from psychopy import visual
+
+        # epilepsy check
+        warningLbl = visual.TextBox2(
+            win,
+            text=_translate(
+                "WARNING: In order to detect the threshold of a photodiode, the screen needs to flash white and black, "
+                "which may trigger photosensitive epilepsy.\n"
+                "\n"
+                "If you are happy to continue, press SPACE. Otherwise, press ESCAPE to skip this check."
+            ),
+            size=(2, 2), pos=(0, 0), units="norm", alignment="center",
+            fillColor="black", color="white",
+            autoDraw=False, autoLog=False
+        )
+        resp = []
+        while not resp:
+            # get keys
+            resp = kb.getKeys(['escape', 'space'])
+            # draw warning
+            warningLbl.draw()
+            # flip
+            win.flip()
+        # continue/skip according to resp
+        if "space" not in resp:
+            return
+
         # box to cover screen
         bg = visual.Rect(
             win,
             size=(2, 2), pos=(0, 0), units="norm",
-            autoDraw=True
+            autoDraw=False
         )
-        # make sure threshold 255 catches black
+        # add low opacity label
+        label = visual.TextBox2(
+            win,
+            text="Finding best threshold for photodiode...",
+            fillColor=None, color=(0, 0, 0), colorSpace="rgb",
+            pos=(0, 0), size=(2, 2), units="norm",
+            alignment="center",
+            autoDraw=False
+        )
+        # make sure threshold 0 catches black
+        self.setThreshold(0)
         bg.fillColor = "black"
+        bg.draw()
+        label.color = (-0.8, -0.8, -0.8)
+        label.draw()
         win.flip()
         if self.getState():
             raise PhotodiodeValidationError(
                 "Photodiode did not recognise a black screen even when its threshold was at maximum. This means either "
                 "the screen is too bright or the photodiode is too sensitive."
             )
-        # make sure threshold 0 catches white
+        # make sure threshold 255 catches white
+        self.setThreshold(255)
         bg.fillColor = "white"
+        bg.draw()
+        label.color = (0.8, 0.8, 0.8)
+        label.draw()
         win.flip()
         if not self.getState():
             raise PhotodiodeValidationError(
@@ -235,13 +303,22 @@ class BasePhotodiode:
             self.setThreshold(int(current))
             # try black
             bg.fillColor = "black"
+            bg.draw()
+            label.color = (-0.8, -0.8, -0.8)
+            label.draw()
             win.flip()
+            # check for escape before entering recursion
+            if kb.getKeys(['escape']):
+                return int(current)
             # if state is still True, move threshold up and try again
             if self.getState():
                 current = (current + 0) / 2
                 _bisectThreshold(current)
             # try white
             bg.fillColor = "white"
+            bg.draw()
+            label.color = (0.8, 0.8, 0.8)
+            label.draw()
             win.flip()
             # if state is still False, move threshold down and try again
             if not self.getState():
@@ -251,9 +328,24 @@ class BasePhotodiode:
             # once we get to here (account for recursion), we have a good threshold!
             return int(current)
 
+        # reset state
+        self.state = None
+        self.parent.dispatchMessages()
+        self.clearResponses()
         # bisect thresholds, starting at 127 (exact middle)
         threshold = _bisectThreshold(127)
         self.setThreshold(threshold)
+        # clear bg rect
+        bg.setAutoDraw(False)
+        # clear all the events created by this process
+        self.state = None
+        self.parent.dispatchMessages()
+        self.clearResponses()
+        # reinstate autodraw
+        win.retrieveAutoDraw()
+        # flip
+        win.flip()
+
         return threshold
 
     def setThreshold(self, threshold):
@@ -284,7 +376,6 @@ class PhotodiodeValidator:
 
     def __init__(
             self, win, diode,
-            diodePos=None, diodeSize=None, diodeUnits="norm",
             variability=1/60,
             report="log",
             autoLog=False):
@@ -314,18 +405,8 @@ class PhotodiodeValidator:
             depth=0, autoDraw=False,
             autoLog=False
         )
-
-        # if no pos or size are given for diode, figure it out
-        if diodePos is None or diodeSize is None:
-            _guessPos, _guessSize = diode.findPhotodiode(self.win)
-            if diodePos is None:
-                diodePos = _guessPos
-            if diodeSize is None:
-                diodeSize = _guessSize
-        # position rects to match diode
-        self.diodeUnits = diodeUnits
-        self.diodeSize = diodeSize
-        self.diodePos = diodePos
+        # update rects to match diode
+        self.updateRects()
 
     def connectStimulus(self, stim):
         # store mapping of stimulus to self in window
@@ -334,6 +415,16 @@ class PhotodiodeValidator:
 
     def draw(self):
         self.onRect.draw()
+
+    def updateRects(self):
+        """
+        Update the size and position of this validator's rectangles to match the size and position of the associated
+        diode.
+        """
+        for rect in (self.onRect, self.offRect):
+            rect.units = self.diode.units
+            rect.pos = self.diode.pos
+            rect.size = self.diode.size
 
     def validate(self, state, t=None):
         """
@@ -394,27 +485,6 @@ class PhotodiodeValidator:
 
     def getDiodeState(self):
         return self.diode.getState()
-
-    @attributeSetter
-    def diodeUnits(self, value):
-        self.onRect.units = value
-        self.offRect.units = value
-
-        self.__dict__['diodeUnits'] = value
-
-    @attributeSetter
-    def diodePos(self, value):
-        self.onRect.pos = value
-        self.offRect.pos = value
-
-        self.__dict__['diodePos'] = value
-
-    @attributeSetter
-    def diodeSize(self, value):
-        self.onRect.size = value
-        self.offRect.size = value
-
-        self.__dict__['diodeSize'] = value
 
     @staticmethod
     def onValid(isWhite):

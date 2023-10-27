@@ -3,7 +3,7 @@
 
 from pathlib import Path
 from psychopy.experiment import Param
-from psychopy.experiment.components import BaseComponent
+from psychopy.experiment.components import BaseComponent, getInitVals
 from psychopy.experiment.routines import Routine
 from psychopy.localization import _translate
 
@@ -25,10 +25,12 @@ class PhotodiodeValidatorComponent(BaseComponent):
             self,
             # basic
             exp, parentName, name='photodiode',
-            backend="bbtk-tpad", port="", number="1",
             variability="1/60", report="log",
+            findThreshold=True, threshold=127,
             # layout
             findDiode=True, diodePos="(1, 1)", diodeSize="(0.1, 0.1)", diodeUnits="norm",
+            # device
+            backend="bbtk-tpad", port="", number="1",
             # data
             saveValid=True,
     ):
@@ -47,49 +49,21 @@ class PhotodiodeValidatorComponent(BaseComponent):
         )
         exp.requireImport(
             importName="tpad",
-            importFrom="psychopy.hardware.bbtk"
+            importFrom="psychopy_bbtk"
         )
 
         # --- Basic ---
         self.order += [
-            "backend",
-            "port",
-            "number",
             "variability",
-            "report"
+            "report",
+            "findThreshold",
+            "threshold",
+            "findDiode",
+            "diodePos",
+            "diodeSize",
+            "diodeUnits",
         ]
-        self.params['backend'] = Param(
-            backend, valType="code", inputType="choice", categ="Basic",
-            allowedVals=["bbtk-tpad"],
-            allowedLabels=["Black Box Toolkit (BBTK) TPad"],
-            label=_translate("Photodiode type"),
-            hint=_translate(
-                "Type of photodiode to use."
-            )
-        )
-        def getPorts():
-            """
-            Get list of available serial ports via hardware.serialdevice.
-            """
-            from psychopy.hardware.serialdevice import ports
-            return list(ports)
-        self.params['port'] = Param(
-            port, valType="str", inputType="choice", categ="Basic",
-            allowedVals=getPorts,
-            allowedLabels=getPorts,
-            label=_translate("Serial port"),
-            hint=_translate(
-                "Serial port which the photodiode is connected to."
-            )
-        )
-        self.params['number'] = Param(
-            number, valType="code", inputType="single", categ="Basic",
-            label=_translate("Device number"),
-            hint=_translate(
-                "If relevant, a device number attached to the photodiode, to distinguish it from other photodiodes on "
-                "the same port."
-            )
-        )
+
         self.params['variability'] = Param(
             variability, valType="code", inputType="single", categ="Basic",
             label=_translate("Variability (s)"),
@@ -106,29 +80,37 @@ class PhotodiodeValidatorComponent(BaseComponent):
                 "What to do when the validation fails. Just log, or stop the script and raise an error?"
             )
         )
-        del self.params['stopType']
-        del self.params['stopVal']
-        del self.params['durationEstim']
-        del self.params['startVal']
-        del self.params['startType']
-        del self.params['startEstim']
-
-        # --- Layout ---
-        self.order += [
-            "findDiode",
-            "diodePos",
-            "diodeSize",
-            "diodeUnits"
-        ]
+        self.params['findThreshold'] = Param(
+            findThreshold, valType="bool", inputType="bool", categ="Basic",
+            label=_translate("Find best threshold?"),
+            hint=_translate(
+                "Run a brief Routine to find the best threshold for the photodiode at experiment start?"
+            )
+        )
+        self.params['threshold'] = Param(
+            threshold, valType="code", inputType="single", categ="Basic",
+            label=_translate("Threshold"),
+            hint=_translate(
+                "Light threshold at which the photodiode should register a positive, units go from 0 (least light) to "
+                "255 (most light)."
+            )
+        )
+        self.depends.append({
+            "dependsOn": "findThreshold",  # if...
+            "condition": "==True",  # is...
+            "param": "threshold",  # then...
+            "true": "hide",  # should...
+            "false": "show",  # otherwise...
+        })
         self.params['findDiode'] = Param(
-            findDiode, valType="code", inputType="bool", categ="Layout",
+            findDiode, valType="code", inputType="bool", categ="Basic",
             label=_translate("Find diode?"),
             hint=_translate(
-                "Run a brief Routine to find the size and position of the photodiode each time this Routine runs?"
+                "Run a brief Routine to find the size and position of the photodiode at experiment start?"
             )
         )
         self.params['diodePos'] = Param(
-            diodePos, valType="list", inputType="single", categ="Layout",
+            diodePos, valType="list", inputType="single", categ="Basic",
             updates="constant", allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             label=_translate("Position [x,y]"),
             hint=_translate(
@@ -136,7 +118,7 @@ class PhotodiodeValidatorComponent(BaseComponent):
             )
         )
         self.params['diodeSize'] = Param(
-            diodeSize, valType="list", inputType="single", categ="Layout",
+            diodeSize, valType="list", inputType="single", categ="Basic",
             updates="constant", allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             label=_translate("Size [x,y]"),
             hint=_translate(
@@ -144,7 +126,7 @@ class PhotodiodeValidatorComponent(BaseComponent):
             )
         )
         self.params['diodeUnits'] = Param(
-            diodeUnits, valType="str", inputType="choice", categ="Layout",
+            diodeUnits, valType="str", inputType="choice", categ="Basic",
             allowedVals=['from exp settings', 'deg', 'cm', 'pix', 'norm', 'height', 'degFlatPos', 'degFlat'],
             label=_translate("Spatial units"),
             hint=_translate(
@@ -160,6 +142,53 @@ class PhotodiodeValidatorComponent(BaseComponent):
                 "false": "show",  # otherwise...
             })
 
+        del self.params['stopType']
+        del self.params['stopVal']
+        del self.params['durationEstim']
+        del self.params['startVal']
+        del self.params['startType']
+        del self.params['startEstim']
+
+        # --- Device ---
+        self.order += [
+            "backend",
+            "port",
+            "number",
+        ]
+        self.params['backend'] = Param(
+            backend, valType="code", inputType="choice", categ="Device",
+            allowedVals=["bbtk-tpad"],
+            allowedLabels=["Black Box Toolkit (BBTK) TPad"],
+            label=_translate("Photodiode type"),
+            hint=_translate(
+                "Type of photodiode to use."
+            )
+        )
+        def getPorts():
+            """
+            Get list of available serial ports via hardware.serialdevice.
+            """
+            from psychopy.hardware.serialdevice import ports
+            return list(ports)
+
+        self.params['port'] = Param(
+            port, valType="str", inputType="choice", categ="Device",
+            allowedVals=getPorts,
+            allowedLabels=getPorts,
+            label=_translate("Serial port"),
+            hint=_translate(
+                "Serial port which the photodiode is connected to."
+            )
+        )
+        self.params['number'] = Param(
+            number, valType="code", inputType="single", categ="Device",
+            label=_translate("Device number"),
+            hint=_translate(
+                "If relevant, a device number attached to the photodiode, to distinguish it from other photodiodes on "
+                "the same port."
+            )
+        )
+
         # --- Data ---
         self.params['saveValid'] = Param(
             saveValid, valType="code", inputType="bool", categ="Data",
@@ -170,14 +199,68 @@ class PhotodiodeValidatorComponent(BaseComponent):
         )
 
     def writeInitCode(self, buff):
+        inits = getInitVals(self.params)
         # initialise diode
         if self.params['backend'] == "bbtk-tpad":
+            # construct tpad and diode names
+            inits['padName'] = "tpad" + inits['port'].val
+            inits['diodeName'] = "diode" + inits['number'].val + inits['port'].val
+            # add TPad (only once per pad)
+            code = (
+                "# initialise TPad on %(port)s\n"
+                "%(padName)s = tpad.TPad(name='%(padName)s', port=%(port)s)\n"
+            )
+            buff.writeOnceIndentedLines(code % inits)
+            # get diode (only once per diode)
+            code = (
+                "# initialise photodiode %(number)s on port %(port)s\n"
+                "%(diodeName)s = %(padName)s.photodiodes[%(number)s]\n"
+            )
+            buff.writeOnceIndentedLines(code % inits)
+            # find/set threshold
+            if self.params['findThreshold']:
+                code = (
+                    "if %(diodeName)s.getThreshold() is None:\n"
+                    "    %(diodeName)s.findThreshold(win)\n"
+                )
+                buff.writeOnceIndentedLines(code % inits)
+            elif self.params['threshold']:
+                code = (
+                    "%(diodeName)s.setThreshold(%(threshold)s)\n"
+                )
+                buff.writeIndentedLines(code % inits)
+            # find/set diode position
+            if self.params['findDiode']:
+                code = (
+                    "if %(diodeName)s.pos is None and %(diodeName)s.size is None and %(diodeName)s.units is None:\n"
+                    "    %(diodeName)s.findPhotodiode(win)\n"
+                )
+                buff.writeOnceIndentedLines(code % inits)
+            else:
+                code = ""
+                # set units (unless None)
+                if self.params['units']:
+                    code += (
+                        "%(diodeName)s.units = %(units)s\n"
+                    )
+                # set pos (unless None)
+                if self.params['pos']:
+                    code += (
+                        "%(diodeName)s.pos = %(pos)s\n"
+                    )
+                # set size (unless None)
+                if self.params['size']:
+                    code += (
+                        "%(diodeName)s.size = %(size)s\n"
+                    )
+                buff.writeIndentedLines(code % inits)
+
+            # store diode by this component's name
             code = (
                 "# diode object for %(name)s\n"
-                "%(name)sTPad = tpad.TPad(port=%(port)s)\n"
-                "%(name)sDiode = %(name)sTPad.photodiodes[%(number)s]\n"
+                "%(name)sDiode = %(diodeName)s\n"
             )
-            buff.writeIndentedLines(code % self.params)
+            buff.writeIndentedLines(code % inits)
         else:
             raise NotImplementedError(f"Backend %(backend)s is not supported." % self.params)
         # create validator object
@@ -185,13 +268,6 @@ class PhotodiodeValidatorComponent(BaseComponent):
             "# validator object for %(name)s\n"
             "%(name)s = phd.PhotodiodeValidator(\n"
             "    win, %(name)sDiode,\n"
-        )
-        if not self.params['findDiode']:
-            # specify pos, size and units if told not to find diode
-            code += (
-            "    diodePos=%(diodePos)s, diodeSize=%(diodeSize)s, diodeUnits=%(diodeUnits)s,\n"
-            )
-        code += (
             "    variability=%(variability)s,\n"
             "    report=%(report)s,\n"
             ")\n"
