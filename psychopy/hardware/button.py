@@ -14,7 +14,7 @@ class ButtonResponse:
     def getJSON(self):
         message = {
             'type': "hardware_response",
-            'class': "PhotodiodeResponse",
+            'class': "ButtonResponse",
             'data': {
                 't': self.t,
                 'channel': self.channel,
@@ -52,6 +52,19 @@ class BaseButtonGroup(base.BaseDevice):
             Object to duplicate messages to when received by this Button.
         """
         self.listeners.append(listener)
+
+    def clearListeners(self):
+        """
+        Remove any listeners from this device.
+
+        Returns
+        -------
+        bool
+            True if completed successfully
+        """
+        self.listeners = []
+
+        return True
 
     def getResponses(self, state=None, channel=None, clear=True):
         """
