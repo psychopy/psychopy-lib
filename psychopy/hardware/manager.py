@@ -52,6 +52,7 @@ class DeviceManager:
 
     """
     _instance = None  # singleton instance
+    deviceClasses = []  # subclasses of BaseDevice which we know about
     liaison = None
     ioServer = None  # reference to currently running ioHub ioServer object
     devices = {}  # devices stored
@@ -191,6 +192,25 @@ class DeviceManager:
         return device
 
     @staticmethod
+    def addDeviceFromParams(params):
+        """
+        Similar to addDevice, but rather than accepting arguments and keyword arguments, simply accepts a dict of
+        params. This is useful when receiving parameters from Liaison, communicating with a keyword-less language like
+        JavaScript. This is relatively niche and in most cases addDevice will work fine.
+
+        Parameters
+        ----------
+        params : dict
+            Keyword arguments to be passed to DeviceManager.addDevice
+
+        Returns
+        -------
+        BaseDevice
+            Device created by the linked class init
+        """
+        return DeviceManager.addDevice(**params)
+
+    @staticmethod
     def removeDevice(deviceName):
         """
         Remove the device matching a specified device type and name.
@@ -218,6 +238,34 @@ class DeviceManager:
             Matching device handle
         """
         return DeviceManager.devices.get(deviceName, None)
+
+    @staticmethod
+    def getDeviceBy(attr, value, deviceClass="*"):
+        """
+        Get a device by the value of a particular attribute. e.g. get a Microphone device by its index.
+
+        Parameters
+        ----------
+        attr : str
+            Name of the attribute to query each device for
+        value : *
+            Value which the attribute should return for the device to be a match
+        deviceClass : str
+            Filter search only to devices of a particular class (optional)
+
+        Returns
+        -------
+        BaseDevice
+            Device matching given parameters, or None if none found
+        """
+        # get devices by class
+        devices = DeviceManager.getInitialisedDevices(deviceClass=deviceClass)
+        # try each matching device
+        for dev in devices:
+            if hasattr(dev, attr):
+                # if device matches attribute, return it
+                if getattr(dev, attr) == value:
+                    return dev
 
     @staticmethod
     def getInitialisedDevices(deviceClass="*"):
@@ -250,30 +298,47 @@ class DeviceManager:
 
         Parameters
         ----------
-        deviceClass : str
+        deviceClass : str or list
             Full import path for the class, in PsychoPy, of the device. For example
-            `psychopy.hardware.keyboard.Keyboard`
+            `psychopy.hardware.keyboard.Keyboard`. If given a list, will run iteratively for all items in the list.
 
         Returns
         -------
         list
             List of dicts specifying parameters needed to initialise each device.
         """
-        # if deviceClass is *, just return full output from systemProfilerWindowsOS
+        # if deviceClass is *, call for all types
         if deviceClass == "*":
-            return st.systemProfilerWindowsOS(deviceids=True)
+            deviceClass = DeviceManager.deviceClasses
+        # if given multiple types, call for each
+        if isinstance(deviceClass, (list, tuple)):
+            devices = {}
+            for thisClass in deviceClass:
+                try:
+                    devices[thisClass] = DeviceManager.getAvailableDevices(deviceClass=thisClass)
+                except NotImplementedError:
+                    # ignore any NotImplementedErrors
+                    pass
+            return devices
+
         # if device class is an already registered alias, get the actual class str
         deviceClass = DeviceManager._resolveAlias(deviceClass)
         # get device class
         cls = DeviceManager._resolveClassString(deviceClass)
         # make sure cass has a getAvailableDevices method
         assert hasattr(cls, "getAvailableDevices"), (
-            "Could not get available devices of type `{deviceClass}` as device class does not have a "
-            "`getAvailableDevices` method."
+            f"Could not get available devices of type `{deviceClass}` as device class does not have a "
+            f"`getAvailableDevices` method."
         )
         # use class method
-        return cls.getAvailableDevices()
+        devices = []
+        for profile in cls.getAvailableDevices():
+            # add device class
+            profile['deviceClass'] = deviceClass
+            # append
+            devices.append(profile)
 
+        return devices
 
     @staticmethod
     def closeAll():
