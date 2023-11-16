@@ -71,7 +71,8 @@ class DeviceManager:
 
     def __init__(self, liaison=None):
         # set liaison
-        self.liaison = liaison
+        if liaison is not None:
+            DeviceManager.liaison = liaison
 
     # --- utility ---
 
@@ -227,6 +228,7 @@ class DeviceManager:
             True if completed successfully
         """
         device = DeviceManager.devices[deviceName]
+        DeviceManager.clearListeners(deviceName)
         if hasattr(device, "close"):
             device.close()
         del DeviceManager.devices[deviceName]
@@ -486,7 +488,7 @@ class DeviceManager:
         device = DeviceManager.getDevice(deviceName)
         # add listener to device
         if hasattr(device, "addListener"):
-            device.addListener(listener, startLoop=startLoop)
+            listener = device.addListener(listener, startLoop=startLoop)
         else:
             raise AttributeError(
                 f"Could not add a listener to device {deviceName} ({type(device).__name__}) as it does not "
