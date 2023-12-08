@@ -135,6 +135,9 @@ class ButtonBoxComponent(BaseDeviceComponent, PluginDevicesMixin):
             direct=False
         )
 
+        # add params for any backends
+        self.loadBackends()
+
     def writeInitCode(self, buff):
         inits = getInitVals(self.params)
         # code to create object
@@ -193,7 +196,7 @@ class ButtonBoxComponent(BaseDeviceComponent, PluginDevicesMixin):
             # include code to get correct
             if self.params['storeCorrect']:
                 code += (
-                    "    %(name)s.corr.append(resp.channel in %(correctAns)s)\n"
+                    "    %(name)s.corr.append(_thisResp.channel in %(correctAns)s)\n"
                 )
             buff.writeIndentedLines(code % params)
             # code to end Routine
