@@ -1,6 +1,6 @@
 import json
 from psychopy import layout, logging
-from psychopy.hardware import base
+from psychopy.hardware import base, DeviceManager
 from psychopy.localization import _translate
 from psychopy.hardware import keyboard
 
@@ -56,7 +56,15 @@ class BasePhotodiodeGroup(base.BaseResponseDevice):
 
     @staticmethod
     def getAvailableDevices():
-        raise NotImplementedError()
+        devices = []
+        for cls in DeviceManager.deviceClasses:
+            # get class from class str
+            cls = DeviceManager._resolveClassString(cls)
+            # if class is a photodiode, add its available devices
+            if issubclass(cls, BasePhotodiodeGroup) and cls is not BasePhotodiodeGroup:
+                devices += cls.getAvailableDevices()
+
+        return devices
 
     def getResponses(self, state=None, channel=None, clear=True):
         """
@@ -342,8 +350,11 @@ class ScreenBufferSampler(BasePhotodiodeGroup):
         from psychopy.core import Clock
         self.clock = Clock()
 
-    def setThreshold(self, threshold):
+    def _setThreshold(self, threshold, channel=None):
         self._threshold = threshold
+
+    def getThreshold(self, channel=None):
+        return self._threshold
 
     def dispatchMessages(self):
         """
@@ -383,7 +394,7 @@ class ScreenBufferSampler(BasePhotodiodeGroup):
 
     @staticmethod
     def getAvailableDevices():
-        raise None
+        return []
 
     def resetTimer(self, clock=logging.defaultClock):
         self.clock.reset(clock.getTime())
@@ -450,9 +461,9 @@ class ScreenBufferSampler(BasePhotodiodeGroup):
 
     def findThreshold(self, win=None, channel=0):
         # there's no physical photodiode, so just pick a reasonable threshold
-        self.setThreshold(127)
+        self.setThreshold(127, channel=channel)
 
-        return self.getThreshold()
+        return self.getThreshold(channel=channel)
 
 
 class PhotodiodeValidator:
