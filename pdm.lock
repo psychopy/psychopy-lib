@@ -3959,16 +3959,16 @@ files = [
 
 [[package]]
 name = "xmlschema"
-version = "3.0.0"
-requires_python = ">=3.7"
+version = "3.0.1"
+requires_python = ">=3.8"
 summary = "An XML Schema validator and decoder"
 groups = ["default"]
 dependencies = [
     "elementpath<5.0.0,>=4.1.5",
 ]
 files = [
-    {file = "xmlschema-3.0.0-py3-none-any.whl", hash = "sha256:ac2b290b5e77adf893e1650c2a3759326783f94df60a6a777bde9bab8f80c808"},
-    {file = "xmlschema-3.0.0.tar.gz", hash = "sha256:b8678318b0c6829cd855511a3cd501a92cfeaa647d65630d46ef13220a09f7b8"},
+    {file = "xmlschema-3.0.1-py3-none-any.whl", hash = "sha256:116243b2ad38cd2df9ee0606d4e4e898a6f156736b39ab0017e6f49862c0809e"},
+    {file = "xmlschema-3.0.1.tar.gz", hash = "sha256:bb24a5f4738e49d85d9eb03a2b5af26bbbbfdb055517ad953d98925094b8c026"},
 ]
 
 [[package]]
