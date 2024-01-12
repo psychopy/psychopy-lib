@@ -256,6 +256,27 @@ class DeviceManager:
         return True
 
     @staticmethod
+    def removeDeviceAlias(alias):
+        """
+        Removes a device alias from DeviceManager, but doesn't delete the object to which the alias
+        corresponds.
+
+        Parameters
+        ----------
+        deviceName : str
+            Key by which the device to alias is currently stored.
+
+        Returns
+        -------
+        bool
+            True if completed successfully
+        """
+        DeviceManager.devices.pop(alias)
+        DeviceManager.deviceAliases.pop(alias)
+
+        return True
+
+    @staticmethod
     def getDeviceAliases(deviceName):
         """
         Get all aliases by which a device is known to DeviceManager
@@ -432,7 +453,6 @@ class DeviceManager:
                 # make sure device name is in usages dict
                 if deviceName not in usages:
                     usages[deviceName] = []
-                print("DEVICE", type(emt).__name__, type(emt).deviceClasses)
                 # add any new usages
                 for cls in getattr(emt, "deviceClasses", []):
                     if cls not in usages[deviceName]:
