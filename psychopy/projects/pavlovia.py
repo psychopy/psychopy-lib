@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """Helper functions in PsychoPy for interacting with Pavlovia.org
@@ -112,7 +112,7 @@ def login(tokenOrUsername, rememberMe=True):
         user = currentSession.user
         prefs.appData['projects']['pavloviaUser'] = user['username']
     # update Pavlovia button(s)
-    for btn in app._psychopyApp.pavloviaButtons['user'] + app._psychopyApp.pavloviaButtons['project']:
+    for btn in app.getAppInstance().pavloviaButtons['user'] + app.getAppInstance().pavloviaButtons['project']:
         btn.updateInfo()
 
 def logout():
@@ -135,7 +135,7 @@ def logout():
         if hasattr(frame, 'setUser'):
             frame.setUser(None)
     # update Pavlovia button(s)
-    for btn in app._psychopyApp.pavloviaButtons['user'] + app._psychopyApp.pavloviaButtons['project']:
+    for btn in app.getAppInstance().pavloviaButtons['user'] + app.getAppInstance().pavloviaButtons['project']:
         btn.updateInfo()
 
 

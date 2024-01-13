@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """Describes the Flow of an experiment
@@ -144,10 +144,20 @@ class BaseStandaloneRoutine:
         return
 
     def writeRoutineBeginCodeJS(self, buff, modular):
-        return
+        code = (
+            "function %(name)sRoutineBegin(snapshot) {\n"
+            "    return async function () {}\n"
+            "}\n"
+        )
+        buff.writeIndentedLines(code % self.params)
 
     def writeEachFrameCodeJS(self, buff, modular):
-        return
+        code = (
+            "function %(name)sRoutineEachFrame(snapshot) {\n"
+            "    return async function () {}\n"
+            "}\n"
+        )
+        buff.writeIndentedLines(code % self.params)
 
     def writeRoutineEndCode(self, buff):
         # what loop are we in (or thisExp)?
@@ -166,7 +176,12 @@ class BaseStandaloneRoutine:
         buff.writeIndentedLines(code % self.name)
 
     def writeRoutineEndCodeJS(self, buff, modular):
-        return
+        code = (
+            "function %(name)sRoutineEnd(snapshot) {\n"
+            "    return async function () {}\n"
+            "}\n"
+        )
+        buff.writeIndentedLines(code % self.params)
 
     def writeExperimentEndCode(self, buff):
         return
