@@ -163,6 +163,17 @@ class Experiment:
         self._expHandler = TrialHandler(exp=self, name='thisExp')
         self._expHandler.type = 'ExperimentHandler'  # true at run-time
 
+    def __eq__(self, other):
+        if isinstance(other, Experiment):
+            # if another experiment, compare filenames
+            return other.filename == self.filename
+        elif isinstance(other, (str, Path)):
+            # if a string or path, compare against filename
+            return other == self.filename
+        else:
+            # if neither, it's not the same
+            return False
+
     def requirePsychopyLibs(self, libs=()):
         """Add a list of top-level psychopy libs that the experiment
         will need. e.g. [visual, event]
@@ -703,8 +714,11 @@ class Experiment:
                         # that have been removed
                         pass
                     elif componentNode is not None and componentNode.get("plugin") not in ("None", None):
-                        # don't warn people if param is from a plugin
+                        # don't warn people if comp/routine is from a plugin
                         pass
+                    elif paramNode.get('plugin', False):
+                        # load plugin name if param is from a plugin
+                        params[name].plugin = paramNode.get('plugin')
                     else:
                         # if param not recognised, mark as such
                         recognised = False
@@ -775,9 +789,6 @@ class Experiment:
         if self.settings.params['expName'].val in ['', None, 'None']:
             shortName = os.path.splitext(filenameBase)[0]
             self.setExpName(shortName)
-        # load plugins so that plugged in components get any additional params
-        from psychopy.plugins import activatePlugins
-        activatePlugins()
         # fetch routines
         routinesNode = root.find('Routines')
         allCompons = getAllComponents(
