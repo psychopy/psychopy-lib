@@ -13,6 +13,7 @@ __all__ = [
 ]
 
 import json
+import inspect
 
 
 class BaseResponse:
@@ -56,7 +57,6 @@ class BaseDevice:
     """
     def __init_subclass__(cls, aliases=None):
         from psychopy.hardware.manager import DeviceManager
-        import inspect
         # handle no aliases
         if aliases is None:
             aliases = []
@@ -86,8 +86,14 @@ class BaseDevice:
         dict
             Dictionary representing this device
         """
+        # get class string
+        cls = type(self)
+        mro = inspect.getmodule(cls).__name__ + "." + cls.__name__
+        # iterate through available devices for this class
         for profile in self.getAvailableDevices():
             if self.isSameDevice(profile):
+                # if current profile is this device, add deviceClass and return it
+                profile['deviceClass'] = mro
                 return profile
 
     def getJSON(self, asString=True):
@@ -252,6 +258,19 @@ class BaseResponseDevice(BaseDevice):
             If True, then upon adding the listener, start up an asynchronous loop to dispatch messages.
         """
         from . import listener as lsnr
+        # map listener classes to names
+        listenerClasses = {
+            'liaison': lsnr.LiaisonListener,
+            'print': lsnr.PrintListener,
+            'log': lsnr.LoggingListener
+        }
+        # if device already has a listener, log warning and skip
+        for extantListener in self.listeners:
+            # get class of requested listener
+            listenerCls = listenerClasses.get(listener, type(listener))
+            # if the same type as extant listener, return it rather than duplicating
+            if isinstance(extantListener, listenerCls):
+                return extantListener
         # make listener if needed
         if not isinstance(listener, lsnr.BaseListener):
             # if given a string rather than an object handle, make an object of correct type
@@ -262,10 +281,10 @@ class BaseResponseDevice(BaseDevice):
                         "Cannot create a `liaison` listener as no liaison server is connected to DeviceManager."
                     )
                 listener = lsnr.LiaisonListener(DeviceManager.liaison)
-            if listener == "print":
-                listener = lsnr.PrintListener()
-            if listener == "log":
-                listener = lsnr.LoggingListener()
+            elif listener in listenerClasses:
+                listener = listenerClasses[listener]()
+            else:
+                raise ValueError(f"No known listener type '{listener}'")
         # add listener handle
         self.listeners.append(listener)
         # start loop if requested
