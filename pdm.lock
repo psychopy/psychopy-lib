@@ -503,7 +503,7 @@ files = [
 
 [[package]]
 name = "imageio"
-version = "2.33.1"
+version = "2.34.0"
 requires_python = ">=3.8"
 summary = "Library for reading and writing a wide range of image, video, scientific, and volumetric data formats."
 groups = ["default"]
@@ -512,8 +512,8 @@ dependencies = [
     "pillow>=8.3.2",
 ]
 files = [
-    {file = "imageio-2.33.1-py3-none-any.whl", hash = "sha256:c5094c48ccf6b2e6da8b4061cd95e1209380afafcbeae4a4e280938cce227e1d"},
-    {file = "imageio-2.33.1.tar.gz", hash = "sha256:78722d40b137bd98f5ec7312119f8aea9ad2049f76f434748eb306b6937cc1ce"},
+    {file = "imageio-2.34.0-py3-none-any.whl", hash = "sha256:08082bf47ccb54843d9c73fe9fc8f3a88c72452ab676b58aca74f36167e8ccba"},
+    {file = "imageio-2.34.0.tar.gz", hash = "sha256:ae9732e10acf807a22c389aef193f42215718e16bd06eed0c5bb57e1034a4d53"},
 ]
 
 [[package]]
