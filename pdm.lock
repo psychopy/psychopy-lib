@@ -3898,13 +3898,13 @@ files = [
 
 [[package]]
 name = "urllib3"
-version = "2.2.0"
+version = "2.2.1"
 requires_python = ">=3.8"
 summary = "HTTP library with thread-safe connection pooling, file post, and more."
 groups = ["default"]
 files = [
-    {file = "urllib3-2.2.0-py3-none-any.whl", hash = "sha256:ce3711610ddce217e6d113a2732fafad960a03fd0318c91faa79481e35c11224"},
-    {file = "urllib3-2.2.0.tar.gz", hash = "sha256:051d961ad0c62a94e50ecf1af379c3aba230c66c710493493560c0c223c49f20"},
+    {file = "urllib3-2.2.1-py3-none-any.whl", hash = "sha256:450b20ec296a467077128bff42b73080516e71b56ff59a60a02bef2232c4fa9d"},
+    {file = "urllib3-2.2.1.tar.gz", hash = "sha256:d0570876c61ab9e520d776c38acbbb5b05a776d3f9ff98a5c8fd5162a444cf19"},
 ]
 
 [[package]]
@@ -3995,16 +3995,16 @@ files = [
 
 [[package]]
 name = "xmlschema"
-version = "3.0.1"
+version = "3.0.2"
 requires_python = ">=3.8"
 summary = "An XML Schema validator and decoder"
 groups = ["default"]
 dependencies = [
-    "elementpath<5.0.0,>=4.1.5",
+    "elementpath<5.0.0,>=4.3.0",
 ]
 files = [
-    {file = "xmlschema-3.0.1-py3-none-any.whl", hash = "sha256:116243b2ad38cd2df9ee0606d4e4e898a6f156736b39ab0017e6f49862c0809e"},
-    {file = "xmlschema-3.0.1.tar.gz", hash = "sha256:bb24a5f4738e49d85d9eb03a2b5af26bbbbfdb055517ad953d98925094b8c026"},
+    {file = "xmlschema-3.0.2-py3-none-any.whl", hash = "sha256:c8935f81e1645df3e71136805c7206871268aa8c6e31e3667ea23746f22fea0a"},
+    {file = "xmlschema-3.0.2.tar.gz", hash = "sha256:b2526e91695905aa62d4aa2b68349565a168fedf88ada0005f5e0dd21da9734b"},
 ]
 
 [[package]]
