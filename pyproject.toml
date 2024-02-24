@@ -61,7 +61,7 @@ dependencies = [
     "requests",
     "future",  # only to support legacy versions in useVersion
     # supporting plugins
-    "setuptools>=69.1.0",
+    "setuptools>=69.1.1",
     # pavlovia connections
     "cryptography",  # for sshkeys
     # psychoJS conversions
