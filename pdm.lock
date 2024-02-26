@@ -561,7 +561,7 @@ files = [
 
 [[package]]
 name = "importlib-resources"
-version = "6.1.1"
+version = "6.1.2"
 requires_python = ">=3.8"
 summary = "Read resources from Python packages"
 groups = ["default"]
@@ -570,8 +570,8 @@ dependencies = [
     "zipp>=3.1.0; python_version < \"3.10\"",
 ]
 files = [
-    {file = "importlib_resources-6.1.1-py3-none-any.whl", hash = "sha256:e8bf90d8213b486f428c9c39714b920041cb02c184686a3dee24905aaa8105d6"},
-    {file = "importlib_resources-6.1.1.tar.gz", hash = "sha256:3893a00122eafde6894c59914446a512f728a0c1a45f9bb9b63721b6bacf0b4a"},
+    {file = "importlib_resources-6.1.2-py3-none-any.whl", hash = "sha256:9a0a862501dc38b68adebc82970140c9e4209fc99601782925178f8386339938"},
+    {file = "importlib_resources-6.1.2.tar.gz", hash = "sha256:308abf8474e2dba5f867d279237cd4076482c3de7104a40b41426370e891549b"},
 ]
 
 [[package]]
