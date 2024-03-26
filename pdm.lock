@@ -3996,7 +3996,7 @@ files = [
 
 [[package]]
 name = "xmlschema"
-version = "3.1.0"
+version = "3.2.0"
 requires_python = ">=3.8"
 summary = "An XML Schema validator and decoder"
 groups = ["default"]
@@ -4004,8 +4004,8 @@ dependencies = [
     "elementpath<5.0.0,>=4.4.0",
 ]
 files = [
-    {file = "xmlschema-3.1.0-py3-none-any.whl", hash = "sha256:a971881d69b84fdf27447b5a150899b0dfc5a8df762d743aeb82333f833c7552"},
-    {file = "xmlschema-3.1.0.tar.gz", hash = "sha256:a0d64f3e9f24c8af9b2e56a4b66e8edfbdc60bc09b5f9f61b3076b3233be49cb"},
+    {file = "xmlschema-3.2.0-py3-none-any.whl", hash = "sha256:7ad8b4838fee0cfbfc3a5c7d38e33964cf5ebd2c20e2aa23ea813b6793438f9c"},
+    {file = "xmlschema-3.2.0.tar.gz", hash = "sha256:541d96893691aae3cb93ea36a85dde18327012e26e0c51d610f4f79e7fc86f7b"},
 ]
 
 [[package]]
