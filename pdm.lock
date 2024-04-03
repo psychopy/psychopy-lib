@@ -806,30 +806,30 @@ files = [
 
 [[package]]
 name = "numexpr"
-version = "2.9.0"
+version = "2.10.0"
 requires_python = ">=3.9"
 summary = "Fast numerical expression evaluator for NumPy"
 groups = ["default"]
 marker = "python_version >= \"3.9\""
 dependencies = [
-    "numpy>=1.13.3",
+    "numpy>=1.19.3",
 ]
 files = [
-    {file = "numexpr-2.9.0-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:c52b4ac54514f5d4d8ead66768810cd5f77aa198e6064213d9b5c7b2e1c97c35"},
-    {file = "numexpr-2.9.0-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:50f57bc333f285e8c46b1ce61c6e94ec9bb74e4ea0d674d1c6c6f4a286f64fe4"},
-    {file = "numexpr-2.9.0-cp310-cp310-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:943ba141f3884ffafa3fa1a3ebf3cdda9e9688a67a3c91986e6eae13dc073d43"},
-    {file = "numexpr-2.9.0-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:ee48acd6339748a65c0e32403b802ebfadd9cb0e3b602ba5889896238eafdd61"},
-    {file = "numexpr-2.9.0-cp310-cp310-musllinux_1_1_x86_64.whl", hash = "sha256:972e29b5cecc21466c5b177e38568372ab66aab1f053ae04690a49cea09e747d"},
-    {file = "numexpr-2.9.0-cp310-cp310-win32.whl", hash = "sha256:520e55d75bd99c76e376b6326e35ecf44c5ce2635a5caed72799a3885fc49173"},
-    {file = "numexpr-2.9.0-cp310-cp310-win_amd64.whl", hash = "sha256:5615497c3f34b637fda9b571f7774b6a82f2367cc1364b7a4573068dd1aabcaa"},
-    {file = "numexpr-2.9.0-cp39-cp39-macosx_10_9_x86_64.whl", hash = "sha256:b04f12a6130094a251e3a8fff40130589c1c83be6d4eb223873bea14d8c8b630"},
-    {file = "numexpr-2.9.0-cp39-cp39-macosx_11_0_arm64.whl", hash = "sha256:977537f2a1cc843f888fb5f0507626f956ada674e4b3847168214a3f3c7446fa"},
-    {file = "numexpr-2.9.0-cp39-cp39-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:6eae6c0c2d5682c02e8ac9c4287c2232c2443c9148b239df22500eaa3c5d73b7"},
-    {file = "numexpr-2.9.0-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:1fae6828042b70c2f52a132bfcb9139da704274ed11b982fbf537f91c075d2ef"},
-    {file = "numexpr-2.9.0-cp39-cp39-musllinux_1_1_x86_64.whl", hash = "sha256:7c77392aea53f0700d60eb270ad63174b4ff10b04f8de92861101ca2129fee51"},
-    {file = "numexpr-2.9.0-cp39-cp39-win32.whl", hash = "sha256:3b03a6cf37a72f5b52f2b962d7ac7f565bea8eaba83c3c4e5fcf8fbb6a938153"},
-    {file = "numexpr-2.9.0-cp39-cp39-win_amd64.whl", hash = "sha256:d655b6eacc4e81006b662cba014e4615a9ddd96881b8b4db4ad0d7f6d38069af"},
-    {file = "numexpr-2.9.0.tar.gz", hash = "sha256:f21d12f6c432ce349089eb95342babf6629aebb3fddf187a4492d3aadaadaaf0"},
+    {file = "numexpr-2.10.0-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:1af6dc6b3bd2e11a802337b352bf58f30df0b70be16c4f863b70a3af3a8ef95e"},
+    {file = "numexpr-2.10.0-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:3c66dc0188358cdcc9465b6ee54fd5eef2e83ac64b1d4ba9117c41df59bf6fca"},
+    {file = "numexpr-2.10.0-cp310-cp310-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:83f1e7a7f7ee741b8dcd20c56c3f862a3a3ec26fa8b9fcadb7dcd819876d2f35"},
+    {file = "numexpr-2.10.0-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:4f0b045e1831953a47cc9fabae76a6794c69cbb60921751a5cf2d555034c55bf"},
+    {file = "numexpr-2.10.0-cp310-cp310-musllinux_1_1_x86_64.whl", hash = "sha256:1d8eb88b0ae3d3c609d732a17e71096779b2bf47b3a084320ffa93d9f9132786"},
+    {file = "numexpr-2.10.0-cp310-cp310-win32.whl", hash = "sha256:629b66cc1b750671e7fb396506b3f9410612e5bd8bc1dd55b5a0a0041d839f95"},
+    {file = "numexpr-2.10.0-cp310-cp310-win_amd64.whl", hash = "sha256:78e0a8bc4417c3dedcbae3c473505b69080535246edc977c7dccf3ec8454a685"},
+    {file = "numexpr-2.10.0-cp39-cp39-macosx_10_9_x86_64.whl", hash = "sha256:dc3506c30c03b082da2cadef43747d474e5170c1f58a6dcdf882b3dc88b1e849"},
+    {file = "numexpr-2.10.0-cp39-cp39-macosx_11_0_arm64.whl", hash = "sha256:efa63ecdc9fcaf582045639ddcf56e9bdc1f4d9a01729be528f62df4db86c9d6"},
+    {file = "numexpr-2.10.0-cp39-cp39-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:96a64d0dd8f8e694da3f8582d73d7da8446ff375f6dd239b546010efea371ac3"},
+    {file = "numexpr-2.10.0-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:d47bb567e330ebe86781864219a36cbccb3a47aec893bd509f0139c6b23e8104"},
+    {file = "numexpr-2.10.0-cp39-cp39-musllinux_1_1_x86_64.whl", hash = "sha256:c7517b774d309b1f0896c89bdd1ddd33c4418a92ecfbe5e1df3ac698698f6fcf"},
+    {file = "numexpr-2.10.0-cp39-cp39-win32.whl", hash = "sha256:04e8620e7e676504201d4082e7b3ee2d9b561d1cb9470b47a6104e10c1e2870e"},
+    {file = "numexpr-2.10.0-cp39-cp39-win_amd64.whl", hash = "sha256:56d0d96b130f7cd4d78d0017030d6a0e9d9fc2a717ac51d4cf4860b39637e86a"},
+    {file = "numexpr-2.10.0.tar.gz", hash = "sha256:c89e930752639df040539160326d8f99a84159bbea41943ab8e960591edaaef0"},
 ]
 
 [[package]]
