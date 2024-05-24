@@ -137,15 +137,41 @@ if sys.version_info < (3, 9):
     packages.remove('PyQt6')  # PyQt6 is not compatible with earlier PsychoPy versions
 
 # check the includes and packages are all available
-missing_pkgs = []
+missingPkgs = []
+pipInstallLines = ''
+packagePipNames = { # packages that are imported as one thing but installed as another
+    'OpenGL': 'pyopengl',
+    'opencv': 'opencv-python',
+    'googleapiclient': 'google-api-python-client',
+    'macropy': 'macropy3',
+
+}
 for pkg in includes+packages:
     
     try:
         importlib.import_module(pkg)
-    except (ImportError, ModuleNotFoundError):
-        missing_pkgs.append(pkg)
-if missing_pkgs:
-    raise ImportError("Missing packages: %s" % missing_pkgs)
+    except ModuleNotFoundError:
+        if pkg in packagePipNames:
+            missingPkgs.append(packagePipNames[pkg])
+        elif pkg == 'pylink':
+            pipInstallLines += 'pip install --index-url=https://pypi.sr-support.com sr-research-pylink\n'
+        else:
+            missingPkgs.append(pkg)
+    except OSError as err:
+        if 'libftd2xx.dylib' in str(err):
+            raise ImportError(f"Missing package: ftd2xx. Please install the FTDI D2XX drivers from "
+                              "https://www.ftdichip.com/Drivers/D2XX.htm")
+    except ImportError as err:
+        if 'eyelink' in str(err):
+            raise ImportError(f"It looks like the Eyelink dev kit is not installed "
+                              "https://www.sr-research.com/support/thread-13.html")
+
+if missingPkgs or pipInstallLines:
+    helpStr = f"You're missing some packages to include in standalone. Fix with:\n"
+    if missingPkgs:
+        helpStr += f"pip install {' '.join(missingPkgs)}\n"
+    helpStr += pipInstallLines
+    raise ImportError(helpStr)
 else:
     print("All packages appear to be present. Proceeding to build...")
 
@@ -155,6 +181,7 @@ setup(
             includes=includes,
             packages=packages,
             excludes=['bsddb', 'jinja2', 'IPython','ipython_genutils','nbconvert',
+                      'tkinter', 'Tkinter', 'tcl',
                       'libsz.2.dylib', 'pygame',
                       # 'stringprep',
                       'functools32',
