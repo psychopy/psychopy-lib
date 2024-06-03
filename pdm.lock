@@ -87,13 +87,13 @@ files = [
 
 [[package]]
 name = "certifi"
-version = "2024.2.2"
+version = "2024.6.2"
 requires_python = ">=3.6"
 summary = "Python package for providing Mozilla's CA Bundle."
 groups = ["default"]
 files = [
-    {file = "certifi-2024.2.2-py3-none-any.whl", hash = "sha256:dc383c07b76109f368f6106eee2b593b04a011ea4d55f652c6ca24a754d1cdd1"},
-    {file = "certifi-2024.2.2.tar.gz", hash = "sha256:0569859f95fc761b18b45ef421b1290a0f65f147e92a1e5eb3e635f9a5e4e66f"},
+    {file = "certifi-2024.6.2-py3-none-any.whl", hash = "sha256:ddc6c8ce995e6987e7faf5e3f1b02b302836a0e5d98ece18392cb1a36c72ad56"},
+    {file = "certifi-2024.6.2.tar.gz", hash = "sha256:3cd43f1c6fa7dedc5899d69d3ad0398fd018ad1a17fba83ddaf78aa46c747516"},
 ]
 
 [[package]]
@@ -3681,14 +3681,14 @@ files = [
 
 [[package]]
 name = "pyqt6-qt6"
-version = "6.7.0"
+version = "6.7.1"
 summary = "The subset of a Qt installation needed by PyQt6."
 groups = ["default"]
 files = [
-    {file = "PyQt6_Qt6-6.7.0-py3-none-macosx_10_14_x86_64.whl", hash = "sha256:c8993f4c5ec4587cf56c37e32bec5c7e19cf96e330faa6c4feeb1e9c90a048e6"},
-    {file = "PyQt6_Qt6-6.7.0-py3-none-macosx_11_0_arm64.whl", hash = "sha256:a3ae3200799081103a099b7bfd70854d7fd922475ce327fb4493633d08c59cf0"},
-    {file = "PyQt6_Qt6-6.7.0-py3-none-manylinux_2_28_x86_64.whl", hash = "sha256:383842a058b3fd0546df59fbd7f593dd609761d28a0185eb1a8983dee2a5f5d0"},
-    {file = "PyQt6_Qt6-6.7.0-py3-none-win_amd64.whl", hash = "sha256:091810ed703fe747ef83d07506fcfdfd8f172215590175cc23cdfe0fc09b20ad"},
+    {file = "PyQt6_Qt6-6.7.1-py3-none-macosx_10_14_x86_64.whl", hash = "sha256:29622b5dd38740b4b6962e0c88d082d08fa10b64542ef5d911b04214aad70150"},
+    {file = "PyQt6_Qt6-6.7.1-py3-none-macosx_11_0_arm64.whl", hash = "sha256:fbcfe66a57199c6a26542b8b9b2f2ee59d974db36293de335a1251f24c4fe917"},
+    {file = "PyQt6_Qt6-6.7.1-py3-none-manylinux_2_28_x86_64.whl", hash = "sha256:9fbab2a96d72d77d16021e259ef86a1a3c87adb0e7eebcc92df0d39f3fdf7e27"},
+    {file = "PyQt6_Qt6-6.7.1-py3-none-win_amd64.whl", hash = "sha256:590a2f30d15892b5259e6a17ecc0a755675b1b49f553d964e195e90094b44120"},
 ]
 
 [[package]]
