@@ -52,9 +52,6 @@ class SoundComponent(BaseDeviceComponent):
             "volume", "hammingWindow",  # Playback tab
         ]
         # params
-        self.params['stopType'].allowedVals = ['duration (s)']
-        self.params['stopType'].hint = _translate('The maximum duration of a'
-                                                  ' sound in seconds')
         hnt = _translate("When does the Component end? (blank to use the "
                          "duration of the media)")
         self.params['stopVal'].hint = hnt
@@ -209,7 +206,13 @@ class SoundComponent(BaseDeviceComponent):
     def writeFrameCode(self, buff):
         """Write the code that will be called every frame
         """
-        # Write start code
+        # Write start code to update parameters. Unlike BaseVisualComponents, which
+        # inserts writeActiveTestCode() after the start code, we need to insert it
+        # here before the start code to provide the correct parameters for calling
+        # the play() method.
+
+        buff.writeIndented("\n")
+        buff.writeIndented(f"# *{self.params['name']}* updates\n")
         self.writeParamUpdates(buff, 'set every frame')
 
         # write code for starting
@@ -229,12 +232,6 @@ class SoundComponent(BaseDeviceComponent):
             buff.writeIndentedLines(code % self.params)
         # because of the 'if' statement of the time test
         buff.setIndentLevel(-indented, relative=True)
-
-        # write code to run while active
-        indented = self.writeActiveTestCode(buff, extra=" or %(name)s.isPlaying")
-        if indented:
-            # dedent
-            buff.setIndentLevel(-indented, relative=True)
 
     def writeFrameCodeJS(self, buff):
         """Write the code that will be called every frame
