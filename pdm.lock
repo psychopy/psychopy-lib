@@ -87,13 +87,13 @@ files = [
 
 [[package]]
 name = "certifi"
-version = "2024.6.2"
+version = "2024.7.4"
 requires_python = ">=3.6"
 summary = "Python package for providing Mozilla's CA Bundle."
 groups = ["default"]
 files = [
-    {file = "certifi-2024.6.2-py3-none-any.whl", hash = "sha256:ddc6c8ce995e6987e7faf5e3f1b02b302836a0e5d98ece18392cb1a36c72ad56"},
-    {file = "certifi-2024.6.2.tar.gz", hash = "sha256:3cd43f1c6fa7dedc5899d69d3ad0398fd018ad1a17fba83ddaf78aa46c747516"},
+    {file = "certifi-2024.7.4-py3-none-any.whl", hash = "sha256:c198e21b1289c2ab85ee4e67bb4b4ef3ead0892059901a8d5b622f24a1101e90"},
+    {file = "certifi-2024.7.4.tar.gz", hash = "sha256:5a1e7645bc0ec61a09e26c36f6106dd4cf40c6db3a1fb6352b0244e7fb057c7b"},
 ]
 
 [[package]]
@@ -334,67 +334,15 @@ files = [
 
 [[package]]
 name = "dukpy"
-version = "0.4.0"
+version = "0.2.3"
 summary = "Simple JavaScript interpreter for Python"
 groups = ["default"]
-dependencies = [
-    "mutf8",
-]
 files = [
-    {file = "dukpy-0.4.0-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:cc4b628eeac9c39e2712e12b4f7f08356c4722e264fa9775306eec36a8b1b7c2"},
-    {file = "dukpy-0.4.0-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:781e65201e65ec6d33120ffc1f68be5834802ebf0b76aff79b3405e8723c8679"},
-    {file = "dukpy-0.4.0-cp310-cp310-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:e9f1ed1ed49c7b97b30943631431f7814fed1f2f8e026c7d4a2aea74eb3c63b2"},
-    {file = "dukpy-0.4.0-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:cb0ff04128c16e4d51f5f10b4347903661f5aeb6ed778c247c1fde95fb191a23"},
-    {file = "dukpy-0.4.0-cp310-cp310-manylinux_2_5_i686.manylinux1_i686.manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:f0bf9a1ee548fd5a97f8af08e82a304ea42c3cee6300f1cd59e54d72b6b9c8d1"},
-    {file = "dukpy-0.4.0-cp310-cp310-musllinux_1_1_aarch64.whl", hash = "sha256:f7e537d543ddd538f6172d60afe88de2d2160a2fd3b6541944de2148793c378e"},
-    {file = "dukpy-0.4.0-cp310-cp310-musllinux_1_1_i686.whl", hash = "sha256:501f94e2374ba2340ea7e690ac1df39973e6336b6a310b89410ffa0edbae408c"},
-    {file = "dukpy-0.4.0-cp310-cp310-musllinux_1_1_x86_64.whl", hash = "sha256:a9f6225aa0b6acad9ac114e8121a95f82d9bc2194c4faae59afddc9ec8975187"},
-    {file = "dukpy-0.4.0-cp310-cp310-win32.whl", hash = "sha256:88c24091da57414d73c19dc64faadeb34cd0bcc5fd5caf67f77d2494be5e7e53"},
-    {file = "dukpy-0.4.0-cp310-cp310-win_amd64.whl", hash = "sha256:b70b90bfc73b8aef7dd346a5f6aea6b773b6af85602649cb8bb97b343fb4060c"},
-    {file = "dukpy-0.4.0-cp38-cp38-macosx_10_9_x86_64.whl", hash = "sha256:0e3cf3eb5d643f0687cf20aa62b3b3490c9ceb9309685d5bc4ed3fc8f56e8f0a"},
-    {file = "dukpy-0.4.0-cp38-cp38-macosx_11_0_arm64.whl", hash = "sha256:059b0bf1fd06931092412db39ff46fa16466b15bcb22150c8d0e917bbf3727f4"},
-    {file = "dukpy-0.4.0-cp38-cp38-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:52cacb5f8c07b63e9fe82ce2a92c028078d06a2db9a9168d892ff1f48c09b104"},
-    {file = "dukpy-0.4.0-cp38-cp38-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:46f20eeaedc7aae9588bbb8a7787ea4e3183703d73c671a1d499fa21a2f5f454"},
-    {file = "dukpy-0.4.0-cp38-cp38-manylinux_2_5_i686.manylinux1_i686.manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:b7ea9b755175b138d996494447ec0057eb968203565702b53993e3f308001252"},
-    {file = "dukpy-0.4.0-cp38-cp38-musllinux_1_1_aarch64.whl", hash = "sha256:5cb3cd8605a361dd81ee983f7bf37463c24b3be340aef1c25606e1d7d620d379"},
-    {file = "dukpy-0.4.0-cp38-cp38-musllinux_1_1_i686.whl", hash = "sha256:1e2527f5f8a9108b8523f493f8ace2505ccd3a75d46470bfcefbfa06d86e541f"},
-    {file = "dukpy-0.4.0-cp38-cp38-musllinux_1_1_x86_64.whl", hash = "sha256:82e3161234980086a0d91d497b6b54141060c12ab7d74ed20d5aa46757b54c1e"},
-    {file = "dukpy-0.4.0-cp38-cp38-win32.whl", hash = "sha256:8d610a07b9459af4e8822fb7150fcbe2dfd652555edd56702f04f1aea9821acb"},
-    {file = "dukpy-0.4.0-cp38-cp38-win_amd64.whl", hash = "sha256:8ecec348ce8139614c67078f88dedd711c5585e47344e5a537596a38ff6dcc69"},
-    {file = "dukpy-0.4.0-cp39-cp39-macosx_10_9_x86_64.whl", hash = "sha256:34004ab51a1eb693cbeaa2a3bc58b71d3737e0f7c50ff470a8c487d1eb723365"},
-    {file = "dukpy-0.4.0-cp39-cp39-macosx_11_0_arm64.whl", hash = "sha256:0191805195f06cf997456b474a121c0775478c196c96c64568762ab43e588afa"},
-    {file = "dukpy-0.4.0-cp39-cp39-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:96a59c31f4520063428e8f6b4e26ddf0882ce56aee98650f234eec66be37b8e8"},
-    {file = "dukpy-0.4.0-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:2a85cfa88da4ea2569b8a3e1f3bf409b8b90820ff832261df65aae5e9279899f"},
-    {file = "dukpy-0.4.0-cp39-cp39-manylinux_2_5_i686.manylinux1_i686.manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:7cec31fabe25542e5465311f3533867606064c676b1eb68f25129518a7028ba5"},
-    {file = "dukpy-0.4.0-cp39-cp39-musllinux_1_1_aarch64.whl", hash = "sha256:6402493da0809ed6c36b2e482b6f8e8dd865ad898af0f754c8b203af3fd63d01"},
-    {file = "dukpy-0.4.0-cp39-cp39-musllinux_1_1_i686.whl", hash = "sha256:0fc2eccdf25aee28a7b1d7a238300a4671438f834a320eea8983463f0ad28cbf"},
-    {file = "dukpy-0.4.0-cp39-cp39-musllinux_1_1_x86_64.whl", hash = "sha256:f38b7553761197786ca91fe4cb954586701674e118d2843f983a0b9ec4662df8"},
-    {file = "dukpy-0.4.0-cp39-cp39-win32.whl", hash = "sha256:e22ed7f5710fee7009e6ff115808d1a24ec747dff69764458833acba4f0f8935"},
-    {file = "dukpy-0.4.0-cp39-cp39-win_amd64.whl", hash = "sha256:574f7e088c7cabc14e5d517f816fa1274f102a01efa5dac1864e4c0b781fb38a"},
-    {file = "dukpy-0.4.0-pp310-pypy310_pp73-macosx_10_9_x86_64.whl", hash = "sha256:bc0e11550e720e479fbe25b77cb2977fed2de52760f2cd39c96f767c2b732cb4"},
-    {file = "dukpy-0.4.0-pp310-pypy310_pp73-macosx_11_0_arm64.whl", hash = "sha256:b5c67856b28f7fbbb029a496c0b5a84b26a75a514cefb78e1cdb0b91449e993f"},
-    {file = "dukpy-0.4.0-pp310-pypy310_pp73-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:419ef43f38872269bdde8e966b35dd4efb0eb66f816ff621c496b79f1f59382b"},
-    {file = "dukpy-0.4.0-pp310-pypy310_pp73-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:49c5e24233bb56ffa3d9c76bfacf982f74054c37933759f803387055c9e8a02e"},
-    {file = "dukpy-0.4.0-pp310-pypy310_pp73-manylinux_2_5_i686.manylinux1_i686.manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:ac687961f5448a29aa3c3e6d2919fdb25d8d689c2d551320b31b10d0164496fd"},
-    {file = "dukpy-0.4.0-pp310-pypy310_pp73-win_amd64.whl", hash = "sha256:108dea56d21a2be12a6b4c567343cef79406cd1520cd2549f0f90dc325f949ca"},
-    {file = "dukpy-0.4.0-pp37-pypy37_pp73-macosx_10_9_x86_64.whl", hash = "sha256:c7f6ac34bd11b0cff03ffb2bffdc93a8331a18d4bc4b7358a8ff490a0ccb7b14"},
-    {file = "dukpy-0.4.0-pp37-pypy37_pp73-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:a0d8600fb790845f761f6d672c75e1973aee8de5499d2eacfd6d0ceefd1ec34a"},
-    {file = "dukpy-0.4.0-pp37-pypy37_pp73-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:a63e6243684197abd8f57ef62248c2764021a7cdc7346f0538f631b8774fc997"},
-    {file = "dukpy-0.4.0-pp37-pypy37_pp73-manylinux_2_5_i686.manylinux1_i686.manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:dc602343a2ac8647d6656e74bd1e79b866c8f48aa7112507fafdd14b7a67dd40"},
-    {file = "dukpy-0.4.0-pp37-pypy37_pp73-win_amd64.whl", hash = "sha256:3beb81b3a7432d3962b37d5ad2ac1c562209ae320efe22d915c5ad32b8a86c67"},
-    {file = "dukpy-0.4.0-pp38-pypy38_pp73-macosx_10_9_x86_64.whl", hash = "sha256:4de21a0d83888958cecfb60cbb79b6bbbc8c70505e1da53d73d02620b32f798c"},
-    {file = "dukpy-0.4.0-pp38-pypy38_pp73-macosx_11_0_arm64.whl", hash = "sha256:eaa47bb14e7eec70cc6a4b7695e48d49ba4d65d847ef8965e815f812a6e86bea"},
-    {file = "dukpy-0.4.0-pp38-pypy38_pp73-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:b0d547f73bd5c05eb38d5b03af6ae801a2f3c5b584d96fef3d2a2afae4b13623"},
-    {file = "dukpy-0.4.0-pp38-pypy38_pp73-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:65e7631e9a0da15f0f4897f7f57421e5aa5c5eab466731271d9a32c3b0cce5be"},
-    {file = "dukpy-0.4.0-pp38-pypy38_pp73-manylinux_2_5_i686.manylinux1_i686.manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:98f7ef3e41960915b2cf903b0786070be438b23be4826af82adb1570ddf97d13"},
-    {file = "dukpy-0.4.0-pp38-pypy38_pp73-win_amd64.whl", hash = "sha256:cf69d55374f480c021e69cdcccac8a5c4b3375fa6ce0d7e3bec610dc660f9f4c"},
-    {file = "dukpy-0.4.0-pp39-pypy39_pp73-macosx_10_9_x86_64.whl", hash = "sha256:5ed94e7fadb73a5bc7b6ccdcd92789c7de1ce261f8a976641d4f89266cb32e72"},
-    {file = "dukpy-0.4.0-pp39-pypy39_pp73-macosx_11_0_arm64.whl", hash = "sha256:74321da1ef7943e1f2f3f0a1353e780f13e302834d1afa63547c531e9add23d0"},
-    {file = "dukpy-0.4.0-pp39-pypy39_pp73-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:d5442604d5eba8d7fe0dff2dbb09b98455bb7c74e477ef45db61c99e40957284"},
-    {file = "dukpy-0.4.0-pp39-pypy39_pp73-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:73517558f5cb3ffbf13a509212f89c000169a30cfc3d71c2f1f29cb73f3d7628"},
-    {file = "dukpy-0.4.0-pp39-pypy39_pp73-manylinux_2_5_i686.manylinux1_i686.manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:097d2db90f78f310bcdd789ca07dcb126301d3888099b90ccd4b20df3a7304d1"},
-    {file = "dukpy-0.4.0-pp39-pypy39_pp73-win_amd64.whl", hash = "sha256:95d1ef769360160ebd5716afe9e96ca7a4a3cad7e7f4ca5b9a47061f581b4b9e"},
-    {file = "dukpy-0.4.0.tar.gz", hash = "sha256:677ec7102d1c1c511f7ef918078e8099778dbcea7caf3d6a2a2a72f72aa2d135"},
+    {file = "dukpy-0.2.3-cp38-cp38-manylinux1_i686.whl", hash = "sha256:3395f84d793f1be55f250705fd1f4562c58718dde0304ae21b001dc0332e020a"},
+    {file = "dukpy-0.2.3-cp38-cp38-manylinux1_x86_64.whl", hash = "sha256:9499ec53247cc0e2453d2be0586d9fa6803b751961d05bc947946341ecea6560"},
+    {file = "dukpy-0.2.3-cp38-cp38-win32.whl", hash = "sha256:ff245b01239fbb25b4a0b9bf30d3b4499648ce52bba981fe2cbac868052354fe"},
+    {file = "dukpy-0.2.3-cp38-cp38-win_amd64.whl", hash = "sha256:770c0795cbe5c41b604b12f372d2905587035f2f83489d2e1c36b88d50f9b175"},
+    {file = "dukpy-0.2.3.tar.gz", hash = "sha256:cc8dd158326f95231d320da80be6e6a1d72bbaad9de2569eaffb6af736f45e6b"},
 ]
 
 [[package]]
@@ -702,16 +650,16 @@ files = [
 
 [[package]]
 name = "javascripthon"
-version = "0.12"
+version = "0.13"
 summary = "Javascript for refined palates: a Python 3 to ES6 Javascript translator"
 groups = ["default"]
 dependencies = [
-    "dukpy",
+    "dukpy<=0.2.3",
     "setuptools",
 ]
 files = [
-    {file = "javascripthon-0.12-py3-none-any.whl", hash = "sha256:51fbdd0db51cf5d7cd0540f585ad34fb71ad6299e36014f78ba69a09572b964e"},
-    {file = "javascripthon-0.12.tar.gz", hash = "sha256:ec00ba71991043069e436ae200b58a0e2532fba30fa456d6b4b51ff7fc5b797d"},
+    {file = "javascripthon-0.13-py3-none-any.whl", hash = "sha256:5a9bda2c4f2b8e6f569eb228a0b97a111d413e2b5644cd77fcc0f52d34a0c3ad"},
+    {file = "javascripthon-0.13.tar.gz", hash = "sha256:aef945c3c544f3c527b6497a01a3e057d2049b9a2f660f99ad0cf1da7995bfdb"},
 ]
 
 [[package]]
@@ -942,21 +890,6 @@ dependencies = [
 files = [
     {file = "msgpack-numpy-0.4.8.tar.gz", hash = "sha256:c667d3180513422f9c7545be5eec5d296dcbb357e06f72ed39cc683797556e69"},
     {file = "msgpack_numpy-0.4.8-py2.py3-none-any.whl", hash = "sha256:773c19d4dfbae1b3c7b791083e2caf66983bb19b40901646f61d8731554ae3da"},
-]
-
-[[package]]
-name = "mutf8"
-version = "1.0.6"
-summary = "Fast MUTF-8 encoder & decoder"
-groups = ["default"]
-files = [
-    {file = "mutf8-1.0.6-cp38-cp38-macosx_10_14_x86_64.whl", hash = "sha256:018ceda7cdb66a1d3e9c07a71a1a35b92570fbb1230887a34ad784ff4d349981"},
-    {file = "mutf8-1.0.6-cp38-cp38-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:7a67e88534a7641c513dad13f2f7913239808df4a5d0b822eda0ff9024431e0b"},
-    {file = "mutf8-1.0.6-cp38-cp38-win_amd64.whl", hash = "sha256:0d1325d42806b31901a0ddd4ef199144e508fd9f6f3c75a8305d5979365b66c3"},
-    {file = "mutf8-1.0.6-cp39-cp39-macosx_10_14_x86_64.whl", hash = "sha256:3207a071ead14d928213019f12b5554b179f61a16a8094ed660b755990db3652"},
-    {file = "mutf8-1.0.6-cp39-cp39-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:6172b5babc0c819636830fc79ca9c3a82662ef1ee764c82c1b59fbf6ea54d82f"},
-    {file = "mutf8-1.0.6-cp39-cp39-win_amd64.whl", hash = "sha256:4f7a24b55c53d508a7ecb2e8c6fe14e4fcefaa4c48100b446e73217ade7875a0"},
-    {file = "mutf8-1.0.6.tar.gz", hash = "sha256:1bbbefb67c2e5a57104750bb04b0912200b57b2fa9841be245279e83859cb346"},
 ]
 
 [[package]]
