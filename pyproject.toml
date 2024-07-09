@@ -1,5 +1,3 @@
-[tool.pdm]
-version = { source = "file", path = "psychopy/__init__.py" }
 
 [project]
 name = "psychopy"
@@ -65,7 +63,7 @@ dependencies = [
     "future",  # only to support legacy versions in useVersion
     # supporting plugins
     "pypi-search>=1.2.1",
-    "setuptools>=70.2.0",
+    "setuptools>=70.3.0",
     # pavlovia connections
     "python-gitlab",
     "gitpython",
@@ -89,6 +87,7 @@ dependencies = [
     "pyobjc; platform_system == \"Darwin\"",
     "zeroconf; platform_system == \"Darwin\"",
     "python-xlib; platform_system == \"Linux\"",
+    "distro; platform_system == \"Linux\"",
     'tables<3.9; python_version < "3.9"',
     'tables; python_version >= "3.9"',
     'blosc2<2.2.8; python_version < "3.9"',  # dependency of tables
@@ -107,6 +106,7 @@ building = [
     "bdist-mpkg>=0.5.0; platform_system == \"Darwin\"",
     "py2app; platform_system == \"Darwin\"",
     "dmgbuild; platform_system == \"Darwin\"",
+    "setuptools_git_versioning", 
 ]
 suggested = [
     "sounddevice",
