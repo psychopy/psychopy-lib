@@ -5,7 +5,7 @@
 groups = ["default"]
 strategy = ["cross_platform", "inherit_metadata"]
 lock_version = "4.4.2"
-content_hash = "sha256:83b57b7df078c5b1b415df1379802eed64df1e8156a2d716f27a0e31d7d2e40e"
+content_hash = "sha256:ddf1f7cc43b2a7d9465dd4b23f37cd91550d4871b62d5e2aad4cd059a4947caf"
 
 [[package]]
 name = "arabic-reshaper"
