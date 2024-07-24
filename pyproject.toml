@@ -54,6 +54,7 @@ dependencies = [
     "freetype-py",
     "python-bidi",
     "arabic-reshaper",
+    "javascripthon",
     "websockets",  # new in 2023.2 for session.py
     # for the app
     "wxPython >= 4.1.1",
@@ -61,11 +62,16 @@ dependencies = [
     "requests",
     "future",  # only to support legacy versions in useVersion
     # supporting plugins
-    "setuptools>=71.0.3",
+    "pypi-search>=1.2.1",
+    "setuptools>=71.1.0",
     # pavlovia connections
+    "python-gitlab",
+    "gitpython",
     "cryptography",  # for sshkeys
     # psychoJS conversions
+    "javascripthon>=0.12",
     "astunparse",
+    "esprima",
     "jedi >= 0.16",
     # hardware
     "pyserial",
@@ -73,6 +79,8 @@ dependencies = [
     # movie backends
     "ffpyplayer",
     # platform specific
+    "python-vlc == 3.0.11115; platform_system == \"Windows\"",
+    "python-vlc >= 3.0.12118; platform_system != \"Windows\"",
     "pypiwin32; platform_system == \"Windows\"",
     "pyobjc-core; platform_system == \"Darwin\"",
     "pyobjc-framework-Quartz < 8.0; platform_system == \"Darwin\"",
