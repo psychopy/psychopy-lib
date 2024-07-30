@@ -5,7 +5,7 @@
 groups = ["default"]
 strategy = ["cross_platform", "inherit_metadata"]
 lock_version = "4.4.2"
-content_hash = "sha256:158f95851c360c835896d8a4ebf29c86402a71bb6dc1ff63e53bf91226a0272d"
+content_hash = "sha256:da308f386c0691fb8154e8ed739f1951b715693e4ba0bda9230c735074b95e52"
 
 [[package]]
 name = "arabic-reshaper"
@@ -4040,13 +4040,13 @@ files = [
 
 [[package]]
 name = "setuptools"
-version = "71.1.0"
+version = "72.1.0"
 requires_python = ">=3.8"
 summary = "Easily download, build, install, upgrade, and uninstall Python packages"
 groups = ["default"]
 files = [
-    {file = "setuptools-71.1.0-py3-none-any.whl", hash = "sha256:33874fdc59b3188304b2e7c80d9029097ea31627180896fb549c578ceb8a0855"},
-    {file = "setuptools-71.1.0.tar.gz", hash = "sha256:032d42ee9fb536e33087fb66cac5f840eb9391ed05637b3f2a76a7c8fb477936"},
+    {file = "setuptools-72.1.0-py3-none-any.whl", hash = "sha256:5a03e1860cf56bb6ef48ce186b0e557fdba433237481a9a625176c2831be15d1"},
+    {file = "setuptools-72.1.0.tar.gz", hash = "sha256:8d243eff56d095e5817f796ede6ae32941278f542e0f941867cc05ae52b162ec"},
 ]
 
 [[package]]
@@ -4322,7 +4322,7 @@ files = [
 
 [[package]]
 name = "xmlschema"
-version = "3.3.1"
+version = "3.3.2"
 requires_python = ">=3.8"
 summary = "An XML Schema validator and decoder"
 groups = ["default"]
@@ -4330,8 +4330,8 @@ dependencies = [
     "elementpath<5.0.0,>=4.4.0",
 ]
 files = [
-    {file = "xmlschema-3.3.1-py3-none-any.whl", hash = "sha256:93547e999896f1525a821e229991d31e4dd02563f93b0667ce6566cf2b853751"},
-    {file = "xmlschema-3.3.1.tar.gz", hash = "sha256:2066ecbc9728112073f6f44d17c5c16723aff1c7d22a7c4c6421e2d68ec5f0ea"},
+    {file = "xmlschema-3.3.2-py3-none-any.whl", hash = "sha256:e9b9663aaa313904b8bf3d7487fc8123920e199662bc09bb32e0d62d9548f1ec"},
+    {file = "xmlschema-3.3.2.tar.gz", hash = "sha256:a2f021f21d0b5ab371e9bcb5a1d5c34b9ba2c74ad3e32854474c4159bf94e158"},
 ]
 
 [[package]]
