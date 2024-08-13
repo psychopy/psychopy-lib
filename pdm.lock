@@ -5,7 +5,7 @@
 groups = ["default"]
 strategy = ["cross_platform", "inherit_metadata"]
 lock_version = "4.4.2"
-content_hash = "sha256:da308f386c0691fb8154e8ed739f1951b715693e4ba0bda9230c735074b95e52"
+content_hash = "sha256:b16fd2529de62f65ee9f7dbc824802c7fc95ea11bb185b62f2415ec4db993843"
 
 [[package]]
 name = "arabic-reshaper"
@@ -1109,6 +1109,7 @@ name = "psychtoolbox"
 version = "3.0.19.0"
 summary = "Pieces of Psychtoolbox-3 ported to CPython."
 groups = ["default"]
+marker = "platform_machine != \"arm64\""
 dependencies = [
     "numpy>=1.13.3",
 ]
