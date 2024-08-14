@@ -5,7 +5,7 @@
 groups = ["default"]
 strategy = ["cross_platform", "inherit_metadata"]
 lock_version = "4.4.2"
-content_hash = "sha256:b16fd2529de62f65ee9f7dbc824802c7fc95ea11bb185b62f2415ec4db993843"
+content_hash = "sha256:1208668a3f0f317e3f49f6913adcd2968b53db241d0bfcc72765259f9fb6c5dc"
 
 [[package]]
 name = "arabic-reshaper"
@@ -611,17 +611,17 @@ files = [
 
 [[package]]
 name = "imageio"
-version = "2.34.2"
+version = "2.35.0"
 requires_python = ">=3.8"
 summary = "Library for reading and writing a wide range of image, video, scientific, and volumetric data formats."
 groups = ["default"]
 dependencies = [
-    "numpy",
+    "numpy<2.0.0",
     "pillow>=8.3.2",
 ]
 files = [
-    {file = "imageio-2.34.2-py3-none-any.whl", hash = "sha256:a0bb27ec9d5bab36a9f4835e51b21d2cb099e1f78451441f94687ff3404b79f8"},
-    {file = "imageio-2.34.2.tar.gz", hash = "sha256:5c0c0ee8faa018a1c42f649b90395dd4d3bb6187c09053a0cd6f1fdd51bbff5e"},
+    {file = "imageio-2.35.0-py3-none-any.whl", hash = "sha256:ebfb39c0ad7acf93750d7ee151664238aaa9208f202288ea6f3ca7cb0ed719c3"},
+    {file = "imageio-2.35.0.tar.gz", hash = "sha256:e88f759803d2968e19a55fa8372e9fbe12967a8598fe042d8719ca46d03f4256"},
 ]
 
 [[package]]
@@ -4049,13 +4049,13 @@ files = [
 
 [[package]]
 name = "setuptools"
-version = "72.1.0"
+version = "72.2.0"
 requires_python = ">=3.8"
 summary = "Easily download, build, install, upgrade, and uninstall Python packages"
 groups = ["default"]
 files = [
-    {file = "setuptools-72.1.0-py3-none-any.whl", hash = "sha256:5a03e1860cf56bb6ef48ce186b0e557fdba433237481a9a625176c2831be15d1"},
-    {file = "setuptools-72.1.0.tar.gz", hash = "sha256:8d243eff56d095e5817f796ede6ae32941278f542e0f941867cc05ae52b162ec"},
+    {file = "setuptools-72.2.0-py3-none-any.whl", hash = "sha256:f11dd94b7bae3a156a95ec151f24e4637fb4fa19c878e4d191bfb8b2d82728c4"},
+    {file = "setuptools-72.2.0.tar.gz", hash = "sha256:80aacbf633704e9c8bfa1d99fa5dd4dc59573efcf9e4042c13d3bcef91ac2ef9"},
 ]
 
 [[package]]
@@ -4101,13 +4101,13 @@ files = [
 
 [[package]]
 name = "soupsieve"
-version = "2.5"
+version = "2.6"
 requires_python = ">=3.8"
 summary = "A modern CSS selector implementation for Beautiful Soup."
 groups = ["default"]
 files = [
-    {file = "soupsieve-2.5-py3-none-any.whl", hash = "sha256:eaa337ff55a1579b6549dc679565eac1e3d000563bcb1c8ab0d0fefbc0c2cdc7"},
-    {file = "soupsieve-2.5.tar.gz", hash = "sha256:5663d5a7b3bfaeee0bc4372e7fc48f9cff4940b3eec54a6451cc5299f1097690"},
+    {file = "soupsieve-2.6-py3-none-any.whl", hash = "sha256:e72c4ff06e4fb6e4b5a9f0f55fe6e81514581fca1515028625d0f299c602ccc9"},
+    {file = "soupsieve-2.6.tar.gz", hash = "sha256:e2e68417777af359ec65daac1057404a3c8a5455bb8abc36f1a9866ab1a51abb"},
 ]
 
 [[package]]
