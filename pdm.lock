@@ -1111,7 +1111,7 @@ files = [
 
 [[package]]
 name = "psychtoolbox"
-version = "3.0.19.0"
+version = "3.0.19.14"
 summary = "Pieces of Psychtoolbox-3 ported to CPython."
 groups = ["default"]
 marker = "platform_machine != \"arm64\""
@@ -1119,11 +1119,10 @@ dependencies = [
     "numpy>=1.13.3",
 ]
 files = [
-    {file = "psychtoolbox-3.0.19.0-cp37-abi3-macosx_10_9_x86_64.whl", hash = "sha256:a8022f70715574f23ea1c760eceb7db6c5ac36f9fb96d4b729fea0793a66c388"},
-    {file = "psychtoolbox-3.0.19.0-cp37-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:774239046c967db9e5c70fe84345601d53e51fc0e06af0bdf9d8d6a4b7bdd696"},
-    {file = "psychtoolbox-3.0.19.0-cp37-abi3-win32.whl", hash = "sha256:fdf0b93711284bddf7aece840898dbcd8a83be8196e6a37046503a95c63e6c59"},
-    {file = "psychtoolbox-3.0.19.0-cp37-abi3-win_amd64.whl", hash = "sha256:6a1fc1daff69d71c36795b4e7544be2534fc00b7732f5466ddcb6f15df3007a0"},
-    {file = "psychtoolbox-3.0.19.0.tar.gz", hash = "sha256:f75974b295d69f1e4fc08ef1a8f62ae7e5c7f46943493a24175514c8c8c4190f"},
+    {file = "psychtoolbox-3.0.19.14-cp37-abi3-macosx_11_0_x86_64.whl", hash = "sha256:e47aa7d2af705ef746a1b4f41b1062b3ddb303f1d650b7aa96a784a12778bc9e"},
+    {file = "psychtoolbox-3.0.19.14-cp37-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:9e9c97760b7f8d33c850e71ad0a484ba9ad39160ebe0411f0eba0f2a86de9dd6"},
+    {file = "psychtoolbox-3.0.19.14-cp37-abi3-win_amd64.whl", hash = "sha256:9ca429dc188d0b11d1b64f3e514920bd9b2c4faa5ae25270a52412ef03f0cac6"},
+    {file = "psychtoolbox-3.0.19.14.tar.gz", hash = "sha256:3847730840a3ddbb6ff57f0e3203360ada67cb74bf535d999a6e313dcbea58ad"},
 ]
 
 [[package]]
