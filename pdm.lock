@@ -3831,12 +3831,12 @@ files = [
 
 [[package]]
 name = "pytz"
-version = "2024.1"
+version = "2024.2"
 summary = "World timezone definitions, modern and historical"
 groups = ["default"]
 files = [
-    {file = "pytz-2024.1-py2.py3-none-any.whl", hash = "sha256:328171f4e3623139da4983451950b28e95ac706e13f3f2630a879749e7a8b319"},
-    {file = "pytz-2024.1.tar.gz", hash = "sha256:2a29735ea9c18baf14b448846bde5a48030ed267578472d8955cd0e7443a9812"},
+    {file = "pytz-2024.2-py2.py3-none-any.whl", hash = "sha256:31c7c1817eb7fae7ca4b8c7ee50c72f93aa2dd863de768e1ef4245d426aa0725"},
+    {file = "pytz-2024.2.tar.gz", hash = "sha256:2aa355083c50a0f93fa581709deac0c9ad65cca8a9e9beac660adcbd493c798a"},
 ]
 
 [[package]]
@@ -4296,25 +4296,24 @@ files = [
 
 [[package]]
 name = "wxpython"
-version = "4.2.1"
+version = "4.2.2"
 summary = "Cross platform GUI toolkit for Python, \"Phoenix\" version"
 groups = ["default"]
 dependencies = [
     "numpy; python_version >= \"3.0\" and python_version < \"3.12\"",
-    "pillow",
     "six",
 ]
 files = [
-    {file = "wxPython-4.2.1-cp310-cp310-macosx_10_10_universal2.whl", hash = "sha256:3fd606d10db694c29f712f13dc3d3179d0204a71f6c1fbb5fcee859d03e9ff97"},
-    {file = "wxPython-4.2.1-cp310-cp310-win32.whl", hash = "sha256:5b233c39d7bfb53b9c4928ee7c86d626f1f7a716a6dfc3acc152bb437e658751"},
-    {file = "wxPython-4.2.1-cp310-cp310-win_amd64.whl", hash = "sha256:bb7988814e706eb00792589d606d317da5661dcffbb09263cd20da956c46bcbb"},
-    {file = "wxPython-4.2.1-cp38-cp38-macosx_11_0_universal2.whl", hash = "sha256:a7eefbc7fe7ac86479d814302711f8f118ba214229aa2a6d789fb888ee79abaa"},
-    {file = "wxPython-4.2.1-cp38-cp38-win32.whl", hash = "sha256:ff0423e84a5aaa203e7c1c3d36f8417c54cb4cd8849a43b3c917ac3bfafa4ad7"},
-    {file = "wxPython-4.2.1-cp38-cp38-win_amd64.whl", hash = "sha256:903f45131107802b38c0b5d0e964a2ce0295b67e8c3d7659821ac5b26a35658b"},
-    {file = "wxPython-4.2.1-cp39-cp39-macosx_10_10_universal2.whl", hash = "sha256:a15b76dad81f9bd6ceadf00fbede9aff9e09859a9aa698c53e8bd56b95d2effc"},
-    {file = "wxPython-4.2.1-cp39-cp39-win32.whl", hash = "sha256:c4db6d7f054d76cb1532dbd5da81b87b7a90dc9fdf18a3540063b2f8f5f3e663"},
-    {file = "wxPython-4.2.1-cp39-cp39-win_amd64.whl", hash = "sha256:0595fdd133a552a232a99759b87891136a4500c806bbea68b888e7b6f2c9bbea"},
-    {file = "wxPython-4.2.1.tar.gz", hash = "sha256:e48de211a6606bf072ec3fa778771d6b746c00b7f4b970eb58728ddf56d13d5c"},
+    {file = "wxPython-4.2.2-cp310-cp310-macosx_12_0_x86_64.whl", hash = "sha256:a83bc118417b715ee8fd7143faaf51adaa041ccae22cc6de99bc7f7bb7fc44ef"},
+    {file = "wxPython-4.2.2-cp310-cp310-win32.whl", hash = "sha256:68923029a7e236374002af25c14aa311922b80f8d63e1f088e6176e12640fa3e"},
+    {file = "wxPython-4.2.2-cp310-cp310-win_amd64.whl", hash = "sha256:a1f506144173010ae3354980d1a1da6ffcaeed87f2b1be9eef43f60fc8faeaa4"},
+    {file = "wxPython-4.2.2-cp38-cp38-macosx_12_0_x86_64.whl", hash = "sha256:e5ba9b29f64b466d2926c4a5c5a1b624f635c20b1c23ba27064ac9216d858b90"},
+    {file = "wxPython-4.2.2-cp38-cp38-win32.whl", hash = "sha256:a391eacd10d0ba16333a186819307641803b0dc7a066d5fe4bd1c13f1cd2f44e"},
+    {file = "wxPython-4.2.2-cp38-cp38-win_amd64.whl", hash = "sha256:b68a4cc0e5b648a0856ffd399ce04e6b750d9dbfba325c4a1f6201dc8e9e4886"},
+    {file = "wxPython-4.2.2-cp39-cp39-macosx_12_0_x86_64.whl", hash = "sha256:a8c58154e05bb63e7b45dfd0ee379d354dc3372199a858260575e2817908434f"},
+    {file = "wxPython-4.2.2-cp39-cp39-win32.whl", hash = "sha256:f7b879f29d91ef847c5e88bfb7c34a732a35f016896b1b7f87bc3e3d2d0a5a96"},
+    {file = "wxPython-4.2.2-cp39-cp39-win_amd64.whl", hash = "sha256:c8d6509f5579732329df70070966a5d8152890e0213f9305801048f5e7408158"},
+    {file = "wxPython-4.2.2.tar.gz", hash = "sha256:5dbcb0650f67fdc2c5965795a255ffaa3d7b09fb149aa8da2d0d9aa44e38e2ba"},
 ]
 
 [[package]]
@@ -4335,7 +4334,7 @@ files = [
 
 [[package]]
 name = "xmlschema"
-version = "3.4.0"
+version = "3.4.1"
 requires_python = ">=3.8"
 summary = "An XML Schema validator and decoder"
 groups = ["default"]
@@ -4343,8 +4342,8 @@ dependencies = [
     "elementpath<5.0.0,>=4.4.0",
 ]
 files = [
-    {file = "xmlschema-3.4.0-py3-none-any.whl", hash = "sha256:e4782f2a1f6d8015527c3c3fe2076c515b6d6a1e7d0643fc0b5ed21651e4fa71"},
-    {file = "xmlschema-3.4.0.tar.gz", hash = "sha256:dde3cf086061397ad64b3cfcdc6197eb0eed87971349962546aac029df118c38"},
+    {file = "xmlschema-3.4.1-py3-none-any.whl", hash = "sha256:7113a9dca6c48625c4ea819486bce9567f41cff1b6d064f7c32da2e03d443deb"},
+    {file = "xmlschema-3.4.1.tar.gz", hash = "sha256:4f69eca6f2c446b06c74acd958e7d6613487c253d959a3b75078dfcc880b80ff"},
 ]
 
 [[package]]
