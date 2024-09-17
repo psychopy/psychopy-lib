@@ -63,7 +63,7 @@ dependencies = [
     "future",  # only to support legacy versions in useVersion
     # supporting plugins
     "pypi-search>=1.2.1",
-    "setuptools>=75.0.0",
+    "setuptools>=75.1.0",
     # pavlovia connections
     "python-gitlab",
     "gitpython",
@@ -91,7 +91,7 @@ dependencies = [
     'tables<3.9; python_version < "3.9"',
     'tables; python_version >= "3.9"',
     'blosc2<2.2.8; python_version < "3.9"',  # dependency of tables
-    "packaging>=24.1",
+    "packaging>=24.0",
 ]
 
 [project.optional-dependencies]  # This is optional dependencies
