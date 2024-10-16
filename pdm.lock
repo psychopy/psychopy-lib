@@ -5,7 +5,7 @@
 groups = ["default"]
 strategy = ["cross_platform", "inherit_metadata"]
 lock_version = "4.4.2"
-content_hash = "sha256:1d15c6b3de37ffdc762879844927b4ac7cd20243049a9b8d60fd0670ab123f83"
+content_hash = "sha256:4fb92d221edd1f7677e9e9337774c89e5dd0e0671b08613de4346a39d2f0fcee"
 
 [[package]]
 name = "arabic-reshaper"
@@ -386,26 +386,26 @@ files = [
 
 [[package]]
 name = "ffpyplayer"
-version = "4.5.1"
+version = "4.5.2"
 summary = "A cython implementation of an ffmpeg based player."
 groups = ["default"]
 files = [
-    {file = "ffpyplayer-4.5.1-cp310-cp310-macosx_10_9_universal2.whl", hash = "sha256:36dbf4d15f7ecc874983bd23895ca143e0d11f38246bca31227716172a31d2c5"},
-    {file = "ffpyplayer-4.5.1-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:f629900b0b5717ef935380a8439327e8b1e73577252632acfb32d7367754499b"},
-    {file = "ffpyplayer-4.5.1-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:ee9851c69a4dca99c79587685689bcd1c8ffc5a371244847e28450982f68f347"},
-    {file = "ffpyplayer-4.5.1-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:311a2b5c4ef3854d6bfe8af889603cd47ddf8c3e9ff175800b66b1f410aeb915"},
-    {file = "ffpyplayer-4.5.1-cp310-cp310-win_amd64.whl", hash = "sha256:526853ad4a382d07c89abdddd882188c025a8fe1f4a9d7df81e52cf7973a0cec"},
-    {file = "ffpyplayer-4.5.1-cp38-cp38-macosx_10_9_universal2.whl", hash = "sha256:74e82e41b1a955ac91b4e08191002acf9d944740f8ba60cb6ac967d739dc1794"},
-    {file = "ffpyplayer-4.5.1-cp38-cp38-macosx_10_9_x86_64.whl", hash = "sha256:003dae09ffe6ee053175e3c1b0b2066037cf69ba7f8989e5296fc710c5836ad9"},
-    {file = "ffpyplayer-4.5.1-cp38-cp38-macosx_11_0_arm64.whl", hash = "sha256:23bc75bc329bc292029af9e0b9a142a174e6ab63ac68035896343f8bd218b880"},
-    {file = "ffpyplayer-4.5.1-cp38-cp38-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:a507da4d9be87e9025764d6b6c0dbae92af51053e02e76df23fe5b5ab3b142c2"},
-    {file = "ffpyplayer-4.5.1-cp38-cp38-win_amd64.whl", hash = "sha256:5bfc079ed4481fa0b182433e861e1b22e740e92568f88a9ffabc3c821f6e01b4"},
-    {file = "ffpyplayer-4.5.1-cp39-cp39-macosx_10_9_universal2.whl", hash = "sha256:ff2647873d959353ba2323295a08ea34544a2bab80cd9b4b872af5f94ee0e39b"},
-    {file = "ffpyplayer-4.5.1-cp39-cp39-macosx_10_9_x86_64.whl", hash = "sha256:6129d710c5ac4cfb302d6e1e64fc732175dc467e098fff52835f6efcfbb4d6ab"},
-    {file = "ffpyplayer-4.5.1-cp39-cp39-macosx_11_0_arm64.whl", hash = "sha256:d719f663fe1aae0ee97c3fde0fbe626719523d6b5d51424bfdd89a36f159b936"},
-    {file = "ffpyplayer-4.5.1-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:abcbc181fa8685cab0e1db47c51154d8c809dafff59c7d8a37f69a27840f3bd5"},
-    {file = "ffpyplayer-4.5.1-cp39-cp39-win_amd64.whl", hash = "sha256:86920b16736d361b81f780ac8e1441f91966b5f1d1abe275981382c8cf8f0487"},
-    {file = "ffpyplayer-4.5.1.tar.gz", hash = "sha256:d55d54563fcf6c334505b45d4b64825f24fafb5acfa7a9e472c08e877f549069"},
+    {file = "ffpyplayer-4.5.2-cp310-cp310-macosx_10_13_universal2.whl", hash = "sha256:5d5ccd2bad0884c4e711dfd55f369733f33f8a6fdffda8b48bf02f1212e8cc7a"},
+    {file = "ffpyplayer-4.5.2-cp310-cp310-macosx_10_13_x86_64.whl", hash = "sha256:6d51ccd761db50a248f2164eb65d352f7ce90ab747e6f1fd06bd3e2cb4702f75"},
+    {file = "ffpyplayer-4.5.2-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:2e4aa2dcca53ad445519bda58a7e6b8b808aa5f272eaa92a26f2e4ab152cdf65"},
+    {file = "ffpyplayer-4.5.2-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:5ea1b98d4ddffaaa01e519edbf0f67d4759ba100ad09b0f4dce5c21584b493b0"},
+    {file = "ffpyplayer-4.5.2-cp310-cp310-win_amd64.whl", hash = "sha256:89224e7d4642ceb18f9f19e3c8e9f9cab1f1849af04f7f7dc553234783e4720c"},
+    {file = "ffpyplayer-4.5.2-cp38-cp38-macosx_10_13_universal2.whl", hash = "sha256:e8008adada598b49a579fad28c6082348eed0c77581009657696276682fa30a5"},
+    {file = "ffpyplayer-4.5.2-cp38-cp38-macosx_10_13_x86_64.whl", hash = "sha256:1efcd1eb73512f12456609e609ca1282dd120ecb39aeb2246f0d48002861d99e"},
+    {file = "ffpyplayer-4.5.2-cp38-cp38-macosx_11_0_arm64.whl", hash = "sha256:779dbcc9f74da27fa34cf6651f86fd6b86906ef3f825dda852eb59f7eb901f54"},
+    {file = "ffpyplayer-4.5.2-cp38-cp38-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:a23372c7a0c3174ddcf2b490f5695ca758bf69b06271f948ab67e9148ca565e1"},
+    {file = "ffpyplayer-4.5.2-cp38-cp38-win_amd64.whl", hash = "sha256:59c194816583323e9a6ba82d3c8ee7c4a60e09613b4a2486ceae03215b4a9e1f"},
+    {file = "ffpyplayer-4.5.2-cp39-cp39-macosx_10_13_universal2.whl", hash = "sha256:f0fbbb07f62dd3746cfd99cfcf02391c5dc1b1c78943e52eecea41fa24c86ff8"},
+    {file = "ffpyplayer-4.5.2-cp39-cp39-macosx_10_13_x86_64.whl", hash = "sha256:fa74b94a62bf5cbb36e4b58169110fd33c06effc65d3d4556388d6cb6e816ba5"},
+    {file = "ffpyplayer-4.5.2-cp39-cp39-macosx_11_0_arm64.whl", hash = "sha256:dbfbfe02cb65aff35fcce93694904a0cfd7c6841a497aa7f2ba48caa276523a5"},
+    {file = "ffpyplayer-4.5.2-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:aa47757a9f4f8eb934fea49bddd6de50f64d16274fe16188841ee9802bb2d811"},
+    {file = "ffpyplayer-4.5.2-cp39-cp39-win_amd64.whl", hash = "sha256:2e4bd6b1fd527c0472a57ace0ec0d76fbc23ca549041ecc19c83f99e75f46b62"},
+    {file = "ffpyplayer-4.5.2.tar.gz", hash = "sha256:f9affdc12ebba4649f116973b9e4e057d06761bc63758594a91ec85f168752fe"},
 ]
 
 [[package]]
@@ -4054,13 +4054,13 @@ files = [
 
 [[package]]
 name = "setuptools"
-version = "75.1.0"
+version = "75.2.0"
 requires_python = ">=3.8"
 summary = "Easily download, build, install, upgrade, and uninstall Python packages"
 groups = ["default"]
 files = [
-    {file = "setuptools-75.1.0-py3-none-any.whl", hash = "sha256:35ab7fd3bcd95e6b7fd704e4a1539513edad446c097797f2985e0e4b960772f2"},
-    {file = "setuptools-75.1.0.tar.gz", hash = "sha256:d59a21b17a275fb872a9c3dae73963160ae079f1049ed956880cd7c09b120538"},
+    {file = "setuptools-75.2.0-py3-none-any.whl", hash = "sha256:a7fcb66f68b4d9e8e66b42f9876150a3371558f98fa32222ffaa5bced76406f8"},
+    {file = "setuptools-75.2.0.tar.gz", hash = "sha256:753bb6ebf1f465a1912e19ed1d41f403a79173a9acf66a42e7e6aec45c3c16ec"},
 ]
 
 [[package]]
