@@ -252,7 +252,7 @@ class Session:
             priorityThreshold=constants.priority.EXCLUDE+1,
             params=None,
             liaison=None,
-            restMsg="Rest..."
+            restMsg="Rest"
         ):
         # Store root and add to Python path
         self.root = Path(root)
