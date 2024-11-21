@@ -33,18 +33,8 @@ except Exception:
 
 import numpy as np
 
-try:
-    defaultLatencyClass = int(prefs.hardware['audioLatencyMode'][0])
-except (TypeError, IndexError):  # maybe we were given a number instead
-    defaultLatencyClass = prefs.hardware['audioLatencyMode']
-"""vals in prefs.hardware['audioLatencyMode'] are:
-     {0:_translate('Latency not important'),
-      1:_translate('Share low-latency driver'),
-      2:_translate('Exclusive low-latency'),
-      3:_translate('Aggressive low-latency'),
-      4:_translate('Latency critical')}
-Based on help at http://psychtoolbox.org/docs/PsychPortAudio-Open
-"""
+
+defaultLatencyClass = 1
 # suggestedLatency = 0.005  ## Not currently used. Keep < 1 scr refresh
 
 if prefs.hardware['audioDriver']=='auto':
