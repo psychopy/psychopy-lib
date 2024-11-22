@@ -1,3 +1,12 @@
+# -*- coding: utf-8 -*-
+
+"""Classes and functions managing physical speaker devices for audio playback.
+"""
+
+# Part of the PsychoPy library
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
+# Distributed under the terms of the GNU General Public License (GPL).
+
 import io
 import sys
 import contextlib
@@ -14,8 +23,7 @@ __all__ = [
 
 
 class SpeakerDevice(BaseDevice):
-    """
-    
+    """Class for managing a physical speaker device for audio playback.
 
     Parameters
     ----------
@@ -44,24 +52,36 @@ class SpeakerDevice(BaseDevice):
     streams = {}
 
     def __init__(self, index=None, name=None, resampling="load", exclusive=False):
+        if index is not None and name is not None:
+            logging.warn(
+                "Both 'index' and 'name' were provided to SpeakerDevice; ignoring 'index'"
+            )
+            index = None
+
         # try simple integerisation of index
         if isinstance(index, str):
             try:
-                index = int(index)
+                index = float(index)
             except ValueError:
                 pass
-        # if index is default, get default
-        if index in (-1, None):
+
+        # if index is default, get default speaker device
+        if index in (-1, None) and name is None:
+            index = None  # set to none so we can find by name later
             pref = prefs.hardware['audioDevice']
-            if isinstance(pref, (list, tuple)):
-                pref = pref[0]
+            pref = pref[0] if isinstance(pref, (list, tuple)) else pref
+
             if pref in ("default", "None"):
                 # if no pref, use first device
-                pref = self.getAvailableDevices()[0]['index']
-            index = pref
+                name = self.getAvailableDevices()[0]['deviceName']
+            else:
+                # if pref is a name, use that
+                name = pref
+
         # store name and index
         self.name = name
         self.index = index
+
         # store playback prefs
         resampling = str(resampling)
         assert resampling in ("play", "load", "none"), (
@@ -109,23 +129,52 @@ class SpeakerDevice(BaseDevice):
             latencyClass = 2
         else:
             latencyClass = 1
+
+        # get the devices from psychtoolbox
+        try:
+            wasapiPref = prefs.hardware['audioWASAPIOnly']
+        except KeyError:
+            wasapiPref = False
+            
+        if sys.platform == 'win32' and wasapiPref:
+            allFoundDevices = ptb.get_devices(device_type=13)
+        else:
+            allFoundDevices = ptb.get_devices()
+
+        if not allFoundDevices:
+            raise RuntimeError("No audio devices found!")
+        
         # find ptb profile for this device
+        findByName = self.index is None and self.name is not None
         self.profile = None
-        for thisProfile in ptb.get_devices(device_type=13):
+        for thisProfile in allFoundDevices:
             # skip input-only devices (microphones)
             if thisProfile['NrOutputChannels'] == 0:
                 continue
-            # if profile matches device name or index, use it
-            if thisProfile['DeviceName'] in (self.name, self.index) or (
-                self.index == thisProfile['DeviceIndex'] and self.name is None
-            ):
+
+            if findByName and self.name == thisProfile['DeviceName']:
                 self.profile = thisProfile
                 break
+            else:  # use index instead
+                if self.index == thisProfile['DeviceIndex']:
+                    self.profile = thisProfile
+                    break
+
         # raise error if device not found
         if self.profile is None:
-            raise ValueError(
-                "No speaker device found with index {}".format(self.index)
-            )
+            if findByName:
+                raise ValueError(
+                    "No speaker device found with name '{}'".format(self.name)
+                )
+            else:
+                raise ValueError(
+                    "No speaker device found with index '{}'".format(self.index)
+                    )
+        
+        logging.debug(
+            f"Found speaker device: {self.profile['DeviceName']} ({self.profile['DeviceIndex']})"
+        )
+            
         # if physical device already has a stream, use it rather than making a new one
         if self.profile['DeviceIndex'] in SpeakerDevice.streams:
             self.stream = SpeakerDevice.streams['DeviceIndex']
@@ -134,7 +183,7 @@ class SpeakerDevice(BaseDevice):
         # try to connect using profile at various sample rates
         for sampleRateHz in (
             # start with the rate from profile (this will usually work)
-            self.profile['DefaultSampleRate'], 
+            int(self.profile['DefaultSampleRate']), 
             # if that fails, try some common sample rates
             48000,
             44100, 
@@ -181,6 +230,11 @@ class SpeakerDevice(BaseDevice):
                 "Failed to setup a PsychToolBox audio stream for device %(DeviceName)s "
                 "(%(DeviceIndex)s)." % self.profile
             )
+
+        logging.info(
+            f"Created stream for speaker device: {self.profile['DeviceName']} "
+            f"({self.profile['DeviceIndex']})"
+        )
     
     def open(self):
         """
