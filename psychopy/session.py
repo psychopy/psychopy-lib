@@ -1070,6 +1070,14 @@ class Session:
         ).format(key=key, expInfo=expInfo))
         # reset session clock
         self.experimentClock.reset()
+        # send start event to liaison
+        if self.liaison is not None:
+            self.sendToLiaison({
+                    'type': "experiment_status",
+                    'name': thisExp.name,
+                    'status': constants.STARTED,
+                    'expInfo': expInfo
+                })
         # Run this experiment
         try:
             self.experiments[key].run(
