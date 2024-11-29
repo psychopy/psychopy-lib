@@ -81,6 +81,8 @@ class SettingsComponent:
     plugin = None
     version = "0.0.0"
     beta = False
+    # an experiment only has one SettingsComponent, so hide it from the Components panel
+    hidden = True
 
     def __init__(
             self, parentName, exp, expName='', fullScr=True, runMode=0, rush=False,
