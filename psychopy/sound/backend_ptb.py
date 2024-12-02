@@ -50,7 +50,11 @@ else:
 
 # check if we should only use WAS host API (default is True on Windows)
 audioWASAPIOnly = False
-if sys.platform == 'win32' and prefs.hardware['audioWASAPIOnly']:
+try:
+    wasapiPref = prefs.hardware['audioWASAPIOnly']
+except KeyError:
+    wasapiPref = False
+if sys.platform == 'win32' and wasapiPref:
     audioWASAPIOnly = True
 
 # these will be used by sound.__init__.py
