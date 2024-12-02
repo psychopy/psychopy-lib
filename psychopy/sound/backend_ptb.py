@@ -247,7 +247,7 @@ class SoundPTB(_SoundBase):
                 clip.resample(targetSampleRateHz=self.speaker.sampleRateHz)
         # work out stop time
         if self.stopTime == -1:
-            self.duration = clip.sample.shape[0] / clip.sampleRateHz
+            self.duration = clip.samples.shape[0] / clip.sampleRateHz
         # create/update track
         if  self.track:
             self.track.stop()
