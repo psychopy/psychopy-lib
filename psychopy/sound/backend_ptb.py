@@ -252,6 +252,11 @@ class SoundPTB(_SoundBase):
         # work out stop time
         if self.stopTime == -1:
             self.duration = clip.samples.shape[0] / clip.sampleRateHz
+        # handle stereo/mono
+        if self.speaker.channels > 1:
+            clip = clip.asStereo()
+        else:
+            clip = clip.asMono()
         # create/update track
         if  self.track:
             self.track.stop()
