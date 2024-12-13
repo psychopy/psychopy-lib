@@ -19,13 +19,14 @@ instead (bundled with Standalone PsychoPy)::
 """
 
 import psychopy.logging as logging
-from psychopy.tools.pkgtools import PluginStub
+from psychopy.plugins import PluginStub
 
 
 class RB730(
     PluginStub, 
     plugin="psychopy-cedrus", 
-    doclink="https://psychopy.github.io/psychopy-cedrus/coder/RB730"
+    docsHome="https://psychopy.github.io/psychopy-cedrus",
+    docsRef="/coder/RB730"
 ):
     pass
 
