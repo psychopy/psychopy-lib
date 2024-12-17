@@ -18,7 +18,7 @@ class SerialOutComponent(BaseComponent):
     version = "2022.2.0"
     iconFile = Path(__file__).parent / 'serial.png'
     tooltip = _translate('Serial out: send signals from a serial port')
-    beta = True
+    beta = False
 
     def __init__(self, exp, parentName, name='serialPort',
                  startType='time (s)', startVal=0.0,

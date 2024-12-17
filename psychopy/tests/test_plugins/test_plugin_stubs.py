@@ -86,7 +86,16 @@ def test_plugin_stub_links():
         "psychopy.visual.patch",
         "psychopy.visual.radial",
         "psychopy.visual.ratingscale",
-        "psychopy.visual.secondorder"
+        "psychopy.visual.secondorder",
+        "psychopy.hardware.brainproducts",
+        "psychopy.hardware.forp",
+        "psychopy.hardware.iolab",
+        "psychopy.hardware.labjacks",
+        "psychopy.hardware.qmix",
+        "psychopy.hardware.bbtk",
+        "psychopy.sound.backend_pyo",
+        "psychopy.sound.backend_sounddevice",
+        "psychopy.visual.backends.glfwbackend",
     ]
     for stubModule in knownStubModules:
         importlib.import_module(stubModule)
