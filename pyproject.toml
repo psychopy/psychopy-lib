@@ -104,6 +104,8 @@ tests = [
 ]
 docs = [
     "sphinx",
+    "sphinx-design",
+    "sphinx-copybutton",
     "jinja2",
 ]
 building = [
