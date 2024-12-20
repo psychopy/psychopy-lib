@@ -1109,9 +1109,11 @@ class PavloviaProject(dict):
         elif localFiles:
             # get project name
             if "/" in self.stringId:
-                _, projectName = self.stringId.split("/")
+                _, projectName = self.stringId.split("/", maxsplit=1)
             else:
                 projectName = self.stringId
+            # remove extra / from project name
+            projectName = projectName.replace("/", "")
             # ask user if they want to clone to a subfolder
             msg = _translate(
                     "Folder '{localRoot}' is not empty, use '{localRoot}/{projectName}' instead?"
@@ -1477,7 +1479,9 @@ def getProject(filename):
     # If already found, return
     if (knownProjects is not None) and (path in knownProjects) and ('idNumber' in knownProjects[path]):
         # Make sure we are logged in
-        nameSpace, projectName = path.split("/")
+        nameSpace, projectName = path.split("/", maxsplit=1)
+        # remove extra slashes from project name
+        projectName = projectName.replace("/", "")
         # Try to log in if not logged in
         if not session.user:
             if nameSpace in knownUsers:
@@ -1523,7 +1527,9 @@ def getProject(filename):
                     # Remove .git
                     namespaceName = namespaceName.replace(".git", "")
                     # Split to get namespace
-                    nameSpace, projectName = namespaceName.split('/')
+                    nameSpace, projectName = namespaceName.split("/", maxsplit=1)
+                    # remove extra slashes from project name
+                    projectName = projectName.replace("/", "")
                     # Get current session
                     pavSession = getCurrentSession()
                     # Try to log in if not logged in
