@@ -378,13 +378,13 @@ files = [
 
 [[package]]
 name = "elementpath"
-version = "4.6.0"
+version = "4.7.0"
 requires_python = ">=3.8"
 summary = "XPath 1.0/2.0/3.0/3.1 parsers and selectors for ElementTree and lxml"
 groups = ["default"]
 files = [
-    {file = "elementpath-4.6.0-py3-none-any.whl", hash = "sha256:e578677f19ccc6ff374c4477c687c547ecbaf7b478d98abb951b7b4b45260a17"},
-    {file = "elementpath-4.6.0.tar.gz", hash = "sha256:ba46bf07f66774927727ade55022b6c435fac06b2523cb3cd7689a1884d33468"},
+    {file = "elementpath-4.7.0-py3-none-any.whl", hash = "sha256:607804a1b4250ac448c1e2bfaec4ee1c980b0a07cfdb0d9057b57102038ed480"},
+    {file = "elementpath-4.7.0.tar.gz", hash = "sha256:a2029dc8752fcfec49663d1ed1b412c6daf278c0c91938f50f63c4fe9ed1848e"},
 ]
 
 [[package]]
