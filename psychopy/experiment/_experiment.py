@@ -795,6 +795,34 @@ class Experiment:
 
         return exp
 
+    def _getValidRoutineName(self, routineNode, modifiedNames):
+        """
+        Find valid routine name
+        
+        Parameters
+        ----------
+        routineNode : Routine
+            Routine, Standalone Routine, or Unknown Routine node being read
+            from XML file
+        modifiedNames : List[str]
+            Names that have been modified within the XML file
+
+        Modifies:
+        -------
+        modifiedNames : List[str]
+            Appends name (str) if name was changed
+
+        Returns
+        -------
+        routineGoodName : str
+            Validated name of routine being added, meaning no duplicate names
+        """
+        routineGoodName = self.namespace.makeValid(routineNode.get('name'))
+        if routineGoodName != routineNode.get('name'):
+            modifiedNames.append(routineNode.get('name'))
+        self.namespace.add(routineGoodName)
+        return routineGoodName
+
     def loadFromXML(self, filename):
         """Loads an xml file and parses the builder Experiment from it
         """
@@ -851,11 +879,7 @@ class Experiment:
         # get each routine node from the list of routines
         for routineNode in routinesNode:
             if routineNode.tag == "Routine":
-                routineGoodName = self.namespace.makeValid(
-                    routineNode.get('name'))
-                if routineGoodName != routineNode.get('name'):
-                    modifiedNames.append(routineNode.get('name'))
-                self.namespace.user.append(routineGoodName)
+                routineGoodName = self._getValidRoutineName(routineNode, modifiedNames)
                 routine = Routine(name=routineGoodName, exp=self)
                 # self._getXMLparam(params=routine.params, paramNode=routineNode)
                 self.routines[routineNode.get('name')] = routine
@@ -923,12 +947,13 @@ class Experiment:
                     if component not in routine:
                         routine.append(component)
             else:
+                routineGoodName = self._getValidRoutineName(routineNode, modifiedNames)
                 if routineNode.tag in allRoutines:
                     # If not a routine, may be a standalone routine
-                    routine = allRoutines[routineNode.tag](exp=self, name=routineNode.get('name'))
+                    routine = allRoutines[routineNode.tag](exp=self, name=routineGoodName)
                 else:
                     # Otherwise treat as unknown
-                    routine = allRoutines['UnknownRoutine'](exp=self, name=routineNode.get('name'))
+                    routine = allRoutines['UnknownRoutine'](exp=self, name=routineGoodName)
                 # Apply all params
                 for paramNode in routineNode:
                     if paramNode.tag == "Param":
