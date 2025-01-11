@@ -6,6 +6,7 @@ import os
 import sys
 import platform
 from pathlib import Path
+from psychopy import logging
 from .. import __version__
 
 from packaging.version import Version
@@ -22,14 +23,14 @@ except ImportError:
 
 
 if _haveConfigobj:  # Use the "global" installation.
-    from configobj import ConfigObj
+    from configobj import ConfigObj, ConfigObjError
     try:
         from configobj import validate
     except ImportError:  # Older versions of configobj
         import validate
 else:  # Use our contrib package if configobj is not installed or too old.
     from psychopy.contrib import configobj
-    from psychopy.contrib.configobj import ConfigObj
+    from psychopy.contrib.configobj import ConfigObj, ConfigObjError
     from psychopy.contrib.configobj import validate
 join = os.path.join
 
@@ -319,11 +320,25 @@ class Preferences:
                 msg = ("Preferences.py failed to create folder %s. Settings"
                        " will be read-only")
                 print(msg % self.paths['userPrefsDir'])
-        # then get the configuration file
-        cfg = ConfigObj(self.paths['userPrefsFile'],
-                        encoding='UTF8', configspec=self.prefsSpec)
-        # cfg.validate(self._validator, copy=False)  # merge then validate
-        # don't cfg.write(), see explanation above
+        # load configuration from file
+        try:
+            cfg = ConfigObj(
+                self.paths['userPrefsFile'], encoding='UTF8', configspec=self.prefsSpec
+            )
+        except ConfigObjError as err:
+            # if invalid, print a warning and reset to defaults
+            logging.warn(
+                f"Failed to load preferences file, falling back to defaults. Reason:\n{err}"
+            )
+            # create blank config
+            cfg = ConfigObj(
+                None, encoding='UTF8', configspec=self.prefsSpec
+            )
+            # point blank config object to file
+            cfg.filename = self.paths['userPrefsFile']
+            # overwrite existing prefs
+            cfg.write()
+        
         return cfg
 
     def saveUserPrefs(self):
@@ -341,11 +356,29 @@ class Preferences:
         appDir = Path(self.paths['appDir'])
         if not appDir.is_dir():  # if no app dir this may be just lib install
             return {}
-        # fetch appData too against a config spec
-        appDataSpec = ConfigObj(join(self.paths['appDir'], 'appData.spec'),
-                                encoding='UTF8', list_values=False)
-        cfg = ConfigObj(self.paths['appDataFile'],
-                        encoding='UTF8', configspec=appDataSpec)
+        # get spec to validate configuration against
+        appDataSpec = ConfigObj(
+            join(self.paths['appDir'], 'appData.spec'), encoding='UTF8', list_values=False
+        )
+        # get configuration from file
+        try:
+            cfg = ConfigObj(
+                self.paths['appDataFile'], encoding='UTF8', configspec=appDataSpec
+            )
+        except ConfigObjError as err:
+            # if invalid, print a warning and reset to defaults
+            logging.warn(
+                f"Failed to load preferences file, falling back to defaults. Reason:\n{err}"
+            )
+            # create blank config
+            cfg = ConfigObj(
+                None, encoding='UTF8', configspec=appDataSpec
+            )
+            # point blank config object to file
+            cfg.filename = self.paths['appDataFile']
+            # overwrite existing prefs
+            cfg.write()
+        # validate configuration
         resultOfValidate = cfg.validate(self._validator,
                                         copy=True,
                                         preserve_errors=True)
