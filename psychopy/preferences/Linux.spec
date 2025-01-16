@@ -247,6 +247,8 @@
     # Coder: show / hide indentation level lines
     toggleIndentGuides = string(default='Ctrl+Shift+I')
 
+    # Builder: edit experiment settings
+    expSettings = string(default='Ctrl+Shift+X')
     # Builder: create a new routine
     newRoutine = string(default='Ctrl+Shift+N')
     # Builder: copy an existing routine

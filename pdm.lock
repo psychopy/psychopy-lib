@@ -5,7 +5,7 @@
 groups = ["default"]
 strategy = ["cross_platform", "inherit_metadata"]
 lock_version = "4.4.2"
-content_hash = "sha256:f29deabc6888f9d07d51c63a8f5faa58eea7e07d85c47ab0de09d76c167a1e4e"
+content_hash = "sha256:a64640fc19d1f8918afadadde88b56a7e4f44a5d8f8f989e082640e381ba65fc"
 
 [[package]]
 name = "arabic-reshaper"
@@ -554,6 +554,22 @@ files = [
 ]
 
 [[package]]
+name = "gmsh-interop"
+version = "2024.1"
+requires_python = "~=3.8"
+summary = "A parser for GMSH's .msh format"
+groups = ["default"]
+dependencies = [
+    "numpy>=1.6.0",
+    "packaging>=20.0",
+    "pytools",
+]
+files = [
+    {file = "gmsh_interop-2024.1-py2.py3-none-any.whl", hash = "sha256:e1eb66431cff0e27c1e36d46ce270d1af2b500ac101f7b0c953bc54f9477095e"},
+    {file = "gmsh_interop-2024.1.tar.gz", hash = "sha256:ec9bedf9dfd951032e4806d6f00f6f75c3d513ae655173fb459d6a5bce820ce2"},
+]
+
+[[package]]
 name = "greenlet"
 version = "3.1.1"
 requires_python = ">=3.7"
@@ -866,6 +882,51 @@ files = [
 ]
 
 [[package]]
+name = "meshpy"
+version = "2022.1.3"
+requires_python = "~=3.6"
+summary = "Triangular and Tetrahedral Mesh Generator"
+groups = ["default"]
+dependencies = [
+    "gmsh-interop",
+    "numpy",
+    "pytools>=2011.2",
+]
+files = [
+    {file = "MeshPy-2022.1.3-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:2d40478a535cfc27e8e545efa3620f7950b64970f5f0d00102271be6aa449956"},
+    {file = "MeshPy-2022.1.3-cp310-cp310-manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:46d4d89cc41b7b1f417d51671b1f66a8c852df119c1ead1134f422dc89dd40b9"},
+    {file = "MeshPy-2022.1.3-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:010c227ec6d3a9c14d8bf7d1f9f2651b317c70beee79c75d7a1d26b3a9e41b1f"},
+    {file = "MeshPy-2022.1.3-cp310-cp310-musllinux_1_1_x86_64.whl", hash = "sha256:14702088db853d3a72a4ed82654d5ab702a1f7c5561321c2945a8235b7a3b1d6"},
+    {file = "MeshPy-2022.1.3-cp310-cp310-win32.whl", hash = "sha256:dbe033062ed7dfc429ecf06070599054fe93d19c778d2b8159469b1210b36eb2"},
+    {file = "MeshPy-2022.1.3-cp310-cp310-win_amd64.whl", hash = "sha256:2fbade42c1a7b07f9247e8a6ba7060a30dd72bddeeee70e6f6b05b03a88647c7"},
+    {file = "MeshPy-2022.1.3-cp38-cp38-macosx_10_9_x86_64.whl", hash = "sha256:9bba744adb3754cfa59d1ff516e8013a37368ed9f3e203409ca502ab7b17bedf"},
+    {file = "MeshPy-2022.1.3-cp38-cp38-manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:986f170716d6eb0e8dbc1a8e0f129e0ae300b6f1fdbebe7706b3115a3d059a39"},
+    {file = "MeshPy-2022.1.3-cp38-cp38-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:fb64d7ee79c2370841856f20f8647e49b5475b38f401755a5e4f412a2ff58a6d"},
+    {file = "MeshPy-2022.1.3-cp38-cp38-musllinux_1_1_x86_64.whl", hash = "sha256:05bab01de672526ba31bbe9a7440503cbe970d8e56a5e6b0ea132310d86feda5"},
+    {file = "MeshPy-2022.1.3-cp38-cp38-win32.whl", hash = "sha256:183cb130a3dccea7df35c517869f5159f34a8d9fb1b666eb48779495fdac96c9"},
+    {file = "MeshPy-2022.1.3-cp38-cp38-win_amd64.whl", hash = "sha256:e7a7fc0f7cd8f93758ed5ed15f2806ec48da3f7ddad6838d9d564db18cb1f436"},
+    {file = "MeshPy-2022.1.3-cp39-cp39-macosx_10_9_x86_64.whl", hash = "sha256:1a2d78d1f2a67ed3073bfa63e79638aafaeb2717348e820cbbc7709a7d9be2ad"},
+    {file = "MeshPy-2022.1.3-cp39-cp39-manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:37e90f154a70fcf2c2ece584f58fb6764d2ee0007d3fddc6cf04b0295de98dab"},
+    {file = "MeshPy-2022.1.3-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:b876f6f6e8ae865e875b355a1c68ca5672a1a03babdf91a83bcc0f3d92804655"},
+    {file = "MeshPy-2022.1.3-cp39-cp39-musllinux_1_1_x86_64.whl", hash = "sha256:8d4967ec3166af5147377734c4a4256c8ae3bb94a265d149da6420c728a974b0"},
+    {file = "MeshPy-2022.1.3-cp39-cp39-win32.whl", hash = "sha256:b81ace2fff18a63482c4b6be04b27d51c7a715e8d53bf8f270f0414da35685ab"},
+    {file = "MeshPy-2022.1.3-cp39-cp39-win_amd64.whl", hash = "sha256:0fd5ffd0c90d9e0b0b1f86b55616c21a8812d1d36d0a4408ed6bd2d640a17bb5"},
+    {file = "MeshPy-2022.1.3-pp37-pypy37_pp73-macosx_10_9_x86_64.whl", hash = "sha256:cc5a719c12d011750dd588398b4e355aa85e0dd9dc185689fd139466121978af"},
+    {file = "MeshPy-2022.1.3-pp37-pypy37_pp73-manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:6fb9a58dc741bf8548c644b067212cbc2d7aeadb7dfa2a5eb9d968566780ba8c"},
+    {file = "MeshPy-2022.1.3-pp37-pypy37_pp73-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:0ced5e1e720a11782ff02124c738c5f699664360749c05e988963e3eaab137d7"},
+    {file = "MeshPy-2022.1.3-pp37-pypy37_pp73-win_amd64.whl", hash = "sha256:34311bb1804ccb82604016aeaaafbeb445ee3ac74c91355caaae5acd6ee9893b"},
+    {file = "MeshPy-2022.1.3-pp38-pypy38_pp73-macosx_10_9_x86_64.whl", hash = "sha256:0a5b77f106d2f44a45364db80b9ec42a30aea720f05f4383448f434957c177a1"},
+    {file = "MeshPy-2022.1.3-pp38-pypy38_pp73-manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:691d64cb4fe7af4de0e0c69f2c593c07d490563ba33a5d3db664a0ac455be53e"},
+    {file = "MeshPy-2022.1.3-pp38-pypy38_pp73-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:f03d2374316d02fcba24988cdc1dadd017eb111692a9c6adf8afcf81cc87e00f"},
+    {file = "MeshPy-2022.1.3-pp38-pypy38_pp73-win_amd64.whl", hash = "sha256:5ae9d56f04a368cfe9aa04091057a1eb705fd571faaa54e0c82e45c45166214e"},
+    {file = "MeshPy-2022.1.3-pp39-pypy39_pp73-macosx_10_9_x86_64.whl", hash = "sha256:d93782f0fd0d961039549e5e5b4a53125f8ea3ec457c4f3b9261acf4a0e94268"},
+    {file = "MeshPy-2022.1.3-pp39-pypy39_pp73-manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:ebb52237dbd87dc47c9c1c5d9f779bed99a4ce433407e1cb4995f90ca79a636e"},
+    {file = "MeshPy-2022.1.3-pp39-pypy39_pp73-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:8b7d60d288c3a99fd83ce1d1152cbe2d668c8ba036956fff68a5a4294f7f5850"},
+    {file = "MeshPy-2022.1.3-pp39-pypy39_pp73-win_amd64.whl", hash = "sha256:a0e107fbf79801721eddee9826a64787d3e3b1f0bfe3d08792bbe05c4d36f12a"},
+    {file = "MeshPy-2022.1.3.tar.gz", hash = "sha256:a7158e31ece25fa6c6cebce9fd1e968157d661dc8769fb30ceba69c351478475"},
+]
+
+[[package]]
 name = "moviepy"
 version = "1.0.3"
 summary = "Video editing with Python"
@@ -1125,6 +1186,17 @@ files = [
     {file = "pillow-10.4.0-pp39-pypy39_pp73-manylinux_2_28_x86_64.whl", hash = "sha256:f7baece4ce06bade126fb84b8af1c33439a76d8a6fd818970215e0560ca28c27"},
     {file = "pillow-10.4.0-pp39-pypy39_pp73-win_amd64.whl", hash = "sha256:cfdd747216947628af7b259d274771d84db2268ca062dd5faf373639d00113a3"},
     {file = "pillow-10.4.0.tar.gz", hash = "sha256:166c1cd4d24309b30d61f79f4a9114b7b2313d7450912277855ff5dfd7cd4a06"},
+]
+
+[[package]]
+name = "platformdirs"
+version = "4.3.6"
+requires_python = ">=3.8"
+summary = "A small Python package for determining appropriate platform-specific dirs, e.g. a `user data dir`."
+groups = ["default"]
+files = [
+    {file = "platformdirs-4.3.6-py3-none-any.whl", hash = "sha256:73e575e1408ab8103900836b97580d5307456908a03e92031bab39e4554cc3fb"},
+    {file = "platformdirs-4.3.6.tar.gz", hash = "sha256:357fb2acbc885b0419afd3ce3ed34564c13c9b95c89360cd9563f73aa5e2b907"},
 ]
 
 [[package]]
@@ -3882,6 +3954,21 @@ files = [
 ]
 
 [[package]]
+name = "pytools"
+version = "2024.1.14"
+requires_python = ">=3.8"
+summary = "A collection of tools for Python"
+groups = ["default"]
+dependencies = [
+    "platformdirs>=2.2",
+    "typing-extensions>=4; python_version < \"3.13\"",
+]
+files = [
+    {file = "pytools-2024.1.14-py3-none-any.whl", hash = "sha256:f70c549cdab36e4d31a48a88ce8d969af24816482d73b10012dcac42ce9425e8"},
+    {file = "pytools-2024.1.14.tar.gz", hash = "sha256:39e5bbaf81fa432e688b82dd0980212d18f97b23e51a8c7afe7592249fe40ab1"},
+]
+
+[[package]]
 name = "pytz"
 version = "2024.2"
 summary = "World timezone definitions, modern and historical"
@@ -4207,6 +4294,18 @@ dependencies = [
 files = [
     {file = "tqdm-4.67.1-py3-none-any.whl", hash = "sha256:26445eca388f82e72884e0d580d5464cd801a3ea01e63e5601bdff9ba6a48de2"},
     {file = "tqdm-4.67.1.tar.gz", hash = "sha256:f8aef9c52c08c13a65f30ea34f4e5aac3fd1a34959879d7e59e63027286627f2"},
+]
+
+[[package]]
+name = "typing-extensions"
+version = "4.12.2"
+requires_python = ">=3.8"
+summary = "Backported and Experimental Type Hints for Python 3.8+"
+groups = ["default"]
+marker = "python_version < \"3.13\""
+files = [
+    {file = "typing_extensions-4.12.2-py3-none-any.whl", hash = "sha256:04e5ca0351e0f3f85c6853954072df659d0d13fac324d0072316b67d7794700d"},
+    {file = "typing_extensions-4.12.2.tar.gz", hash = "sha256:1a7ead55c7e559dd4dee8856e3a88b41225abfe1ce8df57b7c13915fe121ffb8"},
 ]
 
 [[package]]
