@@ -91,6 +91,12 @@ class SpeakerDevice(BaseDevice):
             if pref in ("default", "None"):
                 # if no pref, use first device
                 name = self.getAvailableDevices()[0]['deviceName']
+                # warn the user, this speaker might be a virtual device with no audio or something
+                logging.warn(
+                    _translate(
+                        "No default speaker specified in Preferences / Hardware, using first speaker found: {}"
+                    ).format(name)
+                )
             else:
                 # if pref is a name, use that
                 name = pref

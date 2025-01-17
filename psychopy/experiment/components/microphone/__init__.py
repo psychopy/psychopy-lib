@@ -92,7 +92,7 @@ class MicrophoneComponent(BaseDeviceComponent):
             return ["default"] + [profile['deviceName'] for profile in profiles]
 
         self.params['device'] = Param(
-            device, valType='code', inputType="choice", categ="Device",
+            device, valType='str', inputType="choice", categ="Device",
             allowedVals=getDeviceIndices,
             allowedLabels=getDeviceNames,
             label=_translate("Device"),
@@ -329,6 +329,8 @@ class MicrophoneComponent(BaseDeviceComponent):
             inits['sampleRate'].val = at.sampleRateLabels[inits['sampleRate'].val]
         # Substitute channel value for numeric equivalent
         inits['channels'] = {'mono': 1, 'stereo': 2, 'auto': None}[self.params['channels'].val]
+        # force index to str type (holdover from when we used numeric indices)
+        inits['device'].valType = "str"
         # initialise mic device
         code = (
             "# initialise microphone\n"
