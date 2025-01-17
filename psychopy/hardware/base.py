@@ -283,6 +283,12 @@ class BaseResponseDevice(BaseDevice):
             'kwargs': kwargs
         })
     
+    def clearCallbacks(self):
+        """
+        Un-register all callbacks which have been registered to this device by `registerCallback`
+        """
+        self.callbacks = []
+    
     def checkCallbacks(self, message):
         """
         Check whether a received message should trigger any registered callback functions (see 

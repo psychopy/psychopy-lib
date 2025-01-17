@@ -2000,9 +2000,9 @@ class SettingsComponent:
         buff.writeIndentedLines(code)
 
     def writePauseCode(self, buff):
-        # Open function def
+        # open function def for pause
         code = (
-            'def pauseExperiment(thisExp, win=None, timers=[], playbackComponents=[]):\n'
+            'def pauseExperiment(thisExp, win=None, timers=[], playbackComponents=[], dispatchComponents=[]):\n'
             '    """\n'
             '    Pause this experiment, preventing the flow from advancing to the next routine until resumed.\n'
             '    \n'
@@ -2017,7 +2017,10 @@ class SettingsComponent:
             '        List of timers to reset once pausing is finished.\n'
             '    playbackComponents : list, tuple\n'
             '        List of any components with a `pause` method which need to be paused.\n'
-            '    """'
+            '    dispatchComponents : list, tuple\n'
+            '        List of any components with a `dispatchMessages` method which needs to be called while \n'
+            '        paused.\n'
+            '    """\n'
         )
         buff.writeIndentedLines(code)
         buff.setIndentLevel(+1, relative=True)
@@ -2051,6 +2054,9 @@ class SettingsComponent:
             "        endExperiment(thisExp, win=win)\n"
             )
         code += (
+            "    # dispatch messages on response components\n"
+            "    for comp in dispatchComponents:\n"
+            "        comp.device.dispatchMessages()\n"
             "    # sleep 1ms so other threads can execute\n"
             "    clock.time.sleep(0.001)\n"
             "# if stop was requested while paused, quit\n"
@@ -2064,8 +2070,7 @@ class SettingsComponent:
             "    timer.addTime(-pauseTimer.getTime())\n"
         )
         buff.writeIndentedLines(code % self.params)
-
-        # Exit function def
+        # exit function def
         buff.setIndentLevel(-1, relative=True)
         buff.writeIndentedLines("\n")
 
