@@ -2002,7 +2002,7 @@ class SettingsComponent:
     def writePauseCode(self, buff):
         # open function def for pause
         code = (
-            'def pauseExperiment(thisExp, win=None, timers=[], playbackComponents=[], dispatchComponents=[]):\n'
+            'def pauseExperiment(thisExp, win=None, timers=[], currentRoutine=None):\n'
             '    """\n'
             '    Pause this experiment, preventing the flow from advancing to the next routine until resumed.\n'
             '    \n'
@@ -2015,11 +2015,8 @@ class SettingsComponent:
             '        Window for this experiment.\n'
             '    timers : list, tuple\n'
             '        List of timers to reset once pausing is finished.\n'
-            '    playbackComponents : list, tuple\n'
-            '        List of any components with a `pause` method which need to be paused.\n'
-            '    dispatchComponents : list, tuple\n'
-            '        List of any components with a `dispatchMessages` method which needs to be called while \n'
-            '        paused.\n'
+            '    currentRoutine : psychopy.data.Routine\n'
+            '        Current Routine we are in at time of pausing, if any. This object tells PsychoPy what Components to pause/play/dispatch.\n'
             '    """\n'
         )
         buff.writeIndentedLines(code)
@@ -2034,8 +2031,9 @@ class SettingsComponent:
             "# start a timer to figure out how long we're paused for\n"
             "pauseTimer = core.Clock()\n"
             "# pause any playback components\n"
-            "for comp in playbackComponents:\n"
-            "    comp.pause()\n"
+            "if currentRoutine is not None:\n"
+            "    for comp in currentRoutine.getPlaybackComponents():\n"
+            "        comp.pause()\n"
             "# make sure we have a keyboard\n"
             "defaultKeyboard = deviceManager.getDevice('defaultKeyboard')\n"
             "if defaultKeyboard is None:\n"
@@ -2055,16 +2053,18 @@ class SettingsComponent:
             )
         code += (
             "    # dispatch messages on response components\n"
-            "    for comp in dispatchComponents:\n"
-            "        comp.device.dispatchMessages()\n"
+            "    if currentRoutine is not None:\n"
+            "        for comp in currentRoutine.getDispatchComponents():\n"
+            "            comp.device.dispatchMessages()\n"
             "    # sleep 1ms so other threads can execute\n"
             "    clock.time.sleep(0.001)\n"
             "# if stop was requested while paused, quit\n"
             "if thisExp.status == FINISHED:\n"
             "    endExperiment(thisExp, win=win)\n"
             "# resume any playback components\n"
-            "for comp in playbackComponents:\n"
-            "    comp.play()\n"
+            "if currentRoutine is not None:\n"
+            "    for comp in currentRoutine.getPlaybackComponents():\n"
+            "        comp.play()\n"
             "# reset any timers\n"
             "for timer in timers:\n"
             "    timer.addTime(-pauseTimer.getTime())\n"
