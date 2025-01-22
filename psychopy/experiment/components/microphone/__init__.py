@@ -44,7 +44,7 @@ class MicrophoneComponent(BaseDeviceComponent):
                  startEstim='', durationEstim='',
                  channels='auto', device=None,
                  exclusive=False,
-                 sampleRate='DVD Audio (48kHz)', maxSize=24000,
+                 sampleRate='DVD Audio (48kHz)',
                  outputType='default', speakTimes=False, trimSilent=False,
                  policyWhenFull='warn',
                  transcribe=False, transcribeBackend="none",
@@ -144,15 +144,6 @@ class MicrophoneComponent(BaseDeviceComponent):
             hint=_translate(
                 "Take exclusive control of the microphone, so other apps can't use it during your "
                 "experiment."
-            )
-        )
-        self.params['maxSize'] = Param(
-            maxSize, valType='num', inputType="single", categ='Device',
-            updates="set every repeat",
-            label=_translate("Max recording size (kb)"),
-            hint=_translate(
-                "To avoid excessively large output files, what is the biggest file size you are "
-                "likely to expect?"
             )
         )
 
@@ -338,7 +329,6 @@ class MicrophoneComponent(BaseDeviceComponent):
             "    deviceClass='psychopy.hardware.microphone.MicrophoneDevice',\n"
             "    deviceName=%(deviceLabel)s,\n"
             "    index=%(device)s,\n"
-            "    maxRecordingSize=%(maxSize)s,\n"
             "    exclusive=%(exclusive)s,\n"
         )
         if self.params['device'].val not in ("None", "", None):
@@ -439,7 +429,6 @@ class MicrophoneComponent(BaseDeviceComponent):
                 "name:'%(name)s',\n"
                 "sampleRateHz : %(sampleRate)s,\n"
                 "channels : %(channels)s,\n"
-                "maxRecordingSize : %(maxSize)s,\n"
                 "loopback : true,\n"
                 "policyWhenFull : 'ignore',\n"
         )

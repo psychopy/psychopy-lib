@@ -214,11 +214,11 @@ class Preferences:
                 userScripts = userPkgRoot / "bin"
 
                 # create symlinks to the python version agnostic directories
-                if not userPackages.is_symlink():
+                if not userPackages.exists():
                     userPackages.symlink_to(oldUserPackageRoot / "lib")
-                if not userInclude.is_symlink():
+                if not userInclude.exists():
                     userInclude.symlink_to(oldUserPackageRoot / "include")
-                if not userScripts.is_symlink():
+                if not userScripts.exists():
                     userScripts.symlink_to(oldUserPackageRoot / "bin")
 
             # reload userPkgRoot

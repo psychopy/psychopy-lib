@@ -577,6 +577,8 @@ class AudioClip:
         self._samples = np.ascontiguousarray(
             np.vstack((self._samples, other.samples)),
             dtype=np.float32)
+        
+        self._duration = len(self.samples) / float(self.sampleRateHz)
 
         return self
 
