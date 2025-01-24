@@ -5,7 +5,7 @@
 groups = ["default"]
 strategy = ["cross_platform", "inherit_metadata"]
 lock_version = "4.4.2"
-content_hash = "sha256:f5e639aee1878961e0fb0d3972dbdb21fcba784227d83a501f6f2ac91332ba32"
+content_hash = "sha256:f013d895a14970062126b30adf3ee32bc07ef78dd4f0bf5fc1ad717376db582b"
 
 [[package]]
 name = "arabic-reshaper"
@@ -41,20 +41,6 @@ marker = "python_version < \"3.11\" and platform_system == \"Darwin\""
 files = [
     {file = "async_timeout-5.0.1-py3-none-any.whl", hash = "sha256:39e3809566ff85354557ec2398b55e096c8364bacac9405a7a1fa429e77fe76c"},
     {file = "async_timeout-5.0.1.tar.gz", hash = "sha256:d9321a7a3d5a6a5e187e824d2fa0793ce379a202935782d555d6e9d2735677d3"},
-]
-
-[[package]]
-name = "beautifulsoup4"
-version = "4.12.3"
-requires_python = ">=3.6.0"
-summary = "Screen-scraping library"
-groups = ["default"]
-dependencies = [
-    "soupsieve>1.2",
-]
-files = [
-    {file = "beautifulsoup4-4.12.3-py3-none-any.whl", hash = "sha256:b80878c9f40111313e55da8ba20bdba06d8fa3969fc68304167741bbf9e082ed"},
-    {file = "beautifulsoup4-4.12.3.tar.gz", hash = "sha256:74e3d1928edc070d21748185c46e3fb33490f22f52a3addee9aee0f4f7781051"},
 ]
 
 [[package]]
@@ -607,16 +593,6 @@ files = [
     {file = "greenlet-3.1.1-cp39-cp39-win32.whl", hash = "sha256:5e06afd14cbaf9e00899fae69b24a32f2196c19de08fcb9f4779dd4f004e5e7c"},
     {file = "greenlet-3.1.1-cp39-cp39-win_amd64.whl", hash = "sha256:3319aa75e0e0639bc15ff54ca327e8dc7a6fe404003496e3c6925cd3142e0e22"},
     {file = "greenlet-3.1.1.tar.gz", hash = "sha256:4ce3ac6cdb6adf7946475d7ef31777c26d94bccc377e070a7986bd2d5c515467"},
-]
-
-[[package]]
-name = "html2text"
-version = "2024.2.26"
-requires_python = ">=3.8"
-summary = "Turn HTML into equivalent Markdown-structured text."
-groups = ["default"]
-files = [
-    {file = "html2text-2024.2.26.tar.gz", hash = "sha256:05f8e367d15aaabc96415376776cdd11afd5127a77fce6e36afc60c563ca2c32"},
 ]
 
 [[package]]
@@ -3752,22 +3728,6 @@ files = [
 ]
 
 [[package]]
-name = "pypi-search"
-version = "2.0"
-requires_python = ">=3.6"
-summary = "Get Information on Python Packages From PyPI"
-groups = ["default"]
-dependencies = [
-    "beautifulsoup4>=4.9.2",
-    "html2text>=2020.1.16",
-    "requests>=2.22.0",
-]
-files = [
-    {file = "pypi-search-2.0.tar.gz", hash = "sha256:8e64a4faa7d438670e97cec3040369a97433fba7e64b8c3a6d3b8ccdc3824438"},
-    {file = "pypi_search-2.0-py3-none-any.whl", hash = "sha256:7fc7f5fe6be85f13110472493c0b5ec3fc361642774d567c5c591469a1f91880"},
-]
-
-[[package]]
 name = "pypiwin32"
 version = "223"
 summary = "UNKNOWN"
@@ -4273,17 +4233,6 @@ files = [
     {file = "soundfile-0.13.0-py2.py3-none-win32.whl", hash = "sha256:217fd97b9a515b6b92d817c917bd7c3bc838e4ffe9b68c2a0659b70b9af1a5dd"},
     {file = "soundfile-0.13.0-py2.py3-none-win_amd64.whl", hash = "sha256:9fd67b1867fb7ce4a1bf1fd6600dfe9bf2af26b7ae3671719196c1d5632fa462"},
     {file = "soundfile-0.13.0.tar.gz", hash = "sha256:e83399d8bde7d73b117c33d6a1ec8571318338f89ce72f4c3d457e9768798355"},
-]
-
-[[package]]
-name = "soupsieve"
-version = "2.6"
-requires_python = ">=3.8"
-summary = "A modern CSS selector implementation for Beautiful Soup."
-groups = ["default"]
-files = [
-    {file = "soupsieve-2.6-py3-none-any.whl", hash = "sha256:e72c4ff06e4fb6e4b5a9f0f55fe6e81514581fca1515028625d0f299c602ccc9"},
-    {file = "soupsieve-2.6.tar.gz", hash = "sha256:e2e68417777af359ec65daac1057404a3c8a5455bb8abc36f1a9866ab1a51abb"},
 ]
 
 [[package]]
