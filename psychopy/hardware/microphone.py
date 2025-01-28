@@ -131,7 +131,7 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
             maxRecordingSize=-1,
             policyWhenFull='warn',
             exclusive=False,
-            audioRunMode=0,
+            audioRunMode=1,
             # legacy
             audioLatencyMode=None,
         ):

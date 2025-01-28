@@ -286,8 +286,12 @@ elif hasattr(backend, 'defaultOutput'):
     if dev == 'default' or systemtools.isVM_CI():
         pass  # do nothing
     elif getDevices is not None:
-        if dev not in getDevices(kind='output'):
-            deviceNames = sorted(getDevices(kind='output').keys())
+        devices = getDevices(kind='output')
+        if type(devices) is dict:
+            deviceNames = sorted(devices.keys())
+        else:
+            deviceNames = sorted(devices)
+        if dev not in devices:
             logging.warn(
                 u"Requested audio device '{}' that is not available on "
                 "this hardware. The 'audioDevice' preference should be one of "

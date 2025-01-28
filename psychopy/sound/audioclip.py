@@ -45,6 +45,11 @@ AUDIO_CHANNEL_RIGHT = AUDIO_EAR_RIGHT = 1
 AUDIO_CHANNEL_COUNT = AUDIO_EAR_COUNT = 2
 
 
+class AudioSynthesisError(Exception):
+    """Error raised when an issue occurs during audio synthesis."""
+    pass
+
+
 class AudioClip:
     """Class for storing audio clip data.
 
