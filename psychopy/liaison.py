@@ -251,7 +251,50 @@ class WebSocketServer:
 		port : int
 			the port number, e.g. 8001
 		"""
-		asyncio.run(self.run(host, port))
+		# create a loop
+		loop, loopFuture = self.createEventLoop()
+		# run loop until complete
+		loop.run_until_complete(
+			self.run(host, port, loopFuture)
+		)
+	
+	def createEventLoop(self):
+		"""
+		Create an event loop, and a connected Future object.
+
+		Returns
+		-------
+		asyncio.EventLoop
+			Created event loop
+		asyncio.Future
+			Future associated with this loop
+		"""
+		# create a new loop
+		loop = asyncio.new_event_loop()
+		# create future
+		loopFuture = loop.create_future()
+		# set the loop future on SIGTERM or SIGINT for clean interruptions:
+		if sys.platform in ("linux", "linux2"):
+			loop.add_signal_handler(signal.SIGINT, loopFuture.set_result, None)
+		
+		return loop, loopFuture
+	
+	def getEventLoop(self):
+		"""
+		Get the current loop, or create one if none is running.
+
+		Returns
+		-------
+		asyncio.EventLoop
+			Currently running event loop
+		"""
+		try:
+			# use existing if there's already a loop
+			loop = asyncio.get_event_loop()
+		except RuntimeError:
+			loop, _ = self.createEventLoop()
+		
+		return loop
 
 	def pingPong(self):
 		"""
@@ -260,27 +303,24 @@ class WebSocketServer:
 		"""
 		pass
 
-	async def run(self, host, port):
+	async def run(self, host, port, loopFuture):
 		"""
 		Run a Liaison WebSocket server at the given address.
 
 		Parameters
 		----------
 		host : string
-			the hostname, e.g. 'localhost'
+			The hostname, e.g. 'localhost'
 		port : int
-			the port number, e.g. 8001
+			The port number, e.g. 8001
+		loopFuture : asyncio.Future
+			Future object associated with the loop to run Liaison in
 		"""
-		# set the loop future on SIGTERM or SIGINT for clean interruptions:
-		loop = asyncio.get_running_loop()
-		loopFuture = loop.create_future()
-		if sys.platform in ("linux", "linux2"):
-			loop.add_signal_handler(signal.SIGINT, loopFuture.set_result, None)
-
+		# await said loop's future
 		async with websockets.serve(self._connectionHandler, host, port, compression=None):
 			self._logger.info(f"Liaison Server started on: {host}:{port}")
+			# run forever
 			await loopFuture
-			# await asyncio.Future()  # run forever
 
 		self._logger.info('Liaison Server terminated.')
 
@@ -308,13 +348,14 @@ class WebSocketServer:
 		message : string
 			the message to be sent to all clients
 		"""
-		try:
-			# try to run in new loop
-			asyncio.run(self.broadcast(message))
-		except RuntimeError:
-			# use existing if there's already a loop
-			loop = asyncio.get_event_loop()
-			loop.create_task(self.broadcast(message))
+		# get/make event loop
+		loop = self.getEventLoop()
+		# create task
+		task = loop.create_task(
+			self.broadcast(message)
+		)
+		# run task
+		loop.run_until_complete(task)
 
 	async def _connectionHandler(self, websocket):
 		"""
