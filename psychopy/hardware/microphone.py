@@ -674,7 +674,8 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
 
         if self._stream is None:
             raise AudioStreamError("Stream not ready.")
-
+        # reset timer for possibly asleep
+        self._possiblyAsleep = False
         # reset the recording buffer
         self._recording = []
         self._totalSamples = 0
