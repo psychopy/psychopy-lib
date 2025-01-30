@@ -406,6 +406,12 @@ class DeviceManager:
         bool
             True if completed successfully
         """
+        # log an error and return False if device isn't added
+        if deviceName not in DeviceManager.devices:
+            logging.error(
+                f"Tried to remove device '{deviceName}' but there is no device by that name."
+            )
+            return False
         # get device object
         device = DeviceManager.devices[deviceName]
         # clear any listeners on it

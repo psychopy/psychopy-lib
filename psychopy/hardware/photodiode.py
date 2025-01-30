@@ -421,7 +421,7 @@ class BasePhotodiodeGroup(base.BaseResponseDevice):
         # set size/pos/units
         self.units = "norm"
         self.size = rect.size * 2
-        self.pos = rect.pos + rect.size / (-2, 2)
+        self.pos = rect.pos
 
         return (
             layout.Position(self.pos, units="norm", win=win),
