@@ -1,15 +1,15 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-# Various math functions for working with vectors, matrices, and quaternions.
-#
+"""Various math functions for working with vectors, matrices, and quaternions.
+"""
 
 # Part of the PsychoPy library
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 __all__ = [
-    'VEC_AXES',
+    'VEC_AXES',  # constants
     'VEC_AXIS_FORWARD',
     'VEC_AXIS_BACKWARD',
     'VEC_AXIS_UP',
@@ -22,66 +22,71 @@ __all__ = [
     'VEC_AXIS_NEG_Y',
     'VEC_AXIS_POS_Z',
     'VEC_AXIS_NEG_Z',
-    'RigidBodyPose',
+    'RigidBodyPose',  # rigid body pose class
     'BoundingBox',
+    'length',  # vector functions
     'normalize',
-    'lerp',
-    'slerp',
-    'multQuat',
-    'quatFromAxisAngle',
-    'quatToMatrix',
-    'scaleMatrix',
-    'rotationMatrix',
-    'transform',
-    'translationMatrix',
-    'concatenate',
-    'applyMatrix',
-    'invertQuat',
-    'quatToAxisAngle',
-    'posOriToMatrix',
-    'applyQuat',
     'orthogonalize',
     'reflect',
-    'cross',
-    'distance',
     'dot',
-    'quatMagnitude',
-    'length',
+    'cross',
     'project',
+    'lerp',
+    'distance',
+    'perp',
     'bisector',
-    'surfaceNormal',
-    'invertMatrix',
     'angleTo',
+    'sortClockwise',
+    'surfaceNormal',
     'surfaceBitangent',
     'surfaceTangent',
     'vertexNormal',
-    'isOrthogonal',
-    'isAffine',
-    'perp',
-    'ortho3Dto2D',
+    'fixTangentHandedness',
+    'fitBBox',
+    'computeBBoxCorners',
     'intersectRayPlane',
-    'matrixToQuat',
-    'lensCorrection',
-    'matrixFromEulerAngles',
-    'alignTo',
-    'quatYawPitchRoll',
     'intersectRaySphere',
     'intersectRayAABB',
     'intersectRayOBB',
     'intersectRayTriangle',
-    'scale',
-    'multMatrix',
-    'normalMatrix',
-    'fitBBox',
-    'computeBBoxCorners',
-    'zeroFix',
-    'accumQuat',
-    'fixTangentHandedness',
+    'ortho3Dto2D',
     'articulate',
+    'slerp',  # quaternion functions
+    'quatToAxisAngle',
+    'quatFromAxisAngle',
+    'quatYawPitchRoll',
+    'quatMagnitude',
+    'multQuat',
+    'invertQuat',
+    'applyQuat',
+    'accumQuat',
+    'alignTo',
+    'matrixToQuat',
+    'identityMatrix',  # matrix functions
+    'quatToMatrix',
+    'scaleMatrix',
+    'rotationMatrix',
+    'translationMatrix',
+    'invertMatrix',
+    'multMatrix',
+    'concatenate',
+    'matrixFromEulerAngles',
+    'isOrthogonal',
+    'isAffine',
+    'applyMatrix',
+    'posOriToMatrix',
+    'transform',
+    'scale',
+    'normalMatrix',
     'forwardProject',
     'reverseProject',
     'lookAt',
-    'lensCorrectionSpherical']
+    'zeroFix',  # misc functions
+    'lensCorrection',
+    'lensCorrectionSpherical',
+    'infrange',
+    'setDefaultPrecision'
+]
 
 
 import numpy as np
@@ -101,6 +106,25 @@ VEC_AXIS_DOWN = VEC_AXIS_NEG_Y = VEC_AXES['-y']
 VEC_AXIS_RIGHT = VEC_AXIS_POS_X = VEC_AXES['+x']
 VEC_AXIS_LEFT = VEC_AXIS_NEG_X = VEC_AXES['-x']
 
+DEFAULT_DTYPE = float
+
+
+def setDefaultPrecision(dtype='float64'):
+    """Set the default precision for math functions.
+
+    Once set, all math functions in this module will use the specified data type 
+    for computations in successive calls. This is useful when you want to ensure
+    a specific precision for all math operations.
+
+    Parameters
+    ----------
+    dtype : dtype or str
+        Data type for computations can either be 'float32' or 'float64'.
+
+    """
+    global DEFAULT_DTYPE
+    DEFAULT_DTYPE = np.dtype(dtype).type
+    
 
 # ------------------------------------------------------------------------------
 # Classes for working with rigid body poses
@@ -142,7 +166,7 @@ class RigidBodyPose:
     This class is experimental and may result in undefined behavior.
 
     """
-    def __init__(self, pos=(0., 0., 0.), ori=(0., 0., 0., 1.)):
+    def __init__(self, pos=(0., 0., 0.), ori=(0., 0., 0., 1.), dtype=None):
         """
         Parameters
         ----------
@@ -151,8 +175,17 @@ class RigidBodyPose:
         ori : array_like
             Orientation quaternion `[x, y, z, w]` where `x`, `y`, `z` are
             imaginary and `w` is real.
+        dtype : dtype or str, optional
+            Data type for computations can either be 'float32' or 'float64'.
+            Default is `None` which uses the default data configured by
+            `setDefaultPrecision`.
 
         """
+        # set the data type for computations
+        self._dtype = \
+            np.dtype(dtype).type if dtype is not None else DEFAULT_DTYPE
+
+        # position and orientation
         self._pos = np.ascontiguousarray(pos, dtype=self.dtype)
         self._ori = np.ascontiguousarray(ori, dtype=self.dtype)
 
@@ -174,7 +207,7 @@ class RigidBodyPose:
         # compute matrices only if `pos` and `ori` attributes have been updated,
         # we track the state of the matrices with these flags
         self._cacheFlags = {
-            'model': True,
+            'model': True,  # already computed
             'imodel': False,
             'normal': False,
             'view': False,
@@ -192,10 +225,11 @@ class RigidBodyPose:
     @property
     def dtype(self):
         """Data type used for computations and arrays (`numpy.dtype`).
+
+        Cannot be changed after object creation.
+
         """
-        # we use 32-bit float precision for all computations, this will be 
-        # settable in the future
-        return np.float32
+        return self._dtype
 
     @property
     def bounds(self):
@@ -710,6 +744,7 @@ class RigidBodyPose:
             self._ori, alignTo(fwd, invPos, dtype=self.dtype))
 
 
+
 class BoundingBox:
     """Class for representing object bounding boxes.
 
@@ -725,7 +760,9 @@ class BoundingBox:
     visible to the viewer.
 
     """
-    def __init__(self, extents=None):
+    def __init__(self, extents=None, dtype=None):
+        self._dtype = np.dtype(dtype).type if dtype is not None else DEFAULT_DTYPE
+
         self._extents = np.zeros((2, 3), self.dtype)
         self._posCorners = np.zeros((8, 4), self.dtype)
 
@@ -759,7 +796,7 @@ class BoundingBox:
         """
         # we use 32-bit float precision for all computations, this will be 
         # settable in the future
-        return np.float32
+        return self._dtype
 
     @property
     def isValid(self):
@@ -818,9 +855,10 @@ def length(v, squared=False, out=None, dtype=None):
 
     """
     if out is None:
-        dtype = np.float64 if dtype is None else np.dtype(dtype).type
+        dtype = DEFAULT_DTYPE if dtype is None else np.dtype(dtype).type
+        toReturn = np.array(v, dtype=dtype)
     else:
-        dtype = np.dtype(out.dtype).type
+        toReturn = out
 
     v = np.asarray(v, dtype=dtype)
 
@@ -890,7 +928,7 @@ def normalize(v, out=None, dtype=None):
 
     """
     if out is None:
-        dtype = np.float64 if dtype is None else np.dtype(dtype).type
+        dtype = DEFAULT_DTYPE if dtype is None else np.dtype(dtype).type
         toReturn = np.array(v, dtype=dtype)
     else:
         toReturn = out
@@ -936,7 +974,7 @@ def orthogonalize(v, n, out=None, dtype=None):
 
     """
     if out is None:
-        dtype = np.float64 if dtype is None else np.dtype(dtype).type
+        dtype = DEFAULT_DTYPE if dtype is None else np.dtype(dtype).type
     else:
         dtype = np.dtype(out.dtype).type
 
@@ -985,7 +1023,7 @@ def reflect(v, n, out=None, dtype=None):
     """
     # based off https://github.com/glfw/glfw/blob/master/deps/linmath.h
     if out is None:
-        dtype = np.float64 if dtype is None else np.dtype(dtype).type
+        dtype = DEFAULT_DTYPE if dtype is None else np.dtype(dtype).type
     else:
         dtype = np.dtype(out.dtype).type
 
@@ -1038,7 +1076,7 @@ def dot(v0, v1, out=None, dtype=None):
 
     """
     if out is None:
-        dtype = np.float64 if dtype is None else np.dtype(dtype).type
+        dtype = DEFAULT_DTYPE if dtype is None else np.dtype(dtype).type
     else:
         dtype = np.dtype(out.dtype).type
 
@@ -1125,7 +1163,7 @@ def cross(v0, v1, out=None, dtype=None):
 
     """
     if out is None:
-        dtype = np.float64 if dtype is None else np.dtype(dtype).type
+        dtype = DEFAULT_DTYPE if dtype is None else np.dtype(dtype).type
     else:
         dtype = np.dtype(out.dtype).type
 
@@ -1204,7 +1242,7 @@ def project(v0, v1, out=None, dtype=None):
 
     """
     if out is None:
-        dtype = np.float64 if dtype is None else np.dtype(dtype).type
+        dtype = DEFAULT_DTYPE if dtype is None else np.dtype(dtype).type
     else:
         dtype = np.dtype(out.dtype).type
 
@@ -1262,7 +1300,7 @@ def lerp(v0, v1, t, out=None, dtype=None):
 
     """
     if out is None:
-        dtype = np.float64 if dtype is None else np.dtype(dtype).type
+        dtype = DEFAULT_DTYPE if dtype is None else np.dtype(dtype).type
     else:
         dtype = np.dtype(out.dtype).type
 
@@ -1311,7 +1349,7 @@ def distance(v0, v1, out=None, dtype=None):
 
     """
     if out is None:
-        dtype = np.float64 if dtype is None else np.dtype(dtype).type
+        dtype = DEFAULT_DTYPE if dtype is None else np.dtype(dtype).type
     else:
         dtype = np.dtype(out.dtype).type
 
@@ -1371,7 +1409,7 @@ def perp(v, n, norm=True, out=None, dtype=None):
 
     """
     if out is None:
-        dtype = np.float64 if dtype is None else np.dtype(dtype).type
+        dtype = DEFAULT_DTYPE if dtype is None else np.dtype(dtype).type
     else:
         dtype = np.dtype(out.dtype).type
 
@@ -1421,7 +1459,7 @@ def bisector(v0, v1, norm=False, out=None, dtype=None):
 
     """
     if out is None:
-        dtype = np.float64 if dtype is None else np.dtype(dtype).type
+        dtype = DEFAULT_DTYPE if dtype is None else np.dtype(dtype).type
     else:
         dtype = np.dtype(out.dtype).type
 
@@ -1479,7 +1517,7 @@ def angleTo(v, point, degrees=True, out=None, dtype=None):
 
     """
     if out is None:
-        dtype = np.float64 if dtype is None else np.dtype(dtype).type
+        dtype = DEFAULT_DTYPE if dtype is None else np.dtype(dtype).type
     else:
         dtype = np.dtype(out.dtype).type
 
@@ -1507,13 +1545,18 @@ def angleTo(v, point, degrees=True, out=None, dtype=None):
 
 
 def sortClockwise(verts):
-    """
-    Sort vertices clockwise from 12 O'Clock (aka vertex (0, 1)).
+    """Sort vertices clockwise from 12 O'Clock (aka vertex (0, 1)).
 
     Parameters
-    ==========
+    ----------
     verts : array
-        Array of vertices to sort
+        Array of vertices to sort.
+
+    Returns
+    -------
+    array
+        Vertices sorted clockwise from 12 O'Clock.
+
     """
     # Blank array of angles
     angles = []
@@ -1568,12 +1611,12 @@ def surfaceNormal(tri, norm=True, out=None, dtype=None):
 
         vertices = [[[-1., 0., 0.], [0., 1., 0.], [1, 0, 0]],  # 2x3x3
                     [[1., 0., 0.], [0., 1., 0.], [-1, 0, 0]]]
-        normals = np.zeros((2, 3))  # normals from two triangles triangles
+        normals = np.zeros((2, 3))  # normals for two triangles
         surfaceNormal(vertices, out=normals)
 
     """
     if out is None:
-        dtype = np.float64 if dtype is None else np.dtype(dtype).type
+        dtype = DEFAULT_DTYPE if dtype is None else np.dtype(dtype).type
     else:
         dtype = np.dtype(out.dtype).type
 
@@ -1657,7 +1700,7 @@ def surfaceBitangent(tri, uv, norm=True, out=None, dtype=None):
 
     """
     if out is None:
-        dtype = np.float64 if dtype is None else np.dtype(dtype).type
+        dtype = DEFAULT_DTYPE if dtype is None else np.dtype(dtype).type
     else:
         dtype = np.dtype(out.dtype).type
 
@@ -1766,7 +1809,7 @@ def surfaceTangent(tri, uv, norm=True, out=None, dtype=None):
 
     """
     if out is None:
-        dtype = np.float64 if dtype is None else np.dtype(dtype).type
+        dtype = DEFAULT_DTYPE if dtype is None else np.dtype(dtype).type
     else:
         dtype = np.dtype(out.dtype).type
 
@@ -1847,7 +1890,7 @@ def vertexNormal(faceNorms, norm=True, out=None, dtype=None):
 
     """
     if out is None:
-        dtype = np.float64 if dtype is None else np.dtype(dtype).type
+        dtype = DEFAULT_DTYPE if dtype is None else np.dtype(dtype).type
     else:
         dtype = np.dtype(out.dtype).type
 
@@ -1900,7 +1943,7 @@ def fixTangentHandedness(tangents, normals, bitangents, out=None, dtype=None):
 
     """
     if out is None:
-        dtype = np.float64 if dtype is None else np.dtype(dtype).type
+        dtype = DEFAULT_DTYPE if dtype is None else np.dtype(dtype).type
     else:
         dtype = np.dtype(out.dtype).type
 
@@ -1948,7 +1991,7 @@ def fitBBox(points, dtype=None):
     computeBBoxCorners : Convert bounding box extents to corners.
 
     """
-    dtype = np.float64 if dtype is None else np.dtype(dtype).type
+    dtype = DEFAULT_DTYPE if dtype is None else np.dtype(dtype).type
 
     points = np.asarray(points, dtype=dtype)
     extents = np.zeros((2, 3), dtype=dtype)
@@ -2056,7 +2099,7 @@ def intersectRayPlane(rayOrig, rayDir, planeOrig, planeNormal, dtype=None):
         pnt, dist = intersectRayPlane(rayOrigin, rayDir, planeOrigin, planeNormal)
 
     """
-    dtype = np.float64 if dtype is None else np.dtype(dtype).type
+    dtype = DEFAULT_DTYPE if dtype is None else np.dtype(dtype).type
 
     # based off the method from GLM
     rayOrig = np.asarray(rayOrig, dtype=dtype)
@@ -2107,7 +2150,7 @@ def intersectRaySphere(rayOrig, rayDir, sphereOrig=(0., 0., 0.), sphereRadius=1.
 
     """
     # based off example from https://antongerdelan.net/opengl/raycasting.html
-    dtype = np.float64 if dtype is None else np.dtype(dtype).type
+    dtype = DEFAULT_DTYPE if dtype is None else np.dtype(dtype).type
 
     rayOrig = np.asarray(rayOrig, dtype=dtype)
     rayDir = np.asarray(rayDir, dtype=dtype)
@@ -2181,7 +2224,7 @@ def intersectRayAABB(rayOrig, rayDir, boundsOffset, boundsExtents, dtype=None):
     # based of the example provided here:
     # https://www.scratchapixel.com/lessons/3d-basic-rendering/
     # minimal-ray-tracer-rendering-simple-shapes/ray-box-intersection
-    dtype = np.float64 if dtype is None else np.dtype(dtype).type
+    dtype = DEFAULT_DTYPE if dtype is None else np.dtype(dtype).type
 
     rayOrig = np.asarray(rayOrig, dtype=dtype)
     rayDir = np.asarray(rayDir, dtype=dtype)
@@ -2274,7 +2317,7 @@ def intersectRayOBB(rayOrig, rayDir, modelMatrix, boundsExtents, dtype=None):
     # based off algorithm:
     # https://www.opengl-tutorial.org/miscellaneous/clicking-on-objects/
     # picking-with-custom-ray-obb-function/
-    dtype = np.float64 if dtype is None else np.dtype(dtype).type
+    dtype = DEFAULT_DTYPE if dtype is None else np.dtype(dtype).type
 
     rayOrig = np.asarray(rayOrig, dtype=dtype)
     rayDir = np.asarray(rayDir, dtype=dtype)
@@ -2349,7 +2392,7 @@ def intersectRayTriangle(rayOrig, rayDir, tri, dtype=None):
 
     """
     # based off `intersectRayTriangle` from GLM (https://glm.g-truc.net)
-    dtype = np.float64 if dtype is None else np.dtype(dtype).type
+    dtype = DEFAULT_DTYPE if dtype is None else np.dtype(dtype).type
 
     rayOrig = np.asarray(rayOrig, dtype=dtype)
     rayDir = np.asarray(rayDir, dtype=dtype)
@@ -2451,7 +2494,7 @@ def ortho3Dto2D(p, orig, normal, up, right=None, dtype=None):
         planeX, planeY = ortho3Dto2D(pnt, planeOrigin, planeNormal, planeUpAxis)
 
     """
-    dtype = np.float64 if dtype is None else np.dtype(dtype).type
+    dtype = DEFAULT_DTYPE if dtype is None else np.dtype(dtype).type
 
     p = np.asarray(p, dtype=dtype)
     orig = np.asarray(orig, dtype=dtype)
@@ -2535,7 +2578,7 @@ def articulate(boneVecs, boneOris, dtype=None):
         wristModel.thePose.posOri = (boxPos[2, :], boxOri[2, :])
 
     """
-    dtype = np.float64 if dtype is None else np.dtype(dtype).type
+    dtype = DEFAULT_DTYPE if dtype is None else np.dtype(dtype).type
 
     boneVecs = np.asarray(boneVecs, dtype=dtype)
     boneOris = np.asarray(boneOris, dtype=dtype)
@@ -2626,7 +2669,7 @@ def slerp(q0, q1, t, shortest=True, out=None, dtype=None):
     #  https://en.wikipedia.org/wiki/Slerp
     #
     if out is None:
-        dtype = np.float64 if dtype is None else np.dtype(dtype).type
+        dtype = DEFAULT_DTYPE if dtype is None else np.dtype(dtype).type
     else:
         dtype = np.dtype(out.dtype).type
 
@@ -2699,7 +2742,7 @@ def quatToAxisAngle(q, degrees=True, dtype=None):
         myStim.draw()
 
     """
-    dtype = np.float64 if dtype is None else np.dtype(dtype).type
+    dtype = DEFAULT_DTYPE if dtype is None else np.dtype(dtype).type
     q = normalize(q, dtype=dtype)  # returns ndarray
     v = np.sqrt(np.sum(np.square(q[:3])))
 
@@ -2751,7 +2794,7 @@ def quatFromAxisAngle(axis, angle, degrees=True, dtype=None):
         ori = quatFromAxisAngle(axis, angle, degrees=True)  # using degrees!
 
     """
-    dtype = np.float64 if dtype is None else np.dtype(dtype).type
+    dtype = DEFAULT_DTYPE if dtype is None else np.dtype(dtype).type
     toReturn = np.zeros((4,), dtype=dtype)
 
     if degrees:
@@ -2809,7 +2852,7 @@ def quatYawPitchRoll(q, degrees=True, out=None, dtype=None):
     # based off code found here:
     # https://en.wikipedia.org/wiki/Conversion_between_quaternions_and_Euler_angles
     # Yields the same results as PsychXR's LibOVRPose.getYawPitchRoll method.
-    dtype = np.float64 if dtype is None else np.dtype(dtype).type
+    dtype = DEFAULT_DTYPE if dtype is None else np.dtype(dtype).type
     q = np.asarray(q, dtype=dtype)
 
     toReturn = np.zeros((3,), dtype=dtype) if out is None else out
@@ -2866,7 +2909,7 @@ def quatMagnitude(q, squared=False, out=None, dtype=None):
 
     """
     if out is None:
-        dtype = np.float64 if dtype is None else np.dtype(dtype).type
+        dtype = DEFAULT_DTYPE if dtype is None else np.dtype(dtype).type
     else:
         dtype = np.dtype(out.dtype).type
 
@@ -2929,7 +2972,7 @@ def multQuat(q0, q1, out=None, dtype=None):
 
     """
     if out is None:
-        dtype = np.float64 if dtype is None else np.dtype(dtype).type
+        dtype = DEFAULT_DTYPE if dtype is None else np.dtype(dtype).type
     else:
         dtype = np.dtype(out.dtype).type
 
@@ -2997,7 +3040,7 @@ def invertQuat(q, out=None, dtype=None):
 
     """
     if out is None:
-        dtype = np.float64 if dtype is None else np.dtype(dtype).type
+        dtype = DEFAULT_DTYPE if dtype is None else np.dtype(dtype).type
     else:
         dtype = np.dtype(out.dtype).type
 
@@ -3074,7 +3117,7 @@ def applyQuat(q, points, out=None, dtype=None):
     """
     # based on 'quat_mul_vec3' implementation from linmath.h
     if out is None:
-        dtype = np.float64 if dtype is None else np.dtype(dtype).type
+        dtype = DEFAULT_DTYPE if dtype is None else np.dtype(dtype).type
     else:
         dtype = np.dtype(out.dtype).type
 
@@ -3149,7 +3192,7 @@ def accumQuat(qlist, out=None, dtype=None):
 
     """
     if out is None:
-        dtype = np.float64 if dtype is None else np.dtype(dtype).type
+        dtype = DEFAULT_DTYPE if dtype is None else np.dtype(dtype).type
     else:
         dtype = np.dtype(out.dtype).type
 
@@ -3213,7 +3256,7 @@ def alignTo(v, t, out=None, dtype=None):
     """
     # based off Quaternion::align from Quaternion.hpp from OpenMP
     if out is None:
-        dtype = np.float64 if dtype is None else np.dtype(dtype).type
+        dtype = DEFAULT_DTYPE if dtype is None else np.dtype(dtype).type
     else:
         dtype = np.dtype(out.dtype).type
 
@@ -3322,7 +3365,7 @@ def matrixToQuat(m, out=None, dtype=None):
     # based off example `Maths - Conversion Matrix to Quaternion` from
     # https://www.euclideanspace.com/
     if out is None:
-        dtype = np.float64 if dtype is None else np.dtype(dtype).type
+        dtype = DEFAULT_DTYPE if dtype is None else np.dtype(dtype).type
     else:
         dtype = np.dtype(out.dtype).type
 
@@ -3370,6 +3413,42 @@ def matrixToQuat(m, out=None, dtype=None):
 # Matrix Operations
 #
 
+def identityMatrix(size=4, out=None, dtype=None):
+    """Create an sqaure identity matrix.
+
+    Parameters
+    ----------
+    size : int, optional
+        Size of the matrix. Default is `4` for a 4x4 identity matrix.
+    out : ndarray, optional
+        Optional output array. Must be same `shape` and `dtype` as the expected
+        output if `out` was not specified.
+    dtype : dtype or str, optional
+        Data type for computations can either be 'float32' or 'float64'. If
+        `out` is specified, the data type of `out` is used and this argument is
+        ignored. If `out` is not provided, 'float64' is used by default.
+
+    Returns
+    -------
+    ndarray
+        Identity matrix.
+
+    """
+    # this might seem overkill for creating an identity matrix, but it is
+    # necessary to ensure the correct data type is used
+    if out is None:
+        dtype = DEFAULT_DTYPE if dtype is None else np.dtype(dtype).type
+        ident = np.zeros((size, size), dtype=dtype)
+    else:
+        dtype = np.dtype(out.dtype).type
+        ident = out
+        ident.fill(0.0)
+
+    np.fill_diagonal(ident, 1.0)
+
+    return ident
+    
+
 def quatToMatrix(q, out=None, dtype=None):
     """Create a 4x4 rotation matrix from a quaternion.
 
@@ -3416,7 +3495,7 @@ def quatToMatrix(q, out=None, dtype=None):
     # based off implementations from
     # https://github.com/glfw/glfw/blob/master/deps/linmath.h
     if out is None:
-        dtype = np.float64 if dtype is None else np.dtype(dtype).type
+        dtype = DEFAULT_DTYPE if dtype is None else np.dtype(dtype).type
         R = np.zeros((4, 4,), dtype=dtype)
     else:
         dtype = np.dtype(out.dtype).type
@@ -3473,7 +3552,7 @@ def scaleMatrix(s, out=None, dtype=None):
     """
     # from glScale
     if out is None:
-        dtype = np.float64 if dtype is None else np.dtype(dtype).type
+        dtype = DEFAULT_DTYPE if dtype is None else np.dtype(dtype).type
         S = np.zeros((4, 4,), dtype=dtype)
     else:
         dtype = np.dtype(out.dtype).type
@@ -3526,7 +3605,7 @@ def rotationMatrix(angle, axis=(0., 0., -1.), out=None, dtype=None):
 
     """
     if out is None:
-        dtype = np.float64 if dtype is None else np.dtype(dtype).type
+        dtype = DEFAULT_DTYPE if dtype is None else np.dtype(dtype).type
         R = np.zeros((4, 4,), dtype=dtype)
     else:
         dtype = np.dtype(out.dtype).type
@@ -3596,7 +3675,7 @@ def translationMatrix(t, out=None, dtype=None):
 
     """
     if out is None:
-        dtype = np.float64 if dtype is None else np.dtype(dtype).type
+        dtype = DEFAULT_DTYPE if dtype is None else np.dtype(dtype).type
         T = np.identity(4, dtype=dtype)
     else:
         dtype = np.dtype(out.dtype).type
@@ -3631,7 +3710,7 @@ def invertMatrix(m, out=None, dtype=None):
 
     """
     if out is None:
-        dtype = np.float64 if dtype is None else np.dtype(dtype).type
+        dtype = DEFAULT_DTYPE if dtype is None else np.dtype(dtype).type
     else:
         dtype = out.dtype
 
@@ -3738,7 +3817,7 @@ def multMatrix(matrices, reverse=False, out=None, dtype=None):
 
     """
     # convert matrix types
-    dtype = np.float64 if dtype is None else np.dtype(dtype).type
+    dtype = DEFAULT_DTYPE if dtype is None else np.dtype(dtype).type
     matrices = np.asarray(matrices, dtype=dtype)  # convert to array
 
     matrices = np.atleast_3d(matrices)
@@ -3911,7 +3990,7 @@ def matrixFromEulerAngles(rx, ry, rz, degrees=True, out=None, dtype=None):
     """
     # from https://www.j3d.org/matrix_faq/matrfaq_latest.html
     if out is None:
-        dtype = np.float64 if dtype is None else np.dtype(dtype).type
+        dtype = DEFAULT_DTYPE if dtype is None else np.dtype(dtype).type
         toReturn = np.zeros((4, 4,), dtype=dtype)
     else:
         dtype = np.dtype(dtype).type
@@ -4013,7 +4092,9 @@ def applyMatrix(m, points, out=None, dtype=None):
         Matrix with dimensions 2x2, 3x3, 3x4 or 4x4.
     points : array_like
         2D array of points/coordinates to transform. Each row should have length
-        appropriate for the matrix being used.
+        appropriate for the matrix being used. If not, a square submatrix will 
+        be taken from the input matrix with dimensions equal to the number of 
+        columns in `points`.
     out : ndarray, optional
         Optional output array. Must be same `shape` and `dtype` as the expected
         output if `out` was not specified.
@@ -4070,7 +4151,7 @@ def applyMatrix(m, points, out=None, dtype=None):
 
     """
     if out is None:
-        dtype = np.float64 if dtype is None else np.dtype(dtype).type
+        dtype = DEFAULT_DTYPE if dtype is None else np.dtype(dtype).type
     else:
         dtype = np.dtype(out.dtype).type
 
@@ -4086,7 +4167,14 @@ def applyMatrix(m, points, out=None, dtype=None):
 
     pout, p = np.atleast_2d(toReturn, points)
 
-    if m.shape[0] == m.shape[1] == 4:  # 4x4 matrix
+    nCols = p.shape[1]
+    if m.shape[0] > nCols:
+        if m.shape[1] < nCols:
+            raise ValueError(
+                'Input matrix dimensions are not compatible with input array.')
+        m = m[:nCols, :nCols]  # take sub matrix
+
+    if m.shape == (4, 4):  # 4x4 matrix
         if pout.shape[1] == 3:  # Nx3
             pout[:, :] = p.dot(m[:3, :3].T)
             pout += m[:3, 3]
@@ -4104,7 +4192,7 @@ def applyMatrix(m, points, out=None, dtype=None):
             raise ValueError(
                 'Input array dimensions invalid. Should be Nx3 or Nx4 when '
                 'input matrix is 4x4.')
-    elif m.shape[0] == 3 and m.shape[1] == 4:  # 3x4 matrix
+    elif m.shape == (3, 4):  # 3x4 matrix
         if pout.shape[1] == 3:  # Nx3
             pout[:, :] = p.dot(m[:3, :3].T)
             pout += m[:3, 3]
@@ -4112,14 +4200,14 @@ def applyMatrix(m, points, out=None, dtype=None):
             raise ValueError(
                 'Input array dimensions invalid. Should be Nx3 when input '
                 'matrix is 3x4.')
-    elif m.shape[0] == m.shape[1] == 3:  # 3x3 matrix, e.g colors
+    elif m.shape == (3, 3):  # 3x3 matrix, e.g colors
         if pout.shape[1] == 3:  # Nx3
             pout[:, :] = p.dot(m.T)
         else:
             raise ValueError(
                 'Input array dimensions invalid. Should be Nx3 when '
                 'input matrix is 3x3.')
-    elif m.shape[0] == m.shape[1] == pout.shape[1] == 2:  # 2x2 matrix
+    elif m.shape == (2, 2):  # 2x2 matrix
         if pout.shape[1] == 2:  # Nx2
             pout[:, :] = p.dot(m.T)
         else:
@@ -4161,7 +4249,7 @@ def posOriToMatrix(pos, ori, out=None, dtype=None):
 
     """
     if out is None:
-        dtype = np.float64 if dtype is None else np.dtype(dtype).type
+        dtype = DEFAULT_DTYPE if dtype is None else np.dtype(dtype).type
         toReturn = np.zeros((4, 4,), dtype=dtype)
     else:
         dtype = np.dtype(dtype).type
@@ -4232,7 +4320,7 @@ def transform(pos, ori, points, out=None, dtype=None):
 
     """
     if out is None:
-        dtype = np.float64 if dtype is None else np.dtype(dtype).type
+        dtype = DEFAULT_DTYPE if dtype is None else np.dtype(dtype).type
     else:
         dtype = np.dtype(dtype).type
 
@@ -4312,7 +4400,7 @@ def scale(sf, points, out=None, dtype=None):
 
     """
     if out is None:
-        dtype = np.float64 if dtype is None else np.dtype(dtype).type
+        dtype = DEFAULT_DTYPE if dtype is None else np.dtype(dtype).type
     else:
         dtype = np.dtype(dtype).type
 
@@ -4357,7 +4445,7 @@ def normalMatrix(modelMatrix, out=None, dtype=None):
 
     """
     if out is None:
-        dtype = np.float64 if dtype is None else np.dtype(dtype).type
+        dtype = DEFAULT_DTYPE if dtype is None else np.dtype(dtype).type
     else:
         dtype = np.dtype(dtype).type
 
@@ -4405,7 +4493,7 @@ def forwardProject(objPos, modelView, proj, viewport=None, out=None, dtype=None)
 
     """
     if out is None:
-        dtype = np.float64 if dtype is None else np.dtype(dtype).type
+        dtype = DEFAULT_DTYPE if dtype is None else np.dtype(dtype).type
     else:
         dtype = np.dtype(dtype).type
 
@@ -4481,7 +4569,7 @@ def reverseProject(winPos, modelView, proj, viewport=None, out=None, dtype=None)
 
     """
     if out is None:
-        dtype = np.float64 if dtype is None else np.dtype(dtype).type
+        dtype = DEFAULT_DTYPE if dtype is None else np.dtype(dtype).type
     else:
         dtype = np.dtype(dtype).type
 
@@ -4506,9 +4594,11 @@ def reverseProject(winPos, modelView, proj, viewport=None, out=None, dtype=None)
 
 
 def lookAt(eyePos, centerPos, upVec=(0.0, 1.0, 0.0), out=None, dtype=None):
-    """Create a transformation matrix to orient a view towards some point. Based
-    on the same algorithm as 'gluLookAt'. This does not generate a projection
-    matrix, but rather the matrix to transform the observer's view in the scene.
+    """Create a transformation matrix to orient a view towards some point. 
+    
+    Based on the same algorithm as 'gluLookAt'. This does not generate a 
+    projection matrix, but rather the matrix to transform the observer's view in 
+    the scene.
 
     For more information see:
     https://www.khronos.org/registry/OpenGL-Refpages/gl2.1/xhtml/gluLookAt.xml
@@ -4536,13 +4626,13 @@ def lookAt(eyePos, centerPos, upVec=(0.0, 1.0, 0.0), out=None, dtype=None):
 
     Notes
     -----
-
+    * This function was moved from `viewtools` in version 2025.1.0.
     * The returned matrix is row-major. Values are floats with 32-bits of
       precision stored as a contiguous (C-order) array.
 
     """
     if out is None:
-        dtype = np.float64 if dtype is None else np.dtype(dtype).type
+        dtype = DEFAULT_DTYPE if dtype is None else np.dtype(dtype).type
     else:
         dtype = np.dtype(out.dtype).type
 
@@ -4566,7 +4656,7 @@ def lookAt(eyePos, centerPos, upVec=(0.0, 1.0, 0.0), out=None, dtype=None):
     rotMat[1, :3] = u
     rotMat[2, :3] = -f
     rotMat[3, 3] = 1.0
-
+ 
     transMat = np.identity(4, dtype=dtype)
     transMat[:3, 3] = -eyePos
 
@@ -4672,7 +4762,7 @@ def lensCorrection(xys, coefK=(1.0,), distCenter=(0., 0.), out=None,
 
     """
     if out is None:
-        dtype = np.float64 if dtype is None else np.dtype(dtype).type
+        dtype = DEFAULT_DTYPE if dtype is None else np.dtype(dtype).type
     else:
         dtype = np.dtype(dtype).type
 
@@ -4741,7 +4831,7 @@ def lensCorrectionSpherical(xys, coefK=1.0, aspect=1.0, out=None, dtype=None):
 
     """
     if out is None:
-        dtype = np.float64 if dtype is None else np.dtype(dtype).type
+        dtype = DEFAULT_DTYPE if dtype is None else np.dtype(dtype).type
     else:
         dtype = np.dtype(dtype).type
 

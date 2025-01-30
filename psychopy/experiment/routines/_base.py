@@ -742,13 +742,7 @@ class Routine(list):
             "    return\n"
         )
         buff.writeIndentedLines(code)
-
-        # handle pausing
-        playbackComponents = [
-            comp.name for comp in self
-            if type(comp).__name__ in ("MovieComponent", "SoundComponent")
-        ]
-        playbackComponentsStr = ", ".join(playbackComponents)
+        # write code (work out playback and dispatch comps at runtime)
         code = (
             "# pause experiment here if requested\n"
             "if thisExp.status == PAUSED:\n"
@@ -756,13 +750,12 @@ class Routine(list):
             "        thisExp=thisExp, \n"
             "        win=win, \n"
             "        timers=[routineTimer, globalClock], \n"
-            "        playbackComponents=[{playbackComponentsStr}]\n"
+            "        currentRoutine=%(name)s,\n"
             "    )\n"
             "    # skip the frame we paused on\n"
             "    continue"
         )
-        code = code.format(playbackComponentsStr=playbackComponentsStr)
-        buff.writeIndentedLines(code)
+        buff.writeIndentedLines(code % self.params)
 
         # are we done yet?
         code = (

@@ -426,6 +426,9 @@ class ExperimentHandler(_ComparisonMixin):
         """
         Set status to be PAUSED.
         """
+        logging.exp(_translate(
+            "Experiment '{}' paused."
+        ).format(self.name))
         # warn if experiment is already paused
         if self.status == constants.PAUSED:
             logging.warn(_translate(
@@ -439,6 +442,9 @@ class ExperimentHandler(_ComparisonMixin):
         """
         Set status to be STARTED.
         """
+        logging.exp(_translate(
+            "Experiment '{}' resumed."
+        ).format(self.name))
         # warn if experiment is already running
         if self.status == constants.STARTED:
             logging.warn(_translate(

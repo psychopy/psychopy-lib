@@ -1222,7 +1222,7 @@ def recognizeSphinx(audioClip=None, language='en-US', expectedWords=None,
     onlyInitialize = audioClip is None
     global _pocketSphinxTranscriber
     if _pocketSphinxTranscriber is None:
-        allTranscribers = getAllTranscribers(engineKeys=True)
+        allTranscribers = getAllTranscriberInterfaces(engineKeys=True)
         try:
             interface = allTranscribers['sphinx']
         except KeyError:
@@ -1297,7 +1297,7 @@ def recognizeGoogle(audioClip=None, language='en-US', expectedWords=None,
     onlyInitialize = audioClip is None
     global _googleCloudTranscriber
     if _googleCloudTranscriber is None:
-        allTranscribers = getAllTranscribers(engineKeys=True)
+        allTranscribers = getAllTranscriberInterfaces(engineKeys=True)
         try:
             interface = allTranscribers['googleCloud']
         except KeyError:

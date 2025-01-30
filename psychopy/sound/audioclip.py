@@ -45,6 +45,11 @@ AUDIO_CHANNEL_RIGHT = AUDIO_EAR_RIGHT = 1
 AUDIO_CHANNEL_COUNT = AUDIO_EAR_COUNT = 2
 
 
+class AudioSynthesisError(Exception):
+    """Error raised when an issue occurs during audio synthesis."""
+    pass
+
+
 class AudioClip:
     """Class for storing audio clip data.
 
@@ -577,6 +582,8 @@ class AudioClip:
         self._samples = np.ascontiguousarray(
             np.vstack((self._samples, other.samples)),
             dtype=np.float32)
+        
+        self._duration = len(self.samples) / float(self.sampleRateHz)
 
         return self
 

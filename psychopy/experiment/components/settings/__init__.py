@@ -123,7 +123,7 @@ class SettingsComponent:
             plCompanionAddress="neon.local",
             plCompanionPort=8080,
             ecSampleRate='default',
-            keyboardBackend="ioHub",
+            keyboardBackend="PsychToolbox",
             filename=None, exportHTML='on Sync',
             endMessage=_translate("Thank you for your patience.")
     ):
@@ -2000,9 +2000,9 @@ class SettingsComponent:
         buff.writeIndentedLines(code)
 
     def writePauseCode(self, buff):
-        # Open function def
+        # open function def for pause
         code = (
-            'def pauseExperiment(thisExp, win=None, timers=[], playbackComponents=[]):\n'
+            'def pauseExperiment(thisExp, win=None, timers=[], currentRoutine=None):\n'
             '    """\n'
             '    Pause this experiment, preventing the flow from advancing to the next routine until resumed.\n'
             '    \n'
@@ -2015,9 +2015,9 @@ class SettingsComponent:
             '        Window for this experiment.\n'
             '    timers : list, tuple\n'
             '        List of timers to reset once pausing is finished.\n'
-            '    playbackComponents : list, tuple\n'
-            '        List of any components with a `pause` method which need to be paused.\n'
-            '    """'
+            '    currentRoutine : psychopy.data.Routine\n'
+            '        Current Routine we are in at time of pausing, if any. This object tells PsychoPy what Components to pause/play/dispatch.\n'
+            '    """\n'
         )
         buff.writeIndentedLines(code)
         buff.setIndentLevel(+1, relative=True)
@@ -2031,8 +2031,9 @@ class SettingsComponent:
             "# start a timer to figure out how long we're paused for\n"
             "pauseTimer = core.Clock()\n"
             "# pause any playback components\n"
-            "for comp in playbackComponents:\n"
-            "    comp.pause()\n"
+            "if currentRoutine is not None:\n"
+            "    for comp in currentRoutine.getPlaybackComponents():\n"
+            "        comp.pause()\n"
             "# make sure we have a keyboard\n"
             "defaultKeyboard = deviceManager.getDevice('defaultKeyboard')\n"
             "if defaultKeyboard is None:\n"
@@ -2051,21 +2052,25 @@ class SettingsComponent:
             "        endExperiment(thisExp, win=win)\n"
             )
         code += (
+            "    # dispatch messages on response components\n"
+            "    if currentRoutine is not None:\n"
+            "        for comp in currentRoutine.getDispatchComponents():\n"
+            "            comp.device.dispatchMessages()\n"
             "    # sleep 1ms so other threads can execute\n"
             "    clock.time.sleep(0.001)\n"
             "# if stop was requested while paused, quit\n"
             "if thisExp.status == FINISHED:\n"
             "    endExperiment(thisExp, win=win)\n"
             "# resume any playback components\n"
-            "for comp in playbackComponents:\n"
-            "    comp.play()\n"
+            "if currentRoutine is not None:\n"
+            "    for comp in currentRoutine.getPlaybackComponents():\n"
+            "        comp.play()\n"
             "# reset any timers\n"
             "for timer in timers:\n"
             "    timer.addTime(-pauseTimer.getTime())\n"
         )
         buff.writeIndentedLines(code % self.params)
-
-        # Exit function def
+        # exit function def
         buff.setIndentLevel(-1, relative=True)
         buff.writeIndentedLines("\n")
 

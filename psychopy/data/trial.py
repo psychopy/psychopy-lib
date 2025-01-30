@@ -1022,7 +1022,12 @@ class TrialHandler2(_BaseTrialHandler):
         # We want to ignore the RNG object when doing the comparison.
         self_copy = copy.deepcopy(self)
         other_copy = copy.deepcopy(other)
-        del self_copy._rng, other_copy._rng
+        
+        # Only delete _rng if it exists
+        if hasattr(self_copy, '_rng'):
+            del self_copy._rng
+        if hasattr(other_copy, '_rng'):
+            del other_copy._rng
 
         result = super(TrialHandler2, self_copy).__eq__(other_copy)
         return result

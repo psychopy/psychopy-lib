@@ -29,6 +29,8 @@ class BasePhotodiodeGroup(base.BaseResponseDevice):
         self.state = [False] * channels
         # set initial threshold
         self.threshold = [None] * channels
+        if threshold is None:
+            threshold = 125
         self.setThreshold(threshold, channel=list(range(channels)))
         # store position params
         self.units = units
@@ -147,14 +149,40 @@ class BasePhotodiodeGroup(base.BaseResponseDevice):
         while self.hasUnfinishedMessage():
             self.dispatchMessages()
         # start off with no channels
-        channels = []
+        channelsOn = set()
         # iterate through potential channels
         for i, state in enumerate(self.state):
-            # if any detected the flash, append it
+            # skip if we got more than 1 message
+            if len(self.getResponses(channel=i, clear=False)) > 1:
+                continue
+            # if any detected the flash, append it (test for false negative)
             if state:
-                channels.append(i)
+                channelsOn.add(i)
+        # clear caught messages so we're starting afresh
+        self.clearResponses()
+        # show black
+        rect.fillColor = "black"
+        rect.draw()
+        win.flip()
+        # wait 250ms for flip to happen and photodiode to catch it
+        timeoutClock.reset()
+        while timeoutClock.getTime() < 0.25:
+            self.dispatchMessages()
+        # finish dispatching any messages which are only partially received               
+        while self.hasUnfinishedMessage():
+            self.dispatchMessages()
+        # start off with no channels
+        channelsOff = set()
+        # iterate through potential channels
+        for i, state in enumerate(self.state):
+            # skip if we got more than 1 message
+            if len(self.getResponses(channel=i, clear=False)) > 1:
+                continue
+            # if any detected the lack of flash, append it (test for false positive)
+            if not state:
+                channelsOff.add(i)
         
-        return channels
+        return tuple(channelsOn & channelsOff)
     
     def findPhotodiode(self, win, channel=None, retryLimit=5):
         """
@@ -393,7 +421,7 @@ class BasePhotodiodeGroup(base.BaseResponseDevice):
         # set size/pos/units
         self.units = "norm"
         self.size = rect.size * 2
-        self.pos = rect.pos + rect.size / (-2, 2)
+        self.pos = rect.pos
 
         return (
             layout.Position(self.pos, units="norm", win=win),
@@ -485,6 +513,17 @@ class BasePhotodiodeGroup(base.BaseResponseDevice):
             win.flip()
             # get threshold
             thresholds[col] = _bisectThreshold([0, 255], recursionLimit=16)
+        # report thresholds
+        logging.debug(f"Channel {channel} responded 'on' for a black screen at threshold {thresholds['black']}")
+        logging.debug(f"Channel {channel} responded 'on' for a white screen at threshold {thresholds['white']}")
+        # if black is detected at the same or lower threshold as white, the photodiode isn't working
+        if thresholds['black'] <= thresholds['white']:
+            logging.debug(
+                f"Could not detect a reasonable threshold for channel {channel}, photodiode may be "
+                f"unplugged."
+            )
+            self._setThreshold(0, channel=channel)
+            return None
         # pick a threshold between white and black (i.e. one that's safe)
         threshold = (thresholds['white'] + thresholds['black']) / 2
         # clear bg rect
@@ -501,6 +540,46 @@ class BasePhotodiodeGroup(base.BaseResponseDevice):
         self._setThreshold(int(threshold), channel=channel)
 
         return int(threshold)
+
+    def checkPhotodiode(self, win, channels=None, reps=1):
+        """
+        Check that the photodiode is responsive on a given channel by alternating the full window 
+        between white and black, then checking that the channel state is True when white and False 
+        when black.
+
+        Parameters
+        ----------
+        win : psychopy.visual.Window
+            Window to use for checking.
+        channels : list[int] or tuple[int] or int or None, optional
+            Channel or channels to check, use None (default) to check all channels.
+        reps : int, optional
+            How many times to repeat the test - if the photodiode has a habit of randomly 
+            flickering, there's a chance of it passing tests by random chance, so you may wish to 
+            repeat it several times. Default is 1 (aka do not repeat)
+
+        Returns
+        -------
+        bool
+            True
+        """
+        # if given just one channel, wrap it in a list
+        if isinstance(channels, int):
+            channels = [channels]
+        # if None, check all channels
+        if channels is None:
+            channels = list(range(self.channels))
+        # for each specified channel...
+        for channel in channels:
+            # the following is repeated for good measure, as many times as specified
+            for rep in range(reps):
+                # run findChannels
+                found = self.findChannels(win)
+                # if the given channel isn't found, test fails
+                if channel not in found:
+                    return False
+        
+        return True
 
     def setThreshold(self, threshold, channel):
         if isinstance(channel, (list, tuple)):

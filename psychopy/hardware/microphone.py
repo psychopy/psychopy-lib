@@ -61,7 +61,14 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
         size of the recording buffer to ensure that the application does not run
         out of memory. By default, the recording buffer is set to 24000 KB (or
         24 MB). At a sample rate of 48kHz, this will result in 62.5 seconds of
-        continuous audio being recorded before the buffer is full.
+        continuous audio being recorded before the buffer is full. You may 
+        specify how to handle the buffer when it is full using the 
+        `policyWhenFull` parameter.
+    policyWhenFull : str
+        Policy to use when the recording buffer is full. Options are:
+        - "ignore": When full, just don't record any new samples
+        - "warn"/"warning": Same as ignore, but will log a warning
+        - "error": When full, will raise an error
     audioLatencyMode : int or None
         Audio latency mode to use, values range between 0-4. If `None`, the
         setting from preferences will be used. Using `3` (exclusive mode) is
@@ -121,10 +128,10 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
             sampleRateHz=None,
             channels=None,
             streamBufferSecs=2.0,
-            maxRecordingSize=24000,
-            policyWhenFull='roll',
+            maxRecordingSize=-1,
+            policyWhenFull='warn',
             exclusive=False,
-            audioRunMode=0,
+            audioRunMode=1,
             # legacy
             audioLatencyMode=None,
         ):
@@ -265,13 +272,14 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
         # status flag for Builder
         self._statusFlag = NOT_STARTED
 
-        # setup recording buffer
-        self._recording = RecordingBuffer(
-            sampleRateHz=self._sampleRateHz,
-            channels=self._channels,
-            maxRecordingSize=maxRecordingSize,
-            policyWhenFull=policyWhenFull
-        )
+        # recording buffer information
+        self._recording = []  # use a list
+        self._totalSamples = 0
+        self._maxRecordingSize = (
+            -1 if maxRecordingSize is None else int(maxRecordingSize))
+        self._policyWhenFull = policyWhenFull
+
+        # internal state
         self._possiblyAsleep = False
         self._isStarted = False  # internal state
 
@@ -293,14 +301,11 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
         value : int
             How much data (in kb) to allow, default is 24mb (so 24,000kb)
         """
-        return self._recording.maxRecordingSize
+        return self._maxRecordingSize
     
     @maxRecordingSize.setter
     def maxRecordingSize(self, value):
-        # set size
-        self._recording.maxRecordingSize = value
-        # re-allocate
-        self._recording._allocRecBuffer()
+        self._maxRecordingSize = int(value)
     
     @property
     def policyWhenFull(self):
@@ -318,11 +323,11 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
             - "error": When full, will raise an error
             - "roll"/"rolling": When full, clears the start of the buffer to make room for new samples
         """
-        return self._recording._policyWhenFull
+        return self._policyWhenFull
     
     @policyWhenFull.setter
     def policyWhenFull(self, value):
-        self._recording._policyWhenFull = value
+        self._policyWhenFull = value
 
     def findBestDevice(self, index, sampleRateHz, channels):
         """
@@ -482,6 +487,24 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
     #     self._stream.stop()
 
     @property
+    def channels(self):
+        """Number of audio channels to record samples to (`int`).
+        """
+        return self._channels
+    
+    @property
+    def sampleRateHz(self):
+        """Sampling rate for audio recording in Hertz (`int`).
+        """
+        return self._sampleRateHz
+    
+    @property
+    def device(self):
+        """Audio device descriptor (`AudioDeviceInfo`).
+        """
+        return self._device
+
+    @property
     def recording(self):
         """Reference to the current recording buffer (`RecordingBuffer`)."""
         return self._recording
@@ -489,28 +512,7 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
     @property
     def recBufferSecs(self):
         """Capacity of the recording buffer in seconds (`float`)."""
-        return self.recording.bufferSecs
-
-    @property
-    def maxRecordingSize(self):
-        """Maximum recording size in kilobytes (`int`).
-
-        Since audio recordings tend to consume a large amount of system memory,
-        one might want to limit the size of the recording buffer to ensure that
-        the application does not run out. By default, the recording buffer is
-        set to 64000 KB (or 64 MB). At a sample rate of 48kHz, this will result
-        in about. Using stereo audio (``nChannels == 2``) requires twice the
-        buffer over mono (``nChannels == 2``) for the same length clip.
-
-        Setting this value will allocate another recording buffer of appropriate
-        size. Avoid doing this in any time sensitive parts of your application.
-
-        """
-        return self._recording.maxRecordingSize
-
-    @maxRecordingSize.setter
-    def maxRecordingSize(self, value):
-        self._recording.maxRecordingSize = value
+        return self._totalSamples / float(self._sampleRateHz)
 
     @property
     def latencyBias(self):
@@ -577,7 +579,7 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
         lost.
 
         """
-        return self._recording.isFull
+        return self._totalSamples >= self._maxRecordingSize
 
     @property
     def isStarted(self):
@@ -672,9 +674,11 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
 
         if self._stream is None:
             raise AudioStreamError("Stream not ready.")
-
-        # reset the writing 'head'
-        self._recording.seek(0, absolute=True)
+        # reset timer for possibly asleep
+        self._possiblyAsleep = False
+        # reset the recording buffer
+        self._recording = []
+        self._totalSamples = 0
 
         # reset warnings
         # self._warnedRecBufferFull = False
@@ -753,8 +757,7 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
             return
 
         # poll remaining samples, if any
-        if not self.isRecBufferFull:
-            self.poll()
+        self.poll()
 
         startTime, endPositionSecs, xruns, estStopTime = self._stream.stop(
             block_until_stopped=int(blockUntilStopped),
@@ -877,6 +880,20 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
         if status:
             self.start()
 
+    @property
+    def recordingEmpty(self):
+        """`True` if the recording buffer is empty (`bool`).
+        """
+        return len(self._recording) == 0
+    
+    @property
+    def recordingFull(self):
+        """`True` if the recording buffer is full (`bool`).
+        """
+        if self._maxRecordingSize < 0:
+            return False
+        return self._totalSamples >= self._maxRecordingSize
+
     def poll(self):
         """Poll audio samples.
 
@@ -944,9 +961,102 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
                 "called often enough, or increase the size of the audio buffer "
                 "with `bufferSecs`.")
 
-        overruns = self._recording.write(audioData)
+        # add samples to recording buffer
+        if len(audioData):
+            # add samples to recording buffer
+            self._recording.append(
+                AudioClip(audioData, sampleRateHz=self._sampleRateHz))
+            self._totalSamples += audioData.shape[0]
 
-        return overruns
+        if self.recordingFull and not self._policyWhenFull == 'ignore':
+            if self._policyWhenFull == 'warn':
+                logging.warning(
+                    "Recording buffer is full, no more samples will be added.")
+            elif self._policyWhenFull == 'error':
+                raise AudioStreamError(
+                    "Recording buffer is full, no more samples will be added.")
+
+        return 0
+    
+    def _mergeAudioFragments(self):
+        """Merge audio fragments into a single segment.
+        
+        This merges all audio fragments in the recoding buffer into a single
+        `AudioClip` object. The recording buffer is then cleared and the first
+        element is set to the merged segment.
+
+        Returns
+        -------
+        bool
+            `False` if the recording buffer has no fragments to merge, `True`
+            otherwise.
+
+        """
+        if len(self._recording) < 2:
+            return False
+        
+        # get the sum of all audio samples in the recording buffer
+        totalSamples = sum(
+            [segment.samples.shape[0] for segment in self._recording])
+
+        # create a new array to hold all samples
+        fullSegment = np.zeros(
+            (totalSamples, self._recording[0].channels), 
+            dtype=np.float32, 
+            order='C')
+        
+        # copy samples from each segment into the full segment
+        idx = 0
+        for segment in self._recording:
+            nSamples = segment.samples.shape[0]
+            fullSegment[idx:idx + nSamples, :] = segment.samples
+            idx += nSamples
+
+        # set the recording
+        self._recording = [
+            AudioClip(fullSegment, sampleRateHz=self._sampleRateHz)]  
+
+        return True
+    
+    def _getSegment(self, start=0, end=None):
+        """Get a segment of audio samples from the recording buffer.
+
+        Parameters
+        ----------
+        start : float
+            Start time of the segment in seconds.
+        end : float or None
+            End time of the segment in seconds. If `None`, the segment will
+            extend to the end of the recording buffer.
+
+        Returns
+        -------
+        AudioClip or None
+            Segment of the recording buffer. Returns `None` if the recording
+            buffer is empty.
+
+        """
+        if self.recordingEmpty:
+            return None
+        
+        self._mergeAudioFragments()  # merge audio fragments
+
+        if not len(self._recording[0].samples):
+            raise AudioStreamError(
+                "Could not access recording as microphone has sent no samples."
+            )
+        
+        if start == 0 and end is None:  # return full recording
+            return self._recording[0]
+
+        # get a range of samples within the recording buffer
+        idxStart = int(start * self._sampleRateHz)
+        idxEnd = -1 if end is None else int(end * self._sampleRateHz)
+        
+        return AudioClip(
+            np.array(self._recording[0].samples[idxStart:idxEnd, :],
+                     dtype=np.float32, order='C'),
+            sampleRateHz=self._sampleRateHz)
 
     def getRecording(self):
         """Get audio data from the last microphone recording.
@@ -963,12 +1073,14 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
         """
         if self.isStarted:
             logging.warn(
-                "Cannot get audio clip while recording is in progress, so stopping recording now."
+                "Cannot get audio clip while recording is in progress, so "
+                "stopping recording now."
             )
             self.stop()
 
-        return self._recording.getSegment()  # full recording
-
+        # get the segment
+        return self._getSegment()  # full recording
+    
     def getCurrentVolume(self, timeframe=0.2):
         """
         Get the current volume measured by the mic.
@@ -981,20 +1093,41 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
         Returns
         -------
         float
-            Current volume registered by the mic, will depend on relative volume of the mic but
-            should mostly be between 0 (total silence) and 1 (very loud).
+            Current volume registered by the mic, will depend on relative volume 
+            of the mic but should mostly be between 0 (total silence) and 1 
+            (very loud).
+
         """
         # if mic hasn't started yet, return 0 as it's recorded nothing
         if not self.isStarted or self._stream._closed:
             return 0
+        
         # poll most recent samples
         self.poll()
-        # get last 0.1sas a clip
-        clip = self._recording.getSegment(
-            max(self._recording.lastSample / self._sampleRateHz - timeframe, 0)
-        )
+
+        if self.recordingEmpty:
+            return 0.0
+
+        # merge last few recording fragments into a single segment
+        requiredSamples = int(timeframe * self._sampleRateHz)
+        sampleBuffers = []
+        for segment in reversed(self._recording):
+            nSamples = segment.samples.shape[0]
+            requiredSamples -= nSamples
+            if requiredSamples < 0:
+                sampleBuffers.insert(0, segment.samples[requiredSamples:, :])
+                break
+            sampleBuffers.insert(0, segment.samples)
+
+        # merge the samples
+        sampleBuffer = np.concatenate(
+            sampleBuffers, axis=0, dtype=np.float32)
+
+        clip = AudioClip(sampleBuffer, sampleRateHz=self._sampleRateHz)
+
         # get average volume
         rms = clip.rms() * 10
+
         # round
         rms = np.round(rms.astype(np.float64), decimals=3)
 
@@ -1190,10 +1323,10 @@ class RecordingBuffer:
 
     """
     def __init__(self, sampleRateHz=SAMPLE_RATE_48kHz, channels=2,
-                 maxRecordingSize=24000, policyWhenFull='ignore'):
+                 maxRecordingSize=None, policyWhenFull='ignore'):
         self._channels = channels
         self._sampleRateHz = sampleRateHz
-        self._maxRecordingSize = maxRecordingSize or 24000
+        self._maxRecordingSize = maxRecordingSize or 64000
         self._samples = None  # `ndarray` created in _allocRecBuffer`
         self._offset = 0  # recording offset
         self._lastSample = 0  # offset of the last sample from stream
