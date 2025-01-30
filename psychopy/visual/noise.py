@@ -4,7 +4,7 @@
 # Part of the PsychoPy library
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
 # some code provided by Andrew Schofield
-# Distributed under the terms of the GNU General Public License (GPL).
+# Distributed under the terms of the MIT License.
 
 """Stimulus object for drawing arbitrary bitmap carriers with an arbitrary
 second-order envelope carrier and envelope can vary independently for

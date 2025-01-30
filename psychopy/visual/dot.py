@@ -7,7 +7,7 @@ determines how they change on every call to the .draw() method.
 
 # Part of the PsychoPy library
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
-# Distributed under the terms of the GNU General Public License (GPL).
+# Distributed under the terms of the MIT License.
 
 # Bugfix by Andrew Schofield.
 # Replaces out of bounds but still live dots at opposite edge of aperture 
