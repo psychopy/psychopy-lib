@@ -235,7 +235,7 @@ class MicrophoneComponent(BaseDeviceComponent):
         )
         self.depends.append({
             "dependsOn": "transcribeBackend",
-            "condition": "=='Google'",
+            "condition": "=='google'",
             "param": "transcribeLang",
             "true": "show",  # what to do with param if condition is True
             "false": "hide",  # permitted: hide, show, enable, disable
@@ -250,7 +250,7 @@ class MicrophoneComponent(BaseDeviceComponent):
         )
         self.depends.append({
             "dependsOn": "transcribeBackend",
-            "condition": "=='Google'",
+            "condition": "=='google'",
             "param": "transcribeWords",
             "true": "show",  # what to do with param if condition is True
             "false": "hide",  # permitted: hide, show, enable, disable
