@@ -3,7 +3,7 @@
 
 # Part of the PsychoPy library
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
-# Distributed under the terms of the GNU General Public License (GPL).
+# Distributed under the terms of the MIT License.
 
 from pathlib import Path
 from psychopy.experiment.components import BaseVisualComponent, Param, \

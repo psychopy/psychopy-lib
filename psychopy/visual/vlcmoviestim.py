@@ -7,7 +7,7 @@ local installation of VLC media player (https://www.videolan.org/).
 
 # Part of the PsychoPy library
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
-# Distributed under the terms of the GNU General Public License (GPL).
+# Distributed under the terms of the MIT License.
 #
 # VlcMovieStim originally contributed by Dan Fitch, April 2019. The `MovieStim2`
 # class was taken and rewritten to use only VLC.

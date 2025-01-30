@@ -200,7 +200,7 @@ setup(
                   CFBundleVersion            = version,
                   CFBundleExecutable         = "PsychoPy",
                   CFBundleIdentifier         = "org.opensciencetools.psychopy",
-                  CFBundleLicense            = "GNU GPLv3+",
+                  CFBundleLicense            = "MIT License",
                   NSHumanReadableCopyright   = "Open Science Tools Limited",
                   CFBundleDocumentTypes=[dict(CFBundleTypeExtensions=['*'],
                                               CFBundleTypeRole='Editor')],

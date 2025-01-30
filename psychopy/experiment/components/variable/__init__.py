@@ -4,7 +4,7 @@
 """
 Part of the PsychoPy library
 Copyright (C) 2015 Jonathan Peirce
-Distributed under the terms of the GNU General Public License (GPL).
+Distributed under the terms of the MIT License.
 """
 
 from pathlib import Path

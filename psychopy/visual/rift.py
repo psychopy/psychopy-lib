@@ -13,7 +13,7 @@ Facebook Technologies, LLC and its affiliates. All rights reserved.
 
 # Part of the PsychoPy library
 # Copyright (C) 2018 Jonathan Peirce
-# Distributed under the terms of the GNU General Public License (GPL).
+# Distributed under the terms of the MIT License.
 
 __all__ = ['Rift']
 
