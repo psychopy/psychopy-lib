@@ -19,7 +19,7 @@ import json
 import sys
 import traceback
 import logging as _logging
-from psychopy import logging
+from psychopy import prefs, logging
 from psychopy.localization import _translate
 
 try:
@@ -115,7 +115,8 @@ class WebSocketServer:
 
 		# register the Liaison methods available to clients:
 		self._methods = {
-			'liaison': (self, ['listRegisteredMethods', 'addLogFile', 'pingPong'])
+			'liaison': (self, ['listRegisteredMethods', 'addLogFile', 'pingPong']),
+			'prefs': (prefs, ['setUserPrefsDir', 'resetPrefs']),
 		}
 	
 	def addLogFile(self, file, loggingLevel=logging.INFO):

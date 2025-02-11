@@ -266,31 +266,26 @@ class MicrophoneVoiceKeyEmulator(BaseVoiceKeyGroup):
         the chance of random spikes, but also reduce sensitivity.
     """
     def __init__(self, device, threshold=125, dbRange=(0, 1), samplingWindow=0.03):
-        # if device is given by name, get it from DeviceManager
+        deviceObj = None
+        from psychopy.hardware.microphone import MicrophoneDevice
+        # try to get device from DeviceManager by name
         if isinstance(device, str):
-            deviceName = device
-            device = DeviceManager.getDevice(deviceName)
-            # if none by that name, try by that index
-            if device is None:
-                device = DeviceManager.getDeviceBy("index", deviceName)
-            # if none by that index, do any profiles match?
-            if device is None:
-                for profile in DeviceManager.getAvailableDevices(
-                    "psychopy.hardware.microphone.MicrophoneDevice"
-                ):
-                    # if any match the index, make a device from that profile
-                    if deviceName in (profile['index'], profile['deviceName']):
-                        device = DeviceManager.addDevice(**profile)
-            # if none found, fallback to default and print warning
-            if device is None:
-                logging.warn(
-                    f"No Microphonen named {deviceName}, falling back to default device."
-                )
-        # if no device given, get default
-        if device is None:
-            device = DeviceManager.getDeviceBy("index", None)
+            deviceObj = DeviceManager.getDevice(device)
+        # try to get from DeviceManager by spec
+        if deviceObj is None:
+            for profile in MicrophoneDevice.getAvailableDevices():
+                for mic in DeviceManager.getInitialisedDevices(MicrophoneDevice).values():
+                    if mic.isSameDevice(profile):
+                        deviceObj = mic
+        # if still nothing, make a device using index
+        if deviceObj is None:
+            deviceObj = DeviceManager.addDevice(
+                deviceClass=MicrophoneDevice,
+                deviceName=str(device) + "_voicekey",
+                index=device
+            )
         # store device
-        self.device = device
+        self.device = deviceObj
         # store decibel range
         self.dbRange = dbRange
         # store sampling window
@@ -399,7 +394,13 @@ class MicrophoneVoiceKeyEmulator(BaseVoiceKeyGroup):
     def isSameDevice(self, other):
         if isinstance(other, type(self)):
             # if both objects are this class, then compare mics
-            return other.device is self.device
+            return self.device.isSameDevice(other.device)
+        elif isinstance(other, dict) and "device" in other:
+            # if given a dict of another VoiceKey device, compare "device"
+            return self.device.isSameDevice({'index': other['device']})
+        elif isinstance(other, dict) and "index" in other:
+            # if given dict of a MicrophoneDevice, compare it to our device
+            return self.device.isSameDevice(other)
         else:
             # if types don't match up, it's not the same device
             return False

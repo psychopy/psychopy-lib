@@ -35,6 +35,13 @@ else:  # Use our contrib package if configobj is not installed or too old.
 join = os.path.join
 
 
+# define location of user prefs dir according to OS
+if sys.platform == 'win32':
+    userPrefsDir = join(os.environ['APPDATA'], 'psychopy3')
+else:
+    userPrefsDir = join(os.environ['HOME'], '.psychopy3')
+
+
 class Preferences:
     """Users can alter preferences from the dialog box in the application,
     by editing their user preferences file (which is what the dialog box does)
@@ -100,6 +107,23 @@ class Preferences:
             msg = "Could not remove prefs file '%s'; (try doing it manually?)"
             print(msg % userCfg)
         self.loadAll()  # reloads, now getting all from .spec
+    
+    def setUserPrefsDir(self, path):
+        """
+        Specify a folder to use as the prefs folder (`.psychopy3`), rather than PsychoPy's default.
+
+        Parameters
+        ----------
+        path : str or pathlib.Path
+            Path to the prefs folder
+        """
+        # set global prefs dir variable
+        global userPrefsDir
+        userPrefsDir = str(path)
+        # refresh paths
+        self.getPaths()
+        # re-load from file
+        self.loadUserPrefs()
 
     def getPaths(self):
         """Get the paths to various directories and files used by PsychoPy.
@@ -141,13 +165,10 @@ class Preferences:
             NO_APP = True
         if sys.platform == 'win32':
             self.paths['prefsSpecFile'] = join(prefSpecDir, 'Windows.spec')
-            self.paths['userPrefsDir'] = join(os.environ['APPDATA'],
-                                              'psychopy3')
         else:
             self.paths['prefsSpecFile'] = join(prefSpecDir,
                                                platform.system() + '.spec')
-            self.paths['userPrefsDir'] = join(os.environ['HOME'],
-                                              '.psychopy3')
+        self.paths['userPrefsDir'] = userPrefsDir
 
         # directory for files created by the app at runtime needed for operation
         self.paths['userCacheDir'] = join(self.paths['userPrefsDir'], 'cache')

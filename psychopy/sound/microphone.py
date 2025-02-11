@@ -283,8 +283,16 @@ class Microphone:
             self.scripts[tag] = []
 
         # append current recording to clip list according to tag
-        self.lastClip = self.getRecording()
-        self.clips[tag].append(self.lastClip)
+        lastClip = self.getRecording()
+        if lastClip is not None:
+            self.lastClip = lastClip
+            self.clips[tag].append(lastClip)
+        else:
+            # if no recording, return the correct number of items
+            if transcribe:
+                return None, None
+            else:
+                return None
 
         # synonymise null values
         nullVals = (
