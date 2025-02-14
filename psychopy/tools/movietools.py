@@ -1019,7 +1019,6 @@ def addAudioToMovie(outputFile, videoFile, audioFile, useThreads=True,
 
     # default options for the writer
     moviePyOpts = {
-        'verbose': False, 
         'logger': None
     }
 

@@ -145,6 +145,7 @@ requires = [
     "tomlkit",
     "packaging",
     "six",  # for configobj
+    "polib", # for compiling translation files (*.po)
     ]
 build-backend = "pdm.backend"
 

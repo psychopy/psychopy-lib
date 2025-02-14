@@ -22,6 +22,7 @@ __all__ = [
 ]
 
 
+from pathlib import Path
 import subprocess as sp
 from psychopy.preferences import prefs
 from psychopy.localization import _translate
@@ -211,9 +212,24 @@ def installPackage(
     # convert extra to dict
     if extra is None:
         extra = {}
-
+    # assume non-editable
+    editable = []
+    # handle install from file
+    try:
+        packagePath = Path(package)
+    except:
+        pass
+    else:
+        if packagePath.is_file():
+            # if file is a pyproject.toml, use the containing folder
+            if packagePath.name == "pyproject.toml":
+                packagePath = packagePath.parent
+                package = str(packagePath)
+        if packagePath.is_dir():
+            # if given a folder, add quotation marks and an editable flag
+            editable.append("-e")
     # construct the pip command and execute as a subprocess
-    cmd = [sys.executable, "-m", "pip", "install", package]
+    cmd = [sys.executable, "-m", "pip", "install", *editable, package]
 
     # optional args
     if target is None:  # default to user packages dir

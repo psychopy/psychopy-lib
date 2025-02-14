@@ -296,8 +296,7 @@ class PolygonComponent(BaseVisualComponent):
         # make a util.Color object for non-transparent
         for key in ("fillColor", "lineColor"):
             if inits[key].val != "undefined":
-                inits[key].val = "new util.Color(%s)" % inits[key]
-                inits[key].valType = "code"
+                inits[key] = "new util.Color(%s)" % inits[key]
         # add other params
         code += (
             "  ori: {ori}, \n"

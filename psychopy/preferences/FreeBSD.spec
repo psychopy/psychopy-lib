@@ -183,6 +183,8 @@
     save = string(default='Ctrl+S')
     # save a Builder or Coder file under a new name
     saveAs = string(default='Ctrl+Shift+S')
+    # reveal the folder containing the current Builder file
+    revealFolder = string(default='Alt+Shift+R')
     # Coder: print the file
     print = string(default='Ctrl+P')
     # close the Builder or Coder window
