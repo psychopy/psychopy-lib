@@ -1156,6 +1156,7 @@ class SettingsComponent:
         code = ("\n// store info about the experiment session:\n"
                 "let expName = '%s';  // from the Builder filename that created this script\n"
                 "let expInfo = %s;\n"
+                "let PILOTING = util.getUrlParameters().has('__pilotToken');\n"
                 "\n" % (jsFilename, expInfoStr))
         buff.writeIndentedLines(code)
 
