@@ -1,21 +1,24 @@
-from psychopy import layout, logging
+from psychopy import logging
 
 
-class VoiceKeyValidationError(BaseException):
+class AudioValidationError(BaseException):
     pass
 
 
-class VoiceKeyValidator:
+class AudioValidator:
 
     def __init__(
             self, 
-            vk, channel=None,
+            sensor, channel=None,
             autoLog=False):
         # set autolog
         self.autoLog = autoLog
         # store voicekey handle
-        self.vk = vk
+        self.sensor = sensor
         self.channel = channel
+        # initial values (written during experiment)
+        self.tStart = self.tStartRefresh = self.tStartDelay = None
+        self.tStop = self.tStopRefresh = self.tStopDelay = None
 
     def connectStimulus(self, stim):
         # store mapping of stimulus to self in window
@@ -28,9 +31,9 @@ class VoiceKeyValidator:
         Parameters
         ----------
         state : bool
-            State which the photodiode is expected to have been in
+            State which the voicekey is expected to have been in
         t : clock.Timestamp, visual.Window or None
-            Time at which the photodiode should have read the given state.
+            Time at which the voicekey should have read the given state.
         adjustment : float
             Adjustment to apply to the received timestamp - in order to account for silent periods 
             at the start/end of a particular sound. These should be positive for silence at the 
@@ -48,7 +51,7 @@ class VoiceKeyValidator:
             return None, None
 
         # get and clear responses
-        messages = self.vk.getResponses(state=state, channel=self.channel, clear=True)
+        messages = self.sensor.getResponses(state=state, channel=self.channel, clear=True)
         # if there have been no responses yet, return empty handed
         if not messages:
             return None, None
@@ -65,7 +68,7 @@ class VoiceKeyValidator:
         return lastTime, delay
 
     def resetTimer(self, clock=logging.defaultClock):
-        self.vk.resetTimer(clock=clock)
+        self.sensor.resetTimer(clock=clock)
 
-    def getVoiceKeyState(self):
-        return self.vk.getState()
+    def getSensorState(self):
+        return self.sensor.getState()

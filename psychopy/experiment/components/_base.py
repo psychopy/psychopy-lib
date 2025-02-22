@@ -1431,7 +1431,7 @@ class BaseVisualComponent(BaseComponent):
     targets = []
     iconFile = Path(__file__).parent / "unknown" / "unknown.png"
     tooltip = ""
-    validatorClasses = ["PhotodiodeValidatorRoutine"]
+    validatorClasses = ["VisualValidatorRoutine"]
 
     def __init__(self, exp, parentName, name='',
                  units='from exp settings', color='white', fillColor="", borderColor="",

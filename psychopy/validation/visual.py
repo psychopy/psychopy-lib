@@ -1,22 +1,25 @@
 from psychopy import layout, logging
 
 
-class PhotodiodeValidationError(BaseException):
+class VisualValidationError(BaseException):
     pass
 
 
-class PhotodiodeValidator:
+class VisualValidator:
 
     def __init__(
-            self, win, diode, channel=None,
+            self, win, sensor, channel=None,
             autoLog=False):
         # set autolog
         self.autoLog = autoLog
         # store window handle
         self.win = win
-        # store diode handle
-        self.diode = diode
+        # store sensor handle
+        self.sensor = sensor
         self.channel = channel
+        # initial values (written during experiment)
+        self.tStart = self.tStartRefresh = self.tStartDelay = None
+        self.tStop = self.tStopRefresh = self.tStopDelay = None
 
         from psychopy import visual
         # black rect which is always drawn on win flip
@@ -33,7 +36,7 @@ class PhotodiodeValidator:
             depth=0, autoDraw=False,
             autoLog=False
         )
-        # update rects to match diode
+        # update rects to match sensor
         self.updateRects()
 
     def connectStimulus(self, stim):
@@ -47,19 +50,19 @@ class PhotodiodeValidator:
     def updateRects(self):
         """
         Update the size and position of this validator's rectangles to match the size and position of the associated
-        diode.
+        sensor.
         """
         for rect in (self.onRect, self.offRect):
-            # set units from diode
-            rect.units = self.diode.units
-            # set pos from diode, or choose default if None
-            if self.diode.pos is not None:
-                rect.pos = self.diode.pos
+            # set units from sensor
+            rect.units = self.sensor.units
+            # set pos from sensor, or choose default if None
+            if self.sensor.pos is not None:
+                rect.pos = self.sensor.pos
             else:
                 rect.pos = layout.Position((0.95, -0.95), units="norm", win=self.win)
-            # set size from diode, or choose default if None
-            if self.diode.size is not None:
-                rect.size = self.diode.size
+            # set size from sensor, or choose default if None
+            if self.sensor.size is not None:
+                rect.size = self.sensor.size
             else:
                 rect.size = layout.Size((0.05, 0.05), units="norm", win=self.win)
 
@@ -70,9 +73,9 @@ class PhotodiodeValidator:
         Parameters
         ----------
         state : bool
-            State which the photodiode is expected to have been in
+            State which the light sensor is expected to have been in
         t : clock.Timestamp, visual.Window or None
-            Time at which the photodiode should have read the given state.
+            Time at which the light sensor should have read the given state.
         adjustment : float
             Adjustment to apply to the received timestamp - in order to account for e.g. an 
             expected flip time
@@ -80,7 +83,7 @@ class PhotodiodeValidator:
         Returns
         -------
         float
-            Start/stop time according to the photodiode
+            Start/stop time according to the light sensor
         float
             Delay between requested start/stop time and measured start/stop time
         """
@@ -89,7 +92,7 @@ class PhotodiodeValidator:
             return None, None
 
         # get and clear responses
-        messages = self.diode.getResponses(state=state, channel=self.channel, clear=True)
+        messages = self.sensor.getResponses(state=state, channel=self.channel, clear=True)
         # if there have been no responses yet, return empty handed
         if not messages:
             return None, None
@@ -106,7 +109,7 @@ class PhotodiodeValidator:
         return lastTime, delay
 
     def resetTimer(self, clock=logging.defaultClock):
-        self.diode.resetTimer(clock=clock)
+        self.sensor.resetTimer(clock=clock)
 
-    def getDiodeState(self):
-        return self.diode.getState()
+    def getSensorState(self):
+        return self.sensor.getState()
