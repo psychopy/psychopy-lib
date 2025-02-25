@@ -132,9 +132,6 @@ class GratingStim(BaseVisualStim, DraggingMixin, TextureMixin, ColorMixin,
         produces a smoother (less-pixelated) outline of the shape.
     draggable : bool
         Can this stimulus be dragged by a mouse click?
-    lineRGB, fillRGB: ArrayLike, :class:`~psychopy.colors.Color` or None
-        *Deprecated*. Please use `lineColor` and `fillColor`. These arguments
-        may be removed in a future version.
     name : str
         Optional name of the stimuli for logging.
     autoLog : bool

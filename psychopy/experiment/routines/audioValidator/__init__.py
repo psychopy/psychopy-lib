@@ -29,7 +29,7 @@ class AudioValidatorRoutine(BaseValidatorRoutine, PluginDevicesMixin):
             self,
             # basic
             exp, name='audioVal',
-            threshold=127,
+            threshold=0.5,
             # device
             deviceLabel="", deviceBackend="microphone", channel="0",
     ):
@@ -51,7 +51,7 @@ class AudioValidatorRoutine(BaseValidatorRoutine, PluginDevicesMixin):
             threshold, valType="code", inputType="single", categ="Basic",
             label=_translate("Threshold"),
             hint=_translate(
-                "Volume threshold at which the sound sensor should register a positive, units go from 0 (least volume) to 255 (most volume)."
+                "Arbitrary volume threshold at which the sound sensor should register a positive, units go from 0 (least volume) to 1 (most volume)."
             )
         )
         del self.params['stopType']

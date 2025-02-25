@@ -15,6 +15,45 @@ from functools import partialmethod
 from psychopy.tools.stringtools import CaseSwitcher
 
 
+class UndefinedType:
+    """
+    Represents a value which has not been defined - useful for distinguishing between something not 
+    being set and something being set to None.
+    """
+
+    instance = None
+
+    def __new__(cls):
+        """
+        There should only ever be one instance of UndefinedType
+        """
+        if cls.instance is None:
+            cls.instance = super(cls, cls).__new__(cls)
+        
+        return cls.instance
+    
+    def __eq__(self, other):
+        """
+        Comparing undefined by ``==`` should be the same as by ``is``
+        """
+        return self is other
+    
+    def __bool__(self):
+        """
+        When used as a boolean, undefined is always ``False``
+        """
+        return False
+
+    def __repr__(self):
+        """
+        Display as simply ``undefined`` when printed.
+        """
+        return "undefined"
+
+
+undefined = UndefinedType()
+
+
 class attributeSetter:
     """Makes functions appear as attributes. Takes care of autologging.
     """

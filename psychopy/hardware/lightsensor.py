@@ -30,7 +30,7 @@ class BaseLightSensorGroup(base.BaseResponseDevice):
         # set initial threshold
         self.threshold = [None] * channels
         if threshold is None:
-            threshold = 125
+            threshold = 0.5
         self.setThreshold(threshold, channel=list(range(channels)))
         # store position params
         self.units = units
@@ -470,11 +470,9 @@ class BaseLightSensorGroup(base.BaseResponseDevice):
                 f"Trying threshold range: {threshRange}"
             )
             # work out current
-            current = int(
-                sum(threshRange) / 2
-            )
+            current = sum(threshRange) / 2
             # set threshold and get value
-            value = self._setThreshold(int(current), channel=channel)
+            value = self._setThreshold(current, channel=channel)
 
             if value:
                 # if expecting light and got light, we have an upper bound
@@ -489,7 +487,7 @@ class BaseLightSensorGroup(base.BaseResponseDevice):
             if recursionLimit <= 0:
                 return current
             # return if threshold is small enough
-            if abs(threshRange[1] - threshRange[0]) < 4:
+            if abs(threshRange[1] - threshRange[0]) < 0.01:
                 return current
             # recur with new range
             return _bisectThreshold(threshRange, recursionLimit=recursionLimit-1)
@@ -512,7 +510,7 @@ class BaseLightSensorGroup(base.BaseResponseDevice):
             label.draw()
             win.flip()
             # get threshold
-            thresholds[col] = _bisectThreshold([0, 255], recursionLimit=16)
+            thresholds[col] = _bisectThreshold([0, 1], recursionLimit=16)
         # report thresholds
         logging.debug(f"Channel {channel} responded 'on' for a black screen at threshold {thresholds['black']}")
         logging.debug(f"Channel {channel} responded 'on' for a white screen at threshold {thresholds['white']}")
@@ -617,7 +615,7 @@ class BaseLightSensorGroup(base.BaseResponseDevice):
 
 
 class ScreenBufferSampler(BaseLightSensorGroup):
-    def __init__(self, win, threshold=125, pos=None, size=None, units=None):
+    def __init__(self, win, threshold=0.5, pos=None, size=None, units=None):
         # store win
         self.win = win
         # default rect
@@ -658,7 +656,7 @@ class ScreenBufferSampler(BaseLightSensorGroup):
             makeLum=True
         )
         # work out whether it's brighter than threshold
-        state = pixels.mean() > (255 - self.getThreshold())
+        state = pixels.mean() > (255 - self.getThreshold() * 255)
         # if state has changed, make an event
         if state != self.state[0]:
             if self.win._frameTimes:
@@ -786,6 +784,6 @@ class ScreenBufferSampler(BaseLightSensorGroup):
         if channel is None:
             channel = 0
         # there's no physical light sensor, so just pick a reasonable threshold
-        self.setThreshold(127, channel=channel)
+        self.setThreshold(0.5, channel=channel)
 
         return self.getThreshold(channel=channel)

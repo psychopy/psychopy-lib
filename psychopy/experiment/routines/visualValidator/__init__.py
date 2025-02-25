@@ -28,7 +28,7 @@ class VisualValidatorRoutine(BaseValidatorRoutine, PluginDevicesMixin):
             self,
             # basic
             exp, name='visualVal',
-            findThreshold=True, threshold=127,
+            findThreshold=True, threshold=0.5,
             # layout
             findSensor=True, sensorPos="(1, 1)", sensorSize="(0.1, 0.1)", sensorUnits="norm",
             # device
@@ -64,8 +64,8 @@ class VisualValidatorRoutine(BaseValidatorRoutine, PluginDevicesMixin):
             threshold, valType="code", inputType="single", categ="Basic",
             label=_translate("Threshold"),
             hint=_translate(
-                "Light threshold at which the light sensor should register a positive, units go from 0 (least light) to "
-                "255 (most light)."
+                "Light threshold at which the light sensor should register a positive, units go from 0 (least sensitive) to "
+                "1 (most sensitive)."
             )
         )
         self.depends.append({
