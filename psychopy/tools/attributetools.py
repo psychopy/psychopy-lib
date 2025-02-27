@@ -90,7 +90,7 @@ class attributeSetter:
         If an attributeSetter is received by serializer as an attribute, return the default value or 
         None
         """
-        defaults = inspect.getargspec(self.func).defaults
+        defaults = inspect.getfullargspec(self.func).defaults
         if defaults:
             return defaults[0]
         else:

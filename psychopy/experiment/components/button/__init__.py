@@ -204,26 +204,26 @@ class ButtonComponent(BaseVisualComponent):
 
         code = (
             "%(name)s = new visual.ButtonStim({\n"
-        )
-        buff.writeIndentedLines(code % inits)
-        buff.setIndentLevel(1, relative=True)
-        code = (
-                "win: psychoJS.window,\n"
-                "name: '%(name)s',\n"
-                "text: %(text)s,\n"
-                "fillColor: %(fillColor)s,\n"
-                "borderColor: %(borderColor)s,\n"
-                "color: %(color)s,\n"
-                "colorSpace: %(colorSpace)s,\n"
-                "pos: %(pos)s,\n"
-                "letterHeight: %(letterHeight)s,\n"
-                "size: %(size)s,\n"
-                "ori: %(ori)s\n,\n"
-                "depth: %(depth)s\n"
-        )
-        buff.writeIndentedLines(code % inits)
-        buff.setIndentLevel(-1, relative=True)
-        code = (
+            "  win: psychoJS.window,\n"
+            "  name: '%(name)s',\n"
+            "  text: %(text)s,\n"
+            "  font: %(font)s,\n"
+            "  pos: %(pos)s,\n"
+            "  size: %(size)s,\n"
+            "  padding: %(padding)s,\n"
+            "  anchor: %(anchor)s,\n"
+            "  ori: %(ori)s,\n"
+            "  units: %(units)s,\n"
+            "  color: %(color)s,\n"
+            "  fillColor: %(fillColor)s,\n"
+            "  borderColor: %(borderColor)s,\n"
+            "  colorSpace: %(colorSpace)s,\n"
+            "  borderWidth: %(borderWidth)s,\n"
+            "  opacity: %(opacity)s,\n"
+            "  depth: %(depth)s,\n"
+            "  letterHeight: %(letterHeight)s,\n"
+            "  bold: %(bold)s,\n"
+            "  italic: %(italic)s,\n"
             "});\n"
             "%(name)s.clock = new util.Clock();\n\n"
         )
