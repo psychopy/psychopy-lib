@@ -244,7 +244,18 @@ class TextStim(BaseVisualStim, DraggingMixin, ForeColorMixin, ContainerMixin):
                 GL.glDeleteLists(self._listID, 1)
             except (ImportError, ModuleNotFoundError, TypeError, GL.lib.GLException):
                 pass  # if pyglet no longer exists
+    
+    @property
+    def opacity(self):
+        return BaseVisualStim.opacity.fget(self)
 
+    @opacity.setter
+    def opacity(self, value):
+        # do base setting
+        BaseVisualStim.opacity.fset(self, value)
+        # trigger update
+        self._needSetText = True
+    
     @attributeSetter
     def height(self, height):
         """The height of the letters (Float/int or None = set default).

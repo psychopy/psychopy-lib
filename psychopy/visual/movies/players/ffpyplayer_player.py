@@ -923,8 +923,7 @@ class FFPyPlayer(BaseMoviePlayer):
     def isFinished(self):
         """`True` if the video is finished (`bool`).
         """
-        # why is this the same as STOPPED?
-        return self._status == FINISHED
+        return self._tStream.isFinished
 
     def play(self, log=False):
         """Start or continue a paused movie from current position.

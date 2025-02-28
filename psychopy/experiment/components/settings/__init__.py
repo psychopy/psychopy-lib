@@ -1912,11 +1912,15 @@ class SettingsComponent:
         )
         buff.writeIndentedLines(code)
 
-        # show/hide pilot indicator
+        # post-init window adjustments for piloting mode
         code = (
-            "# show a visual indicator if we're in piloting mode\n"
-            "if PILOTING and prefs.piloting['showPilotingIndicator']:\n"
-            "    win.showPilotingIndicator()\n"
+            "if PILOTING:\n"
+            "    # show a visual indicator if we're in piloting mode\n"
+            "    if prefs.piloting['showPilotingIndicator']:\n"
+            "        win.showPilotingIndicator()\n"
+            "    # always show the mouse in piloting mode\n"
+            "    if prefs.piloting['forceMouseVisible']:\n"
+            "        win.mouseVisible = True\n"
         )
         buff.writeIndentedLines(code)
 

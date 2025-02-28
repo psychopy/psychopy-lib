@@ -349,7 +349,7 @@ class BaseWizard():
         """
 
         imgfile = os.path.join(self.prefs.paths['resources'],
-                               'psychopySplash.png')
+                               'splash.png')
         _head = (u'<html><head><meta http-equiv="Content-Type" '
                  'content="text/html; charset=utf-8"></head><body>' +
                  '<a href="https://www.psychopy.org"><img src="%s" '
