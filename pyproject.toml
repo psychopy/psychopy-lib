@@ -25,7 +25,7 @@ classifiers = [
     ]
     
 dependencies = [
-    "numpy<2.0",  # use numpy<1.24 for psychopy<2023.1
+    "numpy<2.0", # use numpy<1.24 for psychopy<2023.1
     "scipy",
     "matplotlib",
     "pyglet == 1.4.11; platform_system == \"Windows\"",
@@ -56,18 +56,16 @@ dependencies = [
     "python-bidi",
     "arabic-reshaper",
     "javascripthon",
-    "websockets",  # new in 2023.2 for session.py
+    "websockets", # new in 2023.2 for session.py
     # for the app
     "wxPython >= 4.1.1",
     "markdown-it-py",
     "requests",
-    "future",  # only to support legacy versions in useVersion
-    # supporting plugins
-    "setuptools>=75.3.0",  # py2app issues https://github.com/ronaldoussoren/py2app/issues/531
+    "future", # py2app issues https://github.com/ronaldoussoren/py2app/issues/531
     # pavlovia connections
     "python-gitlab",
     "gitpython",
-    "cryptography",  # for sshkeys
+    "cryptography", # for sshkeys
     # psychoJS conversions
     "javascripthon>=0.12",
     "astunparse",
@@ -88,10 +86,12 @@ dependencies = [
     "zeroconf; platform_system == \"Darwin\"",
     "python-xlib; platform_system == \"Linux\"",
     "distro; platform_system == \"Linux\"",
-    'tables!=3.9.2',  # 3.9.2 crashes on Rosetta
+    'tables!=3.9.2', # 3.9.2 crashes on Rosetta
     "packaging>=24.0",
     "moviepy",
     "pyarrow",
+    "pyobjc-framework-quartz==7.3",
+    "setuptools>=70.3.0",
 ]
 
 [project.optional-dependencies]  # This is optional dependencies
