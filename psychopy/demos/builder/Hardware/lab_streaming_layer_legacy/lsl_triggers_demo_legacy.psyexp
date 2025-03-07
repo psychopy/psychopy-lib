@@ -1,4 +1,4 @@
-<PsychoPy2experiment encoding="utf-8" version="2024.1.0rc11">
+<PsychoPy2experiment encoding="utf-8" version="2025.2.0">
   <Settings>
     <Param val="use prefs" valType="str" updates="None" name="Audio latency priority" />
     <Param val="use prefs" valType="str" updates="None" name="Audio lib" />
@@ -57,7 +57,6 @@
     <Param val="CONTINUOUS" valType="str" updates="None" name="mgMove" />
     <Param val="0.5" valType="num" updates="None" name="mgSaccade" />
     <Param val="neon.local" valType="str" updates="None" name="plCompanionAddress" />
-    <Param val="scene_camera.json" valType="file" updates="None" name="plCompanionCameraCalibration" />
     <Param val="8080" valType="num" updates="None" name="plCompanionPort" />
     <Param val="True" valType="bool" updates="None" name="plCompanionRecordingEnabled" />
     <Param val="0.6" valType="num" updates="None" name="plConfidenceThreshold" />
@@ -102,7 +101,7 @@
         <Param val="False" valType="bool" updates="None" name="disabled" />
         <Param val="" valType="code" updates="None" name="durationEstim" />
         <Param val="None" valType="str" updates="constant" name="flip" />
-        <Param val="Open Sans" valType="str" updates="constant" name="font" />
+        <Param val="Arial" valType="str" updates="constant" name="font" />
         <Param val="LTR" valType="str" updates="None" name="languageStyle" />
         <Param val="0.05" valType="num" updates="constant" name="letterHeight" />
         <Param val="text" valType="code" updates="None" name="name" />
@@ -195,7 +194,7 @@
         <Param val="False" valType="bool" updates="None" name="disabled" />
         <Param val="" valType="code" updates="None" name="durationEstim" />
         <Param val="None" valType="str" updates="constant" name="flip" />
-        <Param val="Open Sans" valType="str" updates="constant" name="font" />
+        <Param val="Arial" valType="str" updates="constant" name="font" />
         <Param val="LTR" valType="str" updates="None" name="languageStyle" />
         <Param val="0.05" valType="num" updates="constant" name="letterHeight" />
         <Param val="text_3" valType="code" updates="None" name="name" />
@@ -243,7 +242,7 @@
         <Param val="False" valType="bool" updates="None" name="disabled" />
         <Param val="" valType="code" updates="None" name="durationEstim" />
         <Param val="None" valType="str" updates="constant" name="flip" />
-        <Param val="Open Sans" valType="str" updates="constant" name="font" />
+        <Param val="Arial" valType="str" updates="constant" name="font" />
         <Param val="LTR" valType="str" updates="None" name="languageStyle" />
         <Param val="0.05" valType="num" updates="constant" name="letterHeight" />
         <Param val="text_2" valType="code" updates="None" name="name" />
