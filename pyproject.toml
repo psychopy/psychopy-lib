@@ -90,6 +90,7 @@ dependencies = [
     "packaging>=24.0",
     "moviepy",
     "pyarrow",
+    "pyobjc-framework-quartz==7.3",
     "setuptools>=70.3.0",
 ]
 
