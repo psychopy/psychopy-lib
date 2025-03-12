@@ -1636,7 +1636,7 @@ requires-dist = [
     { name = "pyo", marker = "extra == 'legacy'", specifier = ">=1.0.3" },
     { name = "pyobjc", marker = "sys_platform == 'darwin'" },
     { name = "pyobjc-core", marker = "sys_platform == 'darwin'" },
-    { name = "pyobjc-framework-quartz", marker = "sys_platform == 'darwin'", specifier = "<8.0" },
+    { name = "pyobjc-framework-quartz", marker = "sys_platform == 'darwin'", specifier = "==7.3" },
     { name = "pyparallel", marker = "sys_platform != 'darwin'" },
     { name = "pypiwin32", marker = "sys_platform == 'win32'" },
     { name = "pyqt6" },
