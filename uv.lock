@@ -1106,10 +1106,9 @@ version = "2024.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "numpy", version = "1.24.4", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.9'" },
-    { name = "numpy", version = "1.26.4", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.9'" },
-    { name = "packaging" },
-    { name = "pytools", version = "2024.1.14", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.10'" },
-    { name = "pytools", version = "2025.1.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.10'" },
+    { name = "numpy", version = "1.26.4", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version == '3.9.*'" },
+    { name = "packaging", marker = "python_full_version < '3.10'" },
+    { name = "pytools", marker = "python_full_version < '3.10'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/1c/00/8bfaf010f9d0f1ffe583db6c4a70409edb5d5aaf84af2424649256845bb1/gmsh_interop-2024.1.tar.gz", hash = "sha256:ec9bedf9dfd951032e4806d6f00f6f75c3d513ae655173fb459d6a5bce820ce2", size = 25240 }
 wheels = [
@@ -1892,12 +1891,25 @@ wheels = [
 name = "meshpy"
 version = "2022.1.3"
 source = { registry = "https://pypi.org/simple" }
+resolution-markers = [
+    "python_full_version == '3.9.*' and sys_platform == 'win32'",
+    "python_full_version >= '3.8.1' and python_full_version < '3.9' and sys_platform == 'win32'",
+    "python_full_version < '3.8.1' and sys_platform == 'win32'",
+    "python_full_version == '3.9.*' and platform_machine == 'arm64' and sys_platform == 'darwin'",
+    "python_full_version == '3.9.*' and platform_machine == 'aarch64' and sys_platform == 'linux'",
+    "(python_full_version == '3.9.*' and platform_machine != 'arm64' and sys_platform == 'darwin') or (python_full_version == '3.9.*' and platform_machine != 'aarch64' and sys_platform == 'linux') or (python_full_version == '3.9.*' and sys_platform != 'darwin' and sys_platform != 'linux' and sys_platform != 'win32')",
+    "python_full_version >= '3.8.1' and python_full_version < '3.9' and platform_machine == 'arm64' and sys_platform == 'darwin'",
+    "python_full_version < '3.8.1' and platform_machine == 'arm64' and sys_platform == 'darwin'",
+    "python_full_version >= '3.8.1' and python_full_version < '3.9' and platform_machine == 'aarch64' and sys_platform == 'linux'",
+    "python_full_version < '3.8.1' and platform_machine == 'aarch64' and sys_platform == 'linux'",
+    "(python_full_version >= '3.8.1' and python_full_version < '3.9' and platform_machine != 'arm64' and sys_platform == 'darwin') or (python_full_version >= '3.8.1' and python_full_version < '3.9' and platform_machine != 'aarch64' and sys_platform == 'linux') or (python_full_version >= '3.8.1' and python_full_version < '3.9' and sys_platform != 'darwin' and sys_platform != 'linux' and sys_platform != 'win32')",
+    "(python_full_version < '3.8.1' and platform_machine != 'arm64' and sys_platform == 'darwin') or (python_full_version < '3.8.1' and platform_machine != 'aarch64' and sys_platform == 'linux') or (python_full_version < '3.8.1' and sys_platform != 'darwin' and sys_platform != 'linux' and sys_platform != 'win32')",
+]
 dependencies = [
-    { name = "gmsh-interop" },
+    { name = "gmsh-interop", marker = "python_full_version < '3.10'" },
     { name = "numpy", version = "1.24.4", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.9'" },
-    { name = "numpy", version = "1.26.4", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.9'" },
-    { name = "pytools", version = "2024.1.14", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.10'" },
-    { name = "pytools", version = "2025.1.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.10'" },
+    { name = "numpy", version = "1.26.4", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version == '3.9.*'" },
+    { name = "pytools", marker = "python_full_version < '3.10'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/80/ee/6ec21159624454a2522211c17b72d2211237c74b45c353a6504f801a3d3a/MeshPy-2022.1.3.tar.gz", hash = "sha256:a7158e31ece25fa6c6cebce9fd1e968157d661dc8769fb30ceba69c351478475", size = 474632 }
 wheels = [
@@ -1927,6 +1939,31 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/d2/62/74f176825a76dbc7b74833b8439ae49035de3a199816d44631b2a3421e38/MeshPy-2022.1.3-pp39-pypy39_pp73-manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:ebb52237dbd87dc47c9c1c5d9f779bed99a4ce433407e1cb4995f90ca79a636e", size = 512844 },
     { url = "https://files.pythonhosted.org/packages/f8/cf/ba443d2bc6e2180177e734913843816d9ae98caad30761fb9d14de4357eb/MeshPy-2022.1.3-pp39-pypy39_pp73-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:8b7d60d288c3a99fd83ce1d1152cbe2d668c8ba036956fff68a5a4294f7f5850", size = 506314 },
     { url = "https://files.pythonhosted.org/packages/d4/64/ab4eff1e88dbcbc3b46b26f88d74478bfd3b17f4bfe110ff6e1cfca50e6b/MeshPy-2022.1.3-pp39-pypy39_pp73-win_amd64.whl", hash = "sha256:a0e107fbf79801721eddee9826a64787d3e3b1f0bfe3d08792bbe05c4d36f12a", size = 378810 },
+]
+
+[[package]]
+name = "meshpy"
+version = "2025.1.1"
+source = { registry = "https://pypi.org/simple" }
+resolution-markers = [
+    "python_full_version >= '3.10' and sys_platform == 'win32'",
+    "python_full_version >= '3.10' and sys_platform == 'darwin'",
+    "python_full_version >= '3.10' and platform_machine == 'aarch64' and sys_platform == 'linux'",
+    "(python_full_version >= '3.10' and platform_machine != 'aarch64' and sys_platform == 'linux') or (python_full_version >= '3.10' and sys_platform != 'darwin' and sys_platform != 'linux' and sys_platform != 'win32')",
+]
+dependencies = [
+    { name = "numpy", version = "1.26.4", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.10'" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/b0/4a/4b75a61f083302301544c5d9ceb0813e7edac8cc9f4628fe9165e663a11b/meshpy-2025.1.1.tar.gz", hash = "sha256:70fc707fe9ccd9e907b95a9271804b4dd02e77d60644f64a0384cbf9e6d5b86b", size = 485344 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/cc/fa/2fba95ec102136c16cbe64ffe43c5a15349dadd5f1e436f9745f6ec0ac5d/meshpy-2025.1.1-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:8698aa83afbaa158c4022b8c5c4a48f961607bd59746784f0fd8c9d1dbe0ebe7", size = 522517 },
+    { url = "https://files.pythonhosted.org/packages/c0/c8/446427682c5e4842e816c101f480bcf6fd0147148aed1d0d71307d9e465c/meshpy-2025.1.1-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:eb5d9250498b1c6358a665de14dcd51238928f2f3b977219a4fe46dbcc9807d7", size = 470421 },
+    { url = "https://files.pythonhosted.org/packages/9e/6b/7f40493432ba090d7b0acb6b410e62044708167418b9e01fa841399257df/meshpy-2025.1.1-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:f9870554985ff4b543f2d2cdc5a76b080d04a42230c6201ab6d1b5bcfb38bb2d", size = 596606 },
+    { url = "https://files.pythonhosted.org/packages/5b/16/032c0f9ce4c1063479c6e97fcd2347f104dbd48d9c1843995452780cfaa3/meshpy-2025.1.1-cp310-cp310-musllinux_1_2_x86_64.whl", hash = "sha256:10cb7ac35ac74da65962b94fc2325147ce7e4419823d23d55d65dcd698eede4c", size = 1621248 },
+    { url = "https://files.pythonhosted.org/packages/fe/13/51c4412301e14031ae90d690c3c63ce542cfb21772437389f0f2dad42b94/meshpy-2025.1.1-cp310-cp310-win_amd64.whl", hash = "sha256:db069a370f20b6e033fa3988a305fce0334f8ba441af25ebd87a20bc63fdf05c", size = 602086 },
+    { url = "https://files.pythonhosted.org/packages/77/5b/1e89ded0a14b4610e80d0e982622a940077fda09983688754fb94ddf8e9f/meshpy-2025.1.1-pp310-pypy310_pp73-macosx_10_15_x86_64.whl", hash = "sha256:d39aa08aa08f6aba3ed5c2402cbd829dc05b7522ee2410e153c8fc71b7e8ad09", size = 522823 },
+    { url = "https://files.pythonhosted.org/packages/28/8d/6eabff58375737be1e9d877768157c8788226c7b3d61a009dd910fcb8e5a/meshpy-2025.1.1-pp310-pypy310_pp73-macosx_11_0_arm64.whl", hash = "sha256:52bf29e3cfbb22d0ae3180f6329f5b46121c083a51304b009c62528c9ff4afbf", size = 470375 },
+    { url = "https://files.pythonhosted.org/packages/d5/a1/c0e4c8a81cc55d6e784c78346697f11b198642687d7512c5782e40bb242e/meshpy-2025.1.1-pp310-pypy310_pp73-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:34502491d992f3e0bce44f9bbdc260ad086e64fb8b65e90bb242ed0f7bbe6684", size = 596260 },
 ]
 
 [[package]]
@@ -2492,7 +2529,8 @@ dependencies = [
     { name = "matplotlib", version = "3.7.5", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.9'" },
     { name = "matplotlib", version = "3.9.4", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version == '3.9.*'" },
     { name = "matplotlib", version = "3.10.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.10'" },
-    { name = "meshpy" },
+    { name = "meshpy", version = "2022.1.3", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.10'" },
+    { name = "meshpy", version = "2025.1.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.10'" },
     { name = "moviepy", version = "1.0.3", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.9'" },
     { name = "moviepy", version = "2.1.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.9'" },
     { name = "msgpack" },
@@ -5561,20 +5599,6 @@ wheels = [
 name = "pytools"
 version = "2024.1.14"
 source = { registry = "https://pypi.org/simple" }
-resolution-markers = [
-    "python_full_version == '3.9.*' and sys_platform == 'win32'",
-    "python_full_version >= '3.8.1' and python_full_version < '3.9' and sys_platform == 'win32'",
-    "python_full_version < '3.8.1' and sys_platform == 'win32'",
-    "python_full_version == '3.9.*' and platform_machine == 'arm64' and sys_platform == 'darwin'",
-    "python_full_version == '3.9.*' and platform_machine == 'aarch64' and sys_platform == 'linux'",
-    "(python_full_version == '3.9.*' and platform_machine != 'arm64' and sys_platform == 'darwin') or (python_full_version == '3.9.*' and platform_machine != 'aarch64' and sys_platform == 'linux') or (python_full_version == '3.9.*' and sys_platform != 'darwin' and sys_platform != 'linux' and sys_platform != 'win32')",
-    "python_full_version >= '3.8.1' and python_full_version < '3.9' and platform_machine == 'arm64' and sys_platform == 'darwin'",
-    "python_full_version < '3.8.1' and platform_machine == 'arm64' and sys_platform == 'darwin'",
-    "python_full_version >= '3.8.1' and python_full_version < '3.9' and platform_machine == 'aarch64' and sys_platform == 'linux'",
-    "python_full_version < '3.8.1' and platform_machine == 'aarch64' and sys_platform == 'linux'",
-    "(python_full_version >= '3.8.1' and python_full_version < '3.9' and platform_machine != 'arm64' and sys_platform == 'darwin') or (python_full_version >= '3.8.1' and python_full_version < '3.9' and platform_machine != 'aarch64' and sys_platform == 'linux') or (python_full_version >= '3.8.1' and python_full_version < '3.9' and sys_platform != 'darwin' and sys_platform != 'linux' and sys_platform != 'win32')",
-    "(python_full_version < '3.8.1' and platform_machine != 'arm64' and sys_platform == 'darwin') or (python_full_version < '3.8.1' and platform_machine != 'aarch64' and sys_platform == 'linux') or (python_full_version < '3.8.1' and sys_platform != 'darwin' and sys_platform != 'linux' and sys_platform != 'win32')",
-]
 dependencies = [
     { name = "platformdirs", marker = "python_full_version < '3.10'" },
     { name = "typing-extensions", marker = "python_full_version < '3.10'" },
@@ -5582,25 +5606,6 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/36/03/a77353d9763877fa8984de29a32aaf26ca98227cc405157d46c8a6e1cf6a/pytools-2024.1.14.tar.gz", hash = "sha256:39e5bbaf81fa432e688b82dd0980212d18f97b23e51a8c7afe7592249fe40ab1", size = 83715 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/70/19/87514026ff33ae67681e7e721872db8d34fd0fc25ec28906fb7b1e5c57d0/pytools-2024.1.14-py3-none-any.whl", hash = "sha256:f70c549cdab36e4d31a48a88ce8d969af24816482d73b10012dcac42ce9425e8", size = 89876 },
-]
-
-[[package]]
-name = "pytools"
-version = "2025.1.1"
-source = { registry = "https://pypi.org/simple" }
-resolution-markers = [
-    "python_full_version >= '3.10' and sys_platform == 'win32'",
-    "python_full_version >= '3.10' and sys_platform == 'darwin'",
-    "python_full_version >= '3.10' and platform_machine == 'aarch64' and sys_platform == 'linux'",
-    "(python_full_version >= '3.10' and platform_machine != 'aarch64' and sys_platform == 'linux') or (python_full_version >= '3.10' and sys_platform != 'darwin' and sys_platform != 'linux' and sys_platform != 'win32')",
-]
-dependencies = [
-    { name = "platformdirs", marker = "python_full_version >= '3.10'" },
-    { name = "typing-extensions", marker = "python_full_version >= '3.10'" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/dc/d7/727cc3ef1ad0dc0d304bb1cf8c704a95bd7b8f3ef8632356672c826e8869/pytools-2025.1.1.tar.gz", hash = "sha256:80f8e3f3f7756d0c9bd579879c3528d54e422843b50a288a9c3b6ba3e0eac28b", size = 80186 }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/2d/74/1c1cf32f670880a1735c1b67fa1f9e959e2a7c579bf54549034304006359/pytools-2025.1.1-py3-none-any.whl", hash = "sha256:87d58b0529fe1542910b4cb54a70295a7ed9d810afd89df5540ee8cca7ff3a70", size = 92787 },
 ]
 
 [[package]]
@@ -6782,14 +6787,14 @@ wheels = [
 
 [[package]]
 name = "xmlschema"
-version = "3.4.3"
+version = "3.4.4"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "elementpath" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/11/ca/56579e6b4558c3c06902fe6647280345da8087f080c86e85166fd2131f8d/xmlschema-3.4.3.tar.gz", hash = "sha256:0c638dac81c7d6c9da9a8d7544402c48cffe7ee0e13cc47fc0c18794d1395dfb", size = 585144 }
+sdist = { url = "https://files.pythonhosted.org/packages/6a/02/8b98e56c17814fadcf6635f88183728bfc75081e436eecbdd7792950342c/xmlschema-3.4.4.tar.gz", hash = "sha256:fc3c6000ef065ba0c1e30a21baf7508811526b7c5864861c5fda1ffb176788b3", size = 591585 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/5a/49/ff75976757b23d6345ec1021fd0d2480d7ceed66d285e31556ac1147858d/xmlschema-3.4.3-py3-none-any.whl", hash = "sha256:eea4e5a1aac041b546ebe7b2eb68eb5eaebf5c5258e573cfc182375676b2e4e3", size = 417847 },
+    { url = "https://files.pythonhosted.org/packages/30/2a/ed601bb1a7c6dc6521557fc739e959868f20c54361f12b147aa81a9be975/xmlschema-3.4.4-py3-none-any.whl", hash = "sha256:a61d32c1678cd06c4b18bdc58a0a2928771be810b198e6d46824602db0ff4b4b", size = 418144 },
 ]
 
 [[package]]
