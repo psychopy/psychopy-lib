@@ -6813,14 +6813,14 @@ wheels = [
 
 [[package]]
 name = "xmlschema"
-version = "3.4.4"
+version = "3.4.5"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "elementpath" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/6a/02/8b98e56c17814fadcf6635f88183728bfc75081e436eecbdd7792950342c/xmlschema-3.4.4.tar.gz", hash = "sha256:fc3c6000ef065ba0c1e30a21baf7508811526b7c5864861c5fda1ffb176788b3", size = 591585 }
+sdist = { url = "https://files.pythonhosted.org/packages/dd/de/a3b013b89addf4e22ea764acccc7c1a4f7ad407ea90d2acef8326b7921ef/xmlschema-3.4.5.tar.gz", hash = "sha256:243244743f151ec859ec0bbf1368fa3f70e5f29e977b77f72e1c9b8f8ae670f6", size = 592281 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/30/2a/ed601bb1a7c6dc6521557fc739e959868f20c54361f12b147aa81a9be975/xmlschema-3.4.4-py3-none-any.whl", hash = "sha256:a61d32c1678cd06c4b18bdc58a0a2928771be810b198e6d46824602db0ff4b4b", size = 418144 },
+    { url = "https://files.pythonhosted.org/packages/f8/e8/e8e9ff6d727a68a62909037b0bb8a5456885e6c5e99e0b85dbbcc1e5e4dc/xmlschema-3.4.5-py3-none-any.whl", hash = "sha256:c91a2fca387dc4e8a2f2cb4a411ed23bef9da539968e5d858a3fe7f76a65464e", size = 418192 },
 ]
 
 [[package]]
