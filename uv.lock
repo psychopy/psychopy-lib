@@ -1057,7 +1057,7 @@ wheels = [
 
 [[package]]
 name = "gevent"
-version = "24.11.1"
+version = "25.4.1"
 source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
     "python_full_version >= '3.10' and sys_platform == 'darwin'",
@@ -1075,21 +1075,21 @@ dependencies = [
     { name = "zope-event", marker = "python_full_version >= '3.9'" },
     { name = "zope-interface", marker = "python_full_version >= '3.9'" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/ab/75/a53f1cb732420f5e5d79b2563fc3504d22115e7ecfe7966e5cf9b3582ae7/gevent-24.11.1.tar.gz", hash = "sha256:8bd1419114e9e4a3ed33a5bad766afff9a3cf765cb440a582a1b3a9bc80c1aca", size = 5976624 }
+sdist = { url = "https://files.pythonhosted.org/packages/ca/09/5ac96eece3f119d6d43694d81f26609aaeef00e5e306f0bc98afa7a57b98/gevent-25.4.1.tar.gz", hash = "sha256:9c59dd3aab086092510860a5c9d237429181cca96e684ba052d27e6a45c78345", size = 6342230 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/36/7d/27ed3603f4bf96b36fb2746e923e033bc600c6684de8fe164d64eb8c4dcc/gevent-24.11.1-cp310-cp310-macosx_11_0_universal2.whl", hash = "sha256:92fe5dfee4e671c74ffaa431fd7ffd0ebb4b339363d24d0d944de532409b935e", size = 2998254 },
-    { url = "https://files.pythonhosted.org/packages/a8/03/a8f6c70f50a644a79e75d9f15e6f1813115d34c3c55528e4669a9316534d/gevent-24.11.1-cp310-cp310-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:b7bfcfe08d038e1fa6de458891bca65c1ada6d145474274285822896a858c870", size = 4817711 },
-    { url = "https://files.pythonhosted.org/packages/f0/05/4f9bc565520a18f107464d40ac15a91708431362c797e77fbb5e7ff26e64/gevent-24.11.1-cp310-cp310-manylinux_2_17_ppc64le.manylinux2014_ppc64le.whl", hash = "sha256:7398c629d43b1b6fd785db8ebd46c0a353880a6fab03d1cf9b6788e7240ee32e", size = 4934468 },
-    { url = "https://files.pythonhosted.org/packages/4a/7d/f15561eeebecbebc0296dd7bebea10ac4af0065d98249e3d8c4998e68edd/gevent-24.11.1-cp310-cp310-manylinux_2_17_s390x.manylinux2014_s390x.whl", hash = "sha256:d7886b63ebfb865178ab28784accd32f287d5349b3ed71094c86e4d3ca738af5", size = 5014067 },
-    { url = "https://files.pythonhosted.org/packages/67/c1/07eff117a600fc3c9bd4e3a1ff3b726f146ee23ce55981156547ccae0c85/gevent-24.11.1-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:d9ca80711e6553880974898d99357fb649e062f9058418a92120ca06c18c3c59", size = 6625531 },
-    { url = "https://files.pythonhosted.org/packages/4b/72/43f76ab6b18e5e56b1003c844829971f3044af08b39b3c9040559be00a2b/gevent-24.11.1-cp310-cp310-musllinux_1_1_aarch64.whl", hash = "sha256:e24181d172f50097ac8fc272c8c5b030149b630df02d1c639ee9f878a470ba2b", size = 5249671 },
-    { url = "https://files.pythonhosted.org/packages/6b/fc/1a847ada0757cc7690f83959227514b1a52ff6de504619501c81805fa1da/gevent-24.11.1-cp310-cp310-musllinux_1_1_x86_64.whl", hash = "sha256:1d4fadc319b13ef0a3c44d2792f7918cf1bca27cacd4d41431c22e6b46668026", size = 6773903 },
-    { url = "https://files.pythonhosted.org/packages/3b/9d/254dcf455f6659ab7e36bec0bc11f51b18ea25eac2de69185e858ccf3c30/gevent-24.11.1-cp310-cp310-win_amd64.whl", hash = "sha256:3d882faa24f347f761f934786dde6c73aa6c9187ee710189f12dcc3a63ed4a50", size = 1560443 },
-    { url = "https://files.pythonhosted.org/packages/a0/73/263d0f63186d27d205b3dc157efe838afe3aba10a3baca15d85e97b90eae/gevent-24.11.1-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:d9347690f4e53de2c4af74e62d6fabc940b6d4a6cad555b5a379f61e7d3f2a8e", size = 6658480 },
-    { url = "https://files.pythonhosted.org/packages/8a/fd/ec7b5c764a3d1340160b82f7394fdc1220d18e11ae089c472cf7bcc2fe6a/gevent-24.11.1-cp39-cp39-musllinux_1_1_x86_64.whl", hash = "sha256:8619d5c888cb7aebf9aec6703e410620ef5ad48cdc2d813dd606f8aa7ace675f", size = 6808247 },
-    { url = "https://files.pythonhosted.org/packages/95/82/2ce68dc8dbc2c3ed3f4e73f21e1b7a45d80b5225670225a48e695f248850/gevent-24.11.1-cp39-cp39-win32.whl", hash = "sha256:c6b775381f805ff5faf250e3a07c0819529571d19bb2a9d474bee8c3f90d66af", size = 1483133 },
-    { url = "https://files.pythonhosted.org/packages/76/96/aa4cbcf1807187b65a9c9ff15b32b08c2014968be852dda34d212cf8cc58/gevent-24.11.1-cp39-cp39-win_amd64.whl", hash = "sha256:1c3443b0ed23dcb7c36a748d42587168672953d368f2956b17fad36d43b58836", size = 1566354 },
-    { url = "https://files.pythonhosted.org/packages/86/63/197aa67250943b508b34995c2aa6b46402e7e6f11785487740c2057bfb20/gevent-24.11.1-pp310-pypy310_pp73-macosx_11_0_universal2.whl", hash = "sha256:f43f47e702d0c8e1b8b997c00f1601486f9f976f84ab704f8f11536e3fa144c9", size = 1271676 },
+    { url = "https://files.pythonhosted.org/packages/2a/4c/c80315d0c334b16ff7b942da7a7973c375b917037456d19e4346da537577/gevent-25.4.1-cp310-cp310-macosx_11_0_universal2.whl", hash = "sha256:29d05fa5e566d04ca509d2c25b15f5e9b123cac4f2f96bb85e110740860e107f", size = 2993216 },
+    { url = "https://files.pythonhosted.org/packages/3b/79/42e63b8b7c276355d137de68db6f45787e6e5e6b13890e87da0ab13aef54/gevent-25.4.1-cp310-cp310-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:e98cc6262b20471285f8d81e14155d0d4c2a186d31d49b48b71ab5ba6f24d687", size = 1821455 },
+    { url = "https://files.pythonhosted.org/packages/a3/ba/430d7c96149d2ecf5582ff9495e88a01d4cf7f455d5eee4e2c0fe9f827e2/gevent-25.4.1-cp310-cp310-manylinux_2_17_ppc64le.manylinux2014_ppc64le.whl", hash = "sha256:2f31e40ecf11e19150c11bf6b2977050360020ae6086d4c21f94455e3d0222ee", size = 1905090 },
+    { url = "https://files.pythonhosted.org/packages/c9/ac/3d2e42730154a1a408d40a65a015c01c0cdd40b9500a73dac6228579bf18/gevent-25.4.1-cp310-cp310-manylinux_2_17_s390x.manylinux2014_s390x.whl", hash = "sha256:1bdd383c77a47e041844a17cb43c15c2e1e0b2749fc85d4a2cff14307044b78a", size = 1851022 },
+    { url = "https://files.pythonhosted.org/packages/59/20/bf62bd5e930cc3c60fc7a1d5b4120dc53b68625cedd57fd7671c31ff9dc9/gevent-25.4.1-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:b3154899cc60ae1814fb232b6055f8286d7825250d9e3fb06c4f52be126e46cd", size = 2181008 },
+    { url = "https://files.pythonhosted.org/packages/07/35/cd42a3a5181008861852d2cc999624c808188b4acc40a97c46751e7fab25/gevent-25.4.1-cp310-cp310-musllinux_1_1_aarch64.whl", hash = "sha256:43800850e138913557c96e4a45f86e017b52e5bc63d14395ffd73ebff26e0031", size = 1858555 },
+    { url = "https://files.pythonhosted.org/packages/da/13/5ec06ad22306e85bd5d69bcd49cb0b51e5370c3d534971f8a49b0c7ac4d3/gevent-25.4.1-cp310-cp310-musllinux_1_1_x86_64.whl", hash = "sha256:e810fc35e4bb8e90fb6771b7f4694e0baf6ce28d1e4740afc4133834eca8b219", size = 2214845 },
+    { url = "https://files.pythonhosted.org/packages/89/cc/9574fad1c7aac23681d2dbfd05b21d781332c539a30f2caa315829547f58/gevent-25.4.1-cp310-cp310-win_amd64.whl", hash = "sha256:7c82179a3b1783d0ecf2a11e2040f4f12d7e1925c31e888fe69217cc4e2e21ba", size = 1560990 },
+    { url = "https://files.pythonhosted.org/packages/a9/97/02af010a6409cda8cb06e47150bdb4af22b0458f2b6623cf3b30a65fe637/gevent-25.4.1-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:832dd696e7bd50c7f141c3af0f9470bc67128152df040580d39c22084d9bb3a5", size = 2189243 },
+    { url = "https://files.pythonhosted.org/packages/3f/bb/7b1189c3f7aa7c1372b11b5751ba9e6c0d6fae0c113b92e6def4dda6856a/gevent-25.4.1-cp39-cp39-musllinux_1_1_x86_64.whl", hash = "sha256:ee11cd11ee7fbe5215b6d37a9eb32a49fd210540d757648dd991128995e73575", size = 2223792 },
+    { url = "https://files.pythonhosted.org/packages/3b/22/83c85cbeeea49becb38535f821cf78b6099315c67b00e520bafb554bf377/gevent-25.4.1-cp39-cp39-win32.whl", hash = "sha256:4e0ad8db3711e56c40d37a1b80c61a27f7523de33c5338498ceb453f837a3368", size = 1483872 },
+    { url = "https://files.pythonhosted.org/packages/74/ed/6b09cad29ab1dad1e5839ef3116f85a6579c1522de5ae9b1dd2f6bc2a13b/gevent-25.4.1-cp39-cp39-win_amd64.whl", hash = "sha256:f3de1700459dc16cabaca4609ad83f7cd1371db445d30da1d4aee2e7674ea123", size = 1566909 },
+    { url = "https://files.pythonhosted.org/packages/02/29/97ebe46152f89919863d36a183f920870269a0f47dbe4e0fe3c2c0f5dd38/gevent-25.4.1-pp310-pypy310_pp73-macosx_11_0_universal2.whl", hash = "sha256:82449386e57237756b10f284cd51172edf4b3866ace143f60d196459aa411c32", size = 1288283 },
 ]
 
 [[package]]
@@ -2590,7 +2590,7 @@ dependencies = [
     { name = "freetype-py" },
     { name = "future" },
     { name = "gevent", version = "24.2.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.9'" },
-    { name = "gevent", version = "24.11.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.9'" },
+    { name = "gevent", version = "25.4.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.9'" },
     { name = "gitpython" },
     { name = "imageio", version = "2.35.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.9'" },
     { name = "imageio", version = "2.37.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.9'" },
