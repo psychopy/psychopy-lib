@@ -2,7 +2,7 @@
 [project]
 name = "psychopy"
 dynamic = ["version"]
-requires-python = ">=3.8, <3.11"
+requires-python = ">=3.8, <3.12"
 description = "PsychoPy provides easy, precise, flexible experiments in behavioural sciences"
 readme ={file = "README.md", content-type = "text/markdown"}
 authors = [
@@ -20,12 +20,13 @@ classifiers = [
     "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
     "Topic :: Scientific/Engineering",
     "License :: OSI Approved :: MIT License",
     ]
     
 dependencies = [
-    "numpy<2.0", # use numpy<1.24 for psychopy<2023.1
+    "numpy", # use numpy<1.24 for psychopy<2023.1
     "scipy",
     "matplotlib",
     "pyglet == 1.4.11; platform_system == \"Windows\"",
@@ -40,7 +41,7 @@ dependencies = [
     "soundfile",
     "imageio",
     "imageio-ffmpeg",
-    "psychtoolbox; platform_machine!='arm64'",
+    "psychtoolbox<3.0.20; platform_machine!='arm64'",
     # for iohub
     "pywinhook; platform_system == \"Windows\"",
     "gevent",
@@ -55,7 +56,6 @@ dependencies = [
     "freetype-py",
     "python-bidi",
     "arabic-reshaper",
-    "javascripthon",
     "websockets", # new in 2023.2 for session.py
     # for the app
     "wxPython >= 4.1.1",
@@ -67,7 +67,7 @@ dependencies = [
     "gitpython",
     "cryptography", # for sshkeys
     # psychoJS conversions
-    "javascripthon>=0.12",
+    "javascripthon @ git+https://gitlab.com/peircej/metapensiero.pj", # until fixes dukpy depend
     "astunparse",
     "esprima",
     "jedi >= 0.16",
@@ -80,9 +80,10 @@ dependencies = [
     "python-vlc == 3.0.11115; platform_system == \"Windows\"",
     "python-vlc >= 3.0.12118; platform_system != \"Windows\"",
     "pypiwin32; platform_system == \"Windows\"",
-    "pyobjc-core; platform_system == \"Darwin\"",
-    "pyobjc-framework-quartz==7.3 ; sys_platform == 'darwin'",
-    "pyobjc; platform_system == \"Darwin\"",
+    "pyobjc-core > 8.0; platform_system == \"Darwin\"",
+    "pyobjc-framework-Quartz > 8.0; platform_system == \"Darwin\"",
+    "pyobjc > 8.0; platform_system == \"Darwin\"",
+    "pyobjc-framework-ScriptingBridge > 8.0; platform_system == \"Darwin\"",
     "zeroconf; platform_system == \"Darwin\"",
     "python-xlib; platform_system == \"Linux\"",
     "distro; platform_system == \"Linux\"",
@@ -107,11 +108,13 @@ docs = [
     "sphinx-design",
     "sphinx-copybutton",
     "jinja2",
+    "psychopy-sphinx-theme"
 ]
 building = [
     "bdist-mpkg>=0.5.0; platform_system == \"Darwin\"",
     "py2app; platform_system == \"Darwin\"",
     "dmgbuild; platform_system == \"Darwin\"",
+    "polib",
 ]
 suggested = [
     "sounddevice",
