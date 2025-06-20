@@ -8,6 +8,7 @@ from psychopy import logging
 from psychopy.experiment.components import (
     BaseComponent, BaseDeviceComponent, Param, _translate, getInitVals
 )
+from psychopy.preferences import prefs
 from psychopy.experiment.devices import DeviceBackend
 from psychopy.tools import stringtools as st, systemtools as syst, audiotools as at
 
@@ -101,15 +102,35 @@ class CameraComponent(BaseDeviceComponent):
         self.exp.requireImport(importName="microphone", importFrom="psychopy.sound")
         
         # --- Audio params ---
+        # --- Device params ---
         self.order += [
-            "micDeviceLabel",
+            "deviceLabel"
         ]
+        # functions for getting device labels
+        def getMicDevices():
+            from psychopy.experiment.components.microphone import MicrophoneDeviceBackend
+            # start with default
+            devices = [("", _translate("Default"))]
+            # iterate through saved devices
+            for name, device in prefs.devices.items():
+                # if device is a microphone, include it
+                if isinstance(device, MicrophoneDeviceBackend):
+                    devices.append(
+                        (name, name)
+                    )
+            return devices
+        def getMicLabels():
+            return [device[1] for device in getMicDevices()]
+        def getMicValues():
+            return [device[0] for device in getMicDevices()]
+        # label to refer to device by
         self.params['micDeviceLabel'] = Param(
-            micDeviceLabel, valType="str", inputType="single", categ="Audio",
-            label=_translate("Microphone device label"),
+            micDeviceLabel, valType="str", inputType="device", categ="Device",
+            allowedVals=getMicValues,
+            allowedLabels=getMicLabels,
+            label=_translate("Microphone device"),
             hint=_translate(
-                "A label to refer to this Component's associated microphone device by. If using "
-                "the same device for multiple components, be sure to use the same label here."
+                "The named device from Device Manager to use for this Component."
             )
         )
 
@@ -157,7 +178,7 @@ class CameraComponent(BaseDeviceComponent):
         if self.params['saveFile']:
             code = (
                 "# connect camera save method to experiment handler so it's called when data saves\n"
-                "thisExp.connectSaveMethod(%(name)s.save, os.path.join(%(name)sRecFolder, '_recovered.mp4'), encoderLib='ffpyplayer')\n"
+                "thisExp.connectSaveMethod(%(name)s.save, os.path.join(%(name)sRecFolder, '_recovered.mp4'))\n"
             )
             buff.writeIndentedLines(code % inits)
 
@@ -323,8 +344,8 @@ class CameraDeviceBackend(DeviceBackend):
         params = {}
         
         self.params['frameSize'] = Param(
-            None, valType='list', inputType="choice", categ="Device",
-            allowedVals=list(sorted(resolutions)), allowedLabels=list(sorted(resolutions)),
+            "", valType='list', inputType="choice", categ="Device",
+            allowedVals=[""] + list(sorted(resolutions)), allowedLabels=["Default"] + list(sorted(resolutions)),
             hint=_translate(
                 "Resolution (w x h) to record to, leave blank to use device default."
             ),
@@ -332,7 +353,7 @@ class CameraDeviceBackend(DeviceBackend):
         )
         params['frameRate'] = Param(
             None, valType='int', inputType="choice", categ="Device",
-            allowedVals=list(frameRates), allowedLabels=list(frameRates),
+            allowedVals=[""] + list(frameRates), allowedLabels=["Default"] + list(frameRates),
             hint=_translate(
                 "Frame rate (frames per second) to record at, leave blank to use device default."
             ),

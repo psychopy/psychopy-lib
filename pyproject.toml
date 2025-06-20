@@ -91,6 +91,7 @@ dependencies = [
     "packaging>=24.0",
     "moviepy",
     "pyarrow",
+    "beautifulsoup4",
     "setuptools>=70.3.0",
 ]
 

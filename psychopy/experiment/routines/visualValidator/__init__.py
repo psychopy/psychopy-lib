@@ -5,9 +5,10 @@ from pathlib import Path
 from psychopy.preferences import prefs
 from psychopy.alerts._alerts import alert
 from psychopy.experiment import Param
-from psychopy.experiment.plugins import PluginDevicesMixin, DeviceBackend
+from psychopy.experiment.plugins import PluginDevicesMixin
 from psychopy.experiment.components import getInitVals
 from psychopy.experiment.routines import Routine, BaseValidatorRoutine
+from psychopy.experiment.devices import DeviceBackend
 from psychopy.localization import _translate
 
 
@@ -360,9 +361,10 @@ class ScreenBufferVisualValidatorBackend(DeviceBackend):
     """
 
     key = "screenbuffer"
-    label = _translate("Screen Buffer (Debug)")
+    label = _translate("Screen Buffer Sampler (Debug)")
     component = VisualValidatorRoutine
     deviceClasses = ["psychopy.hardware.lightsensor.ScreenBufferSampler"]
+    icon = "light/visual_validator.png"
 
     def getParams(self: VisualValidatorRoutine):
         # define order
