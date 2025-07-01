@@ -240,6 +240,7 @@ class DeviceBackend:
             List of backend classes
         """
         from psychopy.experiment import getAllElements
+        from psychopy.experiment.monitor import BasePhotometerDeviceBackend, ScreenBufferPhotometerDeviceBackend
         allBackends = []
         # look for device backends associated with all known Components and Routines
         for emt in getAllElements(fetchIcons=False).values():
@@ -249,7 +250,11 @@ class DeviceBackend:
                     if issubclass(backend, DeviceBackend) and backend not in allBackends:
                         # append if so
                         allBackends.append(backend)
-        
+        # add subclasses of BasePhotometerBackend as it doesn't come from any Component
+        for cls in BasePhotometerDeviceBackend.__subclasses__():
+            if cls not in allBackends:
+                allBackends.append(cls)
+
         return allBackends
         
     
