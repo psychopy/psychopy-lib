@@ -24,6 +24,12 @@ class SoundComponent(BaseDeviceComponent):
     tooltip = _translate('Sound: play recorded files or generated sounds', )
     deviceClasses = ["psychopy.hardware.speaker.SpeakerDevice"]
     validatorClasses = ["AudioValidatorRoutine"]
+    legacyParams = [
+        # old device setup params, no longer needed as this is handled by DeviceManager
+        "speakerIndex",
+        "resample",
+        "latencyClass",
+    ]
 
     def __init__(
         self,

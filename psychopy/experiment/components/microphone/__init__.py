@@ -37,14 +37,21 @@ class MicrophoneComponent(BaseDeviceComponent):
     transcriberPaths = {
         'google': "psychopy.sound.transcribe:GoogleCloudTranscriber"
     }
+    legacyParams = [
+        # old device setup params, no longer needed as this is handled by DeviceManager
+        "device",
+        "exclusive",
+        "sampleRate",
+        "channels",
+        "stereo",
+        "channel"
+    ]
 
     def __init__(
         self, exp, parentName, name='mic',
         startType='time (s)', startVal=0.0,
         stopType='duration (s)', stopVal=2.0,
         startEstim='', durationEstim='',
-        device=None,
-        exclusive=False,
         outputType='default', speakTimes=False, trimSilent=False,
         policyWhenFull='warn',
         transcribe=False, transcribeBackend="none",
@@ -52,6 +59,8 @@ class MicrophoneComponent(BaseDeviceComponent):
         transcribeWhisperModel="base",
         transcribeWhisperDevice="auto",
         #legacy
+        device=None,
+        exclusive=False,
         sampleRate=48000, 
         channels=2,
         stereo=None, 

@@ -25,6 +25,10 @@ class VisualValidatorRoutine(BaseValidatorRoutine, PluginDevicesMixin):
     )
     deviceClasses = []
     version = "2025.1.0"
+    legacyParams = [
+        # old device setup params, no longer needed as this is handled by DeviceManager
+        "deviceBackend"
+    ]
 
     def __init__(
             self,

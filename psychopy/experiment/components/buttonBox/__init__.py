@@ -14,7 +14,8 @@ class ButtonBoxComponent(BaseDeviceComponent):
     tooltip = _translate('Button Box: Get input from a button box')
     beta = True
     legacyParams = [
-        "deviceBackend",
+        # old device setup params, no longer needed as this is handled by DeviceManager
+        "deviceBackend", 
         "kbButtonAliases"
     ]
 

@@ -24,6 +24,14 @@ class AudioValidatorRoutine(BaseDeviceRoutine):
         "be."
     )
     version = "2025.1.0"
+    legacyParams = [
+        # old device setup params, no longer needed as this is handled by DeviceManager
+        "deviceBackend",
+        "meMicrophone",
+        "meThreshold",
+        "meRange",
+        "meSamplingWindow",
+    ]
 
     def __init__(
             self,

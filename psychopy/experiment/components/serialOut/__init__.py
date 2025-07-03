@@ -20,6 +20,17 @@ class SerialOutComponent(BaseDeviceComponent):
     iconFile = Path(__file__).parent / 'serial.png'
     tooltip = _translate('Serial out: send signals from a serial port')
     beta = False
+    legacyParams = [
+        "startdata",
+        "stopdata",
+        # old device setup params, no longer needed as this is handled by DeviceManager
+        "port",
+        "baudrate",
+        "bytesize",
+        "stopbits",
+        "parity",
+        "timeout"
+    ]
     
 
     def __init__(self, exp, parentName, name='serialPort',
@@ -263,7 +274,7 @@ class SerialDeviceBackend(DeviceBackend):
         ]
 
         self.params['timeout'] = Param(
-            "", valType='int', inputType="single", allowedTypes=[], categ="Device",
+            "", valType='int', inputType="single", allowedTypes=[],
             hint=_translate("Time at which to give up listening for a response (leave blank for no limit)"),
             label=_translate("Timeout")
         )
@@ -289,4 +300,3 @@ class SerialDeviceBackend(DeviceBackend):
 
 # register backend with Component
 SerialOutComponent.registerBackend(SerialDeviceBackend)
-

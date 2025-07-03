@@ -13,6 +13,14 @@ class SoundSensorComponent(BaseDeviceComponent):
     iconFile = Path(__file__).parent / 'soundsensor.png'
     tooltip = _translate('Voice Key: Get input from a microphone as simple true/false values')
     beta = True
+    legacyParams = [
+        # old device setup params, no longer needed as this is handled by DeviceManager
+        "deviceBackend",
+        "meMicrophone",
+        "meThreshold",
+        "meRange",
+        "meSamplingWindow",
+    ]
 
     def __init__(
             self, exp, parentName,
