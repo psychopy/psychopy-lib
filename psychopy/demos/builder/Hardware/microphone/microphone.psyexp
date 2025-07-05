@@ -1,7 +1,6 @@
 ﻿<?xml version="1.0" ?>
-<PsychoPy2experiment encoding="utf-8" version="2025.1.0">
+<PsychoPy2experiment encoding="utf-8" version="2025.2.0">
   <Settings>
-    <Param val="use prefs" valType="str" updates="None" name="Audio latency priority"/>
     <Param val="use prefs" valType="str" updates="None" name="Audio lib"/>
     <Param val="" valType="str" updates="None" name="Completed URL"/>
     <Param val="auto" valType="str" updates="None" name="Data file delimiter"/>
@@ -168,17 +167,12 @@
         <Param val="[[0, 0.5],[0, -0.5],[1, -0.5],[1, 0.5]]" valType="list" updates="constant" name="vertices"/>
       </PolygonComponent>
       <MicrophoneComponent name="mic" plugin="None">
-        <Param val="auto" valType="str" updates="None" name="channels"/>
-        <Param val="default" valType="str" updates="None" name="device"/>
-        <Param val="" valType="str" updates="None" name="deviceLabel"/>
+        <Param val="demoMicrophone" valType="device" updates="None" name="deviceLabel"/>
         <Param val="False" valType="bool" updates="None" name="disabled"/>
         <Param val="" valType="code" updates="None" name="durationEstim"/>
-        <Param val="False" valType="code" updates="None" name="exclusive"/>
-        <Param val="24000" valType="num" updates="None" name="maxSize"/>
         <Param val="mic" valType="code" updates="None" name="name"/>
         <Param val="default" valType="code" updates="None" name="outputType"/>
         <Param val="warn" valType="str" updates="set every repeat" name="policyWhenFull"/>
-        <Param val="DVD Audio (48kHz)" valType="num" updates="None" name="sampleRate"/>
         <Param val="True" valType="bool" updates="None" name="saveStartStop"/>
         <Param val="True" valType="bool" updates="None" name="speakTimes"/>
         <Param val="" valType="code" updates="None" name="startEstim"/>
@@ -258,7 +252,6 @@
       <KeyboardComponent name="key_resp" plugin="None">
         <Param val="'space'" valType="list" updates="constant" name="allowedKeys"/>
         <Param val="" valType="str" updates="constant" name="correctAns"/>
-        <Param val="" valType="str" updates="None" name="deviceLabel"/>
         <Param val="False" valType="bool" updates="None" name="disabled"/>
         <Param val="True" valType="bool" updates="constant" name="discard previous"/>
         <Param val="" valType="code" updates="None" name="durationEstim"/>
@@ -336,17 +329,12 @@
         <Param val="" valType="code" updates="None" name="validator"/>
       </TextboxComponent>
       <MicrophoneComponent name="mic_2" plugin="None">
-        <Param val="auto" valType="str" updates="None" name="channels"/>
-        <Param val="None" valType="str" updates="None" name="device"/>
-        <Param val="" valType="str" updates="None" name="deviceLabel"/>
+        <Param val="demoMicrophone" valType="device" updates="None" name="deviceLabel"/>
         <Param val="False" valType="bool" updates="None" name="disabled"/>
         <Param val="" valType="code" updates="None" name="durationEstim"/>
-        <Param val="False" valType="code" updates="None" name="exclusive"/>
-        <Param val="24000" valType="num" updates="None" name="maxSize"/>
         <Param val="mic_2" valType="code" updates="None" name="name"/>
         <Param val="default" valType="code" updates="None" name="outputType"/>
         <Param val="warn" valType="str" updates="set every repeat" name="policyWhenFull"/>
-        <Param val="DVD Audio (48kHz)" valType="num" updates="None" name="sampleRate"/>
         <Param val="True" valType="bool" updates="None" name="saveStartStop"/>
         <Param val="True" valType="bool" updates="None" name="speakTimes"/>
         <Param val="" valType="code" updates="None" name="startEstim"/>
@@ -456,7 +444,6 @@
       <KeyboardComponent name="key_resp_2" plugin="None">
         <Param val="'space'" valType="list" updates="constant" name="allowedKeys"/>
         <Param val="" valType="str" updates="constant" name="correctAns"/>
-        <Param val="" valType="str" updates="None" name="deviceLabel"/>
         <Param val="False" valType="bool" updates="None" name="disabled"/>
         <Param val="True" valType="bool" updates="constant" name="discard previous"/>
         <Param val="" valType="code" updates="None" name="durationEstim"/>

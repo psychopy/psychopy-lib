@@ -1,7 +1,6 @@
 ﻿<?xml version="1.0" ?>
-<PsychoPy2experiment encoding="utf-8" version="2025.1.0">
+<PsychoPy2experiment encoding="utf-8" version="2025.2.0">
   <Settings>
-    <Param val="use prefs" valType="str" updates="None" name="Audio latency priority"/>
     <Param val="use prefs" valType="str" updates="None" name="Audio lib"/>
     <Param val="" valType="str" updates="None" name="Completed URL"/>
     <Param val="auto" valType="str" updates="None" name="Data file delimiter"/>
@@ -13,7 +12,6 @@
     <Param val="True" valType="bool" updates="None" name="Full-screen window"/>
     <Param val="" valType="str" updates="None" name="HTML path"/>
     <Param val="" valType="str" updates="None" name="Incomplete URL"/>
-    <Param val="packaged" valType="str" updates="None" name="JS libs"/>
     <Param val="testMonitor" valType="str" updates="None" name="Monitor"/>
     <Param val="['conditions.xlsx']" valType="list" updates="None" name="Resources"/>
     <Param val="False" valType="bool" updates="None" name="Save csv file"/>
@@ -63,9 +61,7 @@
     <Param val="0.5" valType="num" updates="None" name="mgSaccade"/>
     <Param val="neon.local" valType="str" updates="None" name="plCompanionAddress"/>
     <Param val="8080" valType="num" updates="None" name="plCompanionPort"/>
-    <Param val="True" valType="bool" updates="None" name="plCompanionRecordingEnabled"/>
     <Param val="0.6" valType="num" updates="None" name="plConfidenceThreshold"/>
-    <Param val="True" valType="bool" updates="None" name="plPupilCaptureRecordingEnabled"/>
     <Param val="" valType="str" updates="None" name="plPupilCaptureRecordingLocation"/>
     <Param val="127.0.0.1" valType="str" updates="None" name="plPupilRemoteAddress"/>
     <Param val="50020" valType="num" updates="None" name="plPupilRemotePort"/>
@@ -142,17 +138,12 @@
         <Param val="" valType="code" updates="None" name="validator"/>
       </TextboxComponent>
       <MicrophoneComponent name="micResp" plugin="None">
-        <Param val="mono" valType="str" updates="None" name="channels"/>
-        <Param val="default" valType="str" updates="None" name="device"/>
-        <Param val="" valType="str" updates="None" name="deviceLabel"/>
+        <Param val="demoMicrophone" valType="device" updates="None" name="deviceLabel"/>
         <Param val="False" valType="bool" updates="None" name="disabled"/>
         <Param val="" valType="code" updates="None" name="durationEstim"/>
-        <Param val="False" valType="code" updates="None" name="exclusive"/>
-        <Param val="24000" valType="num" updates="None" name="maxSize"/>
         <Param val="micResp" valType="code" updates="None" name="name"/>
         <Param val="default" valType="code" updates="None" name="outputType"/>
         <Param val="warn" valType="str" updates="set every repeat" name="policyWhenFull"/>
-        <Param val="DVD Audio (48kHz)" valType="num" updates="None" name="sampleRate"/>
         <Param val="True" valType="bool" updates="None" name="saveStartStop"/>
         <Param val="True" valType="bool" updates="None" name="speakTimes"/>
         <Param val="" valType="code" updates="None" name="startEstim"/>
@@ -190,7 +181,6 @@
       <KeyboardComponent name="ready" plugin="None">
         <Param val="" valType="list" updates="constant" name="allowedKeys"/>
         <Param val="thisTrial.corrAns" valType="str" updates="constant" name="correctAns"/>
-        <Param val="" valType="str" updates="None" name="deviceLabel"/>
         <Param val="False" valType="bool" updates="None" name="disabled"/>
         <Param val="True" valType="bool" updates="constant" name="discard previous"/>
         <Param val="" valType="code" updates="None" name="durationEstim"/>

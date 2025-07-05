@@ -45,7 +45,7 @@ class CameraComponent(BaseDeviceComponent):
         "mic",
         "micChannels",
         "micMaxRecSize",
-        "mixSampleRate",
+        "micSampleRate",
         "resolution",
         "resolutionManual"
     ]

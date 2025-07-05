@@ -21,6 +21,7 @@ class SerialOutComponent(BaseDeviceComponent):
     tooltip = _translate('Serial out: send signals from a serial port')
     beta = False
     legacyParams = [
+        # superceded by "startDataChar", "startDataCode", et al.
         "startdata",
         "stopdata",
         # old device setup params, no longer needed as this is handled by DeviceManager

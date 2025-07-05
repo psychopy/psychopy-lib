@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" ?>
-<PsychoPy2experiment encoding="utf-8" version="2025.1.0">
+<PsychoPy2experiment encoding="utf-8" version="2025.2.0">
   <Settings>
     <Param val="ptb" valType="str" updates="None" name="Audio lib"/>
     <Param val="" valType="str" updates="None" name="Completed URL"/>
@@ -169,7 +169,6 @@
     </Routine>
     <VisualValidatorRoutine name="visualVal">
       <Param name="channel" updates="None" val="0" valType="code"/>
-      <Param name="deviceBackend" updates="None" val="screenbuffer" valType="code"/>
       <Param name="deviceLabel" updates="None" val="demoLightSensor" valType="str"/>
       <Param name="disabled" updates="None" val="False" valType="bool"/>
       <Param name="findSensor" updates="None" val="True" valType="code"/>

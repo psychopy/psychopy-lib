@@ -44,7 +44,8 @@ class MicrophoneComponent(BaseDeviceComponent):
         "sampleRate",
         "channels",
         "stereo",
-        "channel"
+        "channel",
+        "maxSize"
     ]
 
     def __init__(
