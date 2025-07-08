@@ -581,7 +581,7 @@ class CameraDevice(BaseDevice):
             return False
 
     @staticmethod
-    def getAvailableDevices(best=False):
+    def getAvailableDevices(best=True):
         """
         Get all available devices of this type.
 

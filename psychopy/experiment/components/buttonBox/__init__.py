@@ -291,7 +291,7 @@ class KeyboardButtonBoxDeviceBackend(DeviceBackend):
         ]
         # define params
         self.params['kbButtonAliases'] = Param(
-            "'q', 'w', 'e'", valType="list", inputType="single", categ="Device",
+            "'q', 'w', 'e'", valType="list", inputType="single",
             label=_translate("Buttons"),
             hint=_translate(
                 "Keys to treat as buttons (in order of what button index you want them to be). "

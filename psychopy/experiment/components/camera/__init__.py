@@ -333,7 +333,7 @@ class CameraDeviceBackend(DeviceBackend):
         resolutions = set()
         frameRates = set()
         for profile in CameraDevice.getAvailableDevices(best=False):
-            if profile['device'] == self.profile['device']:
+            if profile['deviceName'] == self.profile['deviceName']:
                 resolutions.add(profile['frameSize'])
                 frameRates.add(profile['frameRate'])
         
@@ -344,7 +344,7 @@ class CameraDeviceBackend(DeviceBackend):
         params = {}
         
         self.params['frameSize'] = Param(
-            "", valType='list', inputType="choice", categ="Device",
+            "", valType='list', inputType="choice",
             allowedVals=[""] + list(sorted(resolutions)), allowedLabels=["Default"] + list(sorted(resolutions)),
             hint=_translate(
                 "Resolution (w x h) to record to, leave blank to use device default."
@@ -352,7 +352,7 @@ class CameraDeviceBackend(DeviceBackend):
             label=_translate("Resolution")
         )
         params['frameRate'] = Param(
-            None, valType='int', inputType="choice", categ="Device",
+            None, valType='int', inputType="choice",
             allowedVals=[""] + list(frameRates), allowedLabels=["Default"] + list(frameRates),
             hint=_translate(
                 "Frame rate (frames per second) to record at, leave blank to use device default."
@@ -365,7 +365,6 @@ class CameraDeviceBackend(DeviceBackend):
 
 # register backend with Component
 CameraComponent.registerBackend(CameraDeviceBackend)
-CameraComponent.registerBackend(MicrophoneDeviceBackend)
 
 
 if __name__ == "__main__":
