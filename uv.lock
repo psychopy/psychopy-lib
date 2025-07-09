@@ -3429,6 +3429,7 @@ dependencies = [
     { name = "xmlschema", version = "4.0.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.9'" },
     { name = "zeroconf", version = "0.136.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.9' and sys_platform == 'darwin'" },
     { name = "zeroconf", version = "0.147.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.9' and sys_platform == 'darwin'" },
+    { name = "zope-event" },
 ]
 
 [package.optional-dependencies]
@@ -3569,6 +3570,7 @@ requires-dist = [
     { name = "xmlschema" },
     { name = "xmlschema", marker = "extra == 'tests'" },
     { name = "zeroconf", marker = "sys_platform == 'darwin'" },
+    { name = "zope-event", specifier = "==5.0" },
 ]
 provides-extras = ["tests", "docs", "building", "suggested", "legacy"]
 
