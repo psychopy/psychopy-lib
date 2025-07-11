@@ -148,6 +148,10 @@ _translate(
 # Alert 4710
 _translate("Column name '{param}' is likely to cause name clashes. {msg}.")
 
+# Alert 4810
+_translate(
+    "Could not find any config for device {deviceName}, please setup this device up in the Device Manager dialog (from Builder).\"")
+
 # Alert 5055
 _translate(
     "Device parameter of microphone component \"{name}\" will not be used online.")

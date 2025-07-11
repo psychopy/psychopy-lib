@@ -63,13 +63,17 @@ def generate_new_template(verbose=False):
     if verbose:
         print('Generating new template file... ', end='')
     argv = ['pybabel', '-q', 'extract',
-            '--input-dirs=..',
+            '--input-dirs=.',
             '--project=PsychoPy',
             '--version='+psychopy_version,
             '--keyword=_translate',
-            '--output-file='+new_pot_filename,
+            '--width=79',
+            '--output-file=localization/'+new_pot_filename,
             '--ignore-dirs="app/localization/utils app/Resources"']
-    babel_frontend.run(argv)
+
+    os.chdir('..')             # The command must be run in the parent directory.
+    babel_frontend.run(argv)   # Run the command
+    os.chdir('localization')   # Return to the original directory.
     if verbose:
         print('Done.')
 
@@ -129,9 +133,9 @@ def merge_new_entries(verbose=False):
     if verbose:
         print('Merging new POT to PO files...')
 
-    pot = polib.pofile(new_pot_filename)
-    pot_new = polib.pofile(new_pot_filename)
-    pot_new.metadata.update(poedit_mime_headers)
+    pot = polib.pofile(new_pot_filename) # pot: for updating existing PO file
+    pot_new = polib.pofile(new_pot_filename, wrapwidth=79) # pot_new: for creating new PO file
+    pot_new.metadata.update(poedit_mime_headers) # update header of new PO file
     
     for loc in os.listdir(locale_dir):
         lc_message_dir = os.path.join(locale_dir, loc,'LC_MESSAGE')
@@ -142,13 +146,14 @@ def merge_new_entries(verbose=False):
         if os.path.exists(os.path.join(locale_dir, loc, 'LC_MESSAGE','messages.po')):
             if verbose:
                 print('  merge new POT to {}...'.format(messages_po_path))
-            po = polib.pofile(messages_po_path)
+            po = polib.pofile(messages_po_path, wrapwidth=79)
             po.merge(pot) #merge 
             # update Project-Id-Version and POT-Creation-Date           
             po.metadata['Project-Id-Version'] = pot.metadata['Project-Id-Version']
             po.metadata['POT-Creation-Date'] = pot.metadata['POT-Creation-Date']
             po.save() # overwrite
         else:
+            # creating new PO file: need to modify "Language" metadata
             pot_new.metadata['Language'] = loc[:loc.find('_')]
             pot_new.save(messages_po_path)
 
@@ -184,6 +189,11 @@ parser.add_argument('-c', '--commit', action='store_true', help='Commit messages
 parser.add_argument('-v', '--verbose', action='store_true', help='Show detailed processing information.', required=False)
 
 args = parser.parse_args()
+
+parent_dir, current_dir = os.path.split(os.getcwd())
+if current_dir != 'localization' or os.path.split(parent_dir)[1] != 'psychopy':
+    print('Error: this script must be run in psychopy/localization directory.')
+    sys.exit(-1)
 
 generate_new_template(verbose=args.verbose)
 num_new_entries, num_total_entries = find_new_entries(verbose=args.verbose)
