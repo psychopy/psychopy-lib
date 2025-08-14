@@ -66,6 +66,26 @@ legacyParams = [
     "Audio latency priority",
 ]
 
+class SerializationError(Exception):
+    pass
+
+
+def serializeCallable(func, param):
+            # if not callable, return as is
+            if not callable(func):
+                return func
+            # prepend this to the stringified output
+            preface = "python:///"
+            # get import path
+            path = f"{func.__module__}:{func.__qualname__}"
+            # if method is a local, we have a problem...
+            if "<locals>" in path:
+                logging.error(
+                    f"Param {param.label} contains a local method: {path}"
+                )
+
+            return preface + path
+
 
 class Param():
     r"""Defines parameters for Experiment Components
@@ -402,13 +422,32 @@ class Param():
         if "plugin" in data:
             self.plugin = "{}".format(data['plugin'])
     
-    def toJSON(self):
+    def getTemplateJSON(self):
+        # return the full JSON spec (used in getJSON for params of a *class*)
         return {
             'val': self.val,
             'valType': self.valType,
-            'updates': "{}".format(self.updates),
-            'plugin': "{}".format(self.plugin)
+            'inputType': self.inputType,
+            'categ': self.categ,
+            'updates': self.updates,
+            'allowedUpdates': self.allowedUpdates,
+            'allowedVals': serializeCallable(self.allowedVals, self),
+            'allowedLabels': serializeCallable(self.allowedLabels, self),
+            'label': self.label,
+            'hint': self.hint,
+            'plugin': self.plugin
         }
+    
+    def getJSON(self):
+        # return just the settable parts (used in getJSON for params of an *instance*)
+        return {
+            'val': self.val,
+            'valType': self.valType,
+            'updates': self.updates,
+            'plugin': self.plugin
+        }
+
+        
     
     @property
     def _xml(self):

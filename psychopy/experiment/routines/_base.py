@@ -27,6 +27,7 @@ class BaseStandaloneRoutine:
     iconFile = Path(__file__).parent / "unknown" / "unknown.png"
     tooltip = ""
     limit = float('inf')
+    plugin = None
     # what version was this Routine added in?
     version = "0.0.0"
     # is it still in beta?
@@ -95,6 +96,49 @@ class BaseStandaloneRoutine:
         else:
             self.__iterstop = True
             return self
+    
+    @classmethod
+    def getTemplateJSON(cls):
+        from psychopy.experiment import Experiment
+        # include basic info
+        profile = {
+            '__class__': f"{cls.__module__}:{cls.__qualname__}",
+            '__name__': cls.__name__,
+            "categories": cls.categories,
+            "targets": cls.targets,
+            "plugin": cls.plugin,
+            "iconFile": cls.iconFile,
+            "tooltip": cls.tooltip,
+            "version": cls.version,
+            "beta": cls.beta,
+            "hidden": cls.hidden,
+            "params": {}
+        }
+        # make an object for defaults
+        exp = Experiment()
+        defaults = cls(exp)
+        # populate params
+        for name in defaults.order:
+            if name in defaults.params:
+                profile['params'][name] = defaults.params[name].getTemplateJSON()
+        for name, param in defaults.params.items():
+            if name not in profile['params']:
+                profile['params'][name] = param.getTemplateJSON()
+
+        return profile
+    
+    def getJSON(self):
+        # populate basic info
+        profile = {
+            'tag': type(self).__name__,
+            'plugin': self.plugin,
+            'params': {}
+        }
+        # populate params
+        for name, param in self.params.items():
+            profile['params'][name] = param.getJSON()
+        
+        return profile
 
     @property
     def _xml(self):

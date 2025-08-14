@@ -83,6 +83,8 @@ class DeviceBackend:
     icon = None
     # class of the device which this backend corresponds to
     deviceClass = "psychopy.hardware.base.BaseDevice"
+
+    plugin = None
       
     def __init__(self, profile):
         # store device profile
@@ -111,6 +113,30 @@ class DeviceBackend:
         return (
             f"<{type(self).__name__}: name={self.name}>"
         )
+
+    @classmethod
+    def getJSON(cls):
+        profile = {
+            '__class__': f"{cls.__module__}:{cls.__qualname__}",
+            '__name__': cls.__name__,
+            'plugin': cls.plugin,
+            'profile': {},
+            'params': {}
+        }
+        # make an object for defaults
+        defaults = cls({'deviceName': None})
+        # populate params
+        for name in defaults.order:
+            if name in defaults.params:
+                if name == "deviceLabel":
+                    profile['params'][name] = defaults.params[name].toJSON()
+                else:
+                    profile['params']["name"] = defaults.params[name].toJSON()
+        for name, param in defaults.params.items():
+            if name not in profile['params']:
+                profile['params'][name] = param.toJSON()
+
+        return profile
     
     def getParams(self):
         """
