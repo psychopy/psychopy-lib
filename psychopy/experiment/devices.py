@@ -115,7 +115,7 @@ class DeviceBackend:
         )
 
     @classmethod
-    def getJSON(cls):
+    def getTemplateJSON(cls):
         profile = {
             '__class__': f"{cls.__module__}:{cls.__qualname__}",
             '__name__': cls.__name__,
@@ -125,16 +125,18 @@ class DeviceBackend:
         }
         # make an object for defaults
         defaults = cls({'deviceName': None})
-        # populate params
-        for name in defaults.order:
-            if name in defaults.params:
-                if name == "deviceLabel":
-                    profile['params'][name] = defaults.params[name].toJSON()
-                else:
-                    profile['params']["name"] = defaults.params[name].toJSON()
-        for name, param in defaults.params.items():
-            if name not in profile['params']:
-                profile['params'][name] = param.toJSON()
+        # order params
+        order = [
+            name for name in defaults.order if name in defaults.params
+        ] + [
+            name for name in defaults.params if name not in defaults.order
+        ]
+        # populate params in order
+        for name in order:
+            # make template
+            profile['params'][name] = defaults.params[name].getTemplateJSON(
+                name=name, depends=getattr(defaults, 'depends', None)
+            )
 
         return profile
     

@@ -422,9 +422,9 @@ class Param():
         if "plugin" in data:
             self.plugin = "{}".format(data['plugin'])
     
-    def getTemplateJSON(self):
+    def getTemplateJSON(self, name=None, depends=None):
         # return the full JSON spec (used in getJSON for params of a *class*)
-        return {
+        profile = {
             'val': self.val,
             'valType': self.valType,
             'inputType': self.inputType,
@@ -435,8 +435,33 @@ class Param():
             'allowedLabels': serializeCallable(self.allowedLabels, self),
             'label': self.label,
             'hint': self.hint,
-            'plugin': self.plugin
+            'plugin': self.plugin,
+            'depends': {
+                'shown': [],
+                'enabled': []
+            }
         }
+        # populate depends if given
+        if depends is not None:
+            # populate depends
+            for dep in depends:
+                # ignore irrelevent dependencies
+                if dep['param'] != name:
+                    continue
+                # hide if...
+                if dep['false'] == "hide":
+                    profile['depends']['shown'].append({
+                        'param': dep['dependsOn'],
+                        'condition': dep['condition']
+                    })
+                # disable if...
+                if dep['false'] == "disable":
+                    profile['depends']['enabled'].append({
+                        'param': dep['dependsOn'],
+                        'condition': dep['condition']
+                    })
+        
+        return profile
     
     def getJSON(self):
         # return just the settable parts (used in getJSON for params of an *instance*)

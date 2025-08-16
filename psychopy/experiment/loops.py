@@ -42,13 +42,18 @@ class _BaseLoopHandler:
         # make an object for defaults
         exp = Experiment()
         defaults = cls("", exp)
-        # populate params
-        for name in defaults.order:
-            if name in defaults.params:
-                profile['params'][name] = defaults.params[name].getTemplateJSON()
-        for name, param in defaults.params.items():
-            if name not in profile['params']:
-                profile['params'][name] = param.getTemplateJSON()
+        # order params
+        order = [
+            name for name in defaults.order if name in defaults.params
+        ] + [
+            name for name in defaults.params if name not in defaults.order
+        ]
+        # populate params in order
+        for name in order:
+            # make template
+            profile['params'][name] = defaults.params[name].getTemplateJSON(
+                name=name, depends=getattr(defaults, 'depends', None)
+            )
 
         return profile
     
