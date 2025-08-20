@@ -229,7 +229,7 @@ wheels = [
 
 [[package]]
 name = "blosc2"
-version = "3.7.1"
+version = "3.7.2"
 source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
     "python_full_version >= '3.10' and sys_platform == 'darwin'",
@@ -246,13 +246,13 @@ dependencies = [
     { name = "py-cpuinfo", marker = "python_full_version >= '3.10' and platform_machine != 'wasm32'" },
     { name = "requests", version = "2.32.5", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.10'" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/4a/97/11ded041c0877e7e43658233619f60587dc52371cb6863af0fd01c7001a3/blosc2-3.7.1.tar.gz", hash = "sha256:ea1be4c4a03af018f6a912596d46ca215f0b84de5dd5acee4f750161847c6dcf", size = 3804381, upload-time = "2025-08-17T11:06:52.201Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/1b/ba/c1d8a8303197d8d8d4ec9b83851fcabd2d57dc5d17af2406643dd015544e/blosc2-3.7.2.tar.gz", hash = "sha256:3e80bd0399241829e4a2100bef9d4de042da979514f5df6aa3378981823f1d9b", size = 3804422, upload-time = "2025-08-19T10:21:46.164Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/e9/fc/00ccd2e7948870b1824481380a20a6a41212fd07c5b6ed2a08c45522d909/blosc2-3.7.1-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:aac209303da8d2576384d767815d6e950596e9f02b8473968d7f92e9febfa996", size = 3940207, upload-time = "2025-08-17T11:06:03.776Z" },
-    { url = "https://files.pythonhosted.org/packages/49/6d/d553f3d80cb82eab594b132b3eeeb2a40903abef3f4c61d0e6efbdfdcc3e/blosc2-3.7.1-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:c2200e78d53884936511448288d7cf133c3b7ee2b134b46897f4bdab73bdab32", size = 3423892, upload-time = "2025-08-17T11:06:06.128Z" },
-    { url = "https://files.pythonhosted.org/packages/b4/7a/4cd96a4e07be686eb0a545d2021a47e125951d960002e4aff5c8a16d2d2e/blosc2-3.7.1-cp310-cp310-manylinux2014_aarch64.manylinux_2_17_aarch64.whl", hash = "sha256:34d93fc27912f59d47894d6c3b25c5d43e50b1168d708e37848412a05b1a44e7", size = 4322758, upload-time = "2025-08-17T11:06:08.022Z" },
-    { url = "https://files.pythonhosted.org/packages/89/79/65d92d4e7c01eef516cebb71abc6cebe44ed2c6208a13fe8b443c283742e/blosc2-3.7.1-cp310-cp310-manylinux2014_x86_64.manylinux_2_17_x86_64.whl", hash = "sha256:1592d01b3f04628fde6b4ce6a9a91b8ee14e85c901e85f77bf2391da528a225a", size = 4459367, upload-time = "2025-08-17T11:06:09.836Z" },
-    { url = "https://files.pythonhosted.org/packages/cf/f5/262a200dc80adc15f61b9be1e13d7cdb85bf4e048f03812791ce2c9d593b/blosc2-3.7.1-cp310-cp310-win_amd64.whl", hash = "sha256:c7b3ab147ed3513f9539de2f10a8a0074397e274132cb016acfc9a4eb6f9feaa", size = 2254530, upload-time = "2025-08-17T11:06:11.202Z" },
+    { url = "https://files.pythonhosted.org/packages/ca/40/94e2a330f92d61e61e258dabc4ce76b8b4838e8cfa44f8b69e44fedc09d5/blosc2-3.7.2-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:f2059d43521cdb5535af2c7b5656afc879502e12769a43178415327507aeb16f", size = 3942041, upload-time = "2025-08-19T10:21:04.382Z" },
+    { url = "https://files.pythonhosted.org/packages/b2/1e/368789ab00752bfa3be9ace9e93cba7f434355c06ccabecae68cb9e2e156/blosc2-3.7.2-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:c7be5e9d2d47f11f0e22f1a0dc8eb8cc94f388ebf0babb0cd2736b90a541f796", size = 3425736, upload-time = "2025-08-19T10:21:06.235Z" },
+    { url = "https://files.pythonhosted.org/packages/db/2f/72ba2d0d2261f11cdccd060658232d092163446a6773a6c4568912076a49/blosc2-3.7.2-cp310-cp310-manylinux2014_aarch64.manylinux_2_17_aarch64.whl", hash = "sha256:ac311f60750fd7cb3526cfb139af363ed17b41c7f54ce2c8866b01029a925624", size = 4324634, upload-time = "2025-08-19T10:21:07.359Z" },
+    { url = "https://files.pythonhosted.org/packages/6a/21/62c230beebe2a7d9104e3a8765bb1fa2d0337ee7a2ebaf5258ce23f66c61/blosc2-3.7.2-cp310-cp310-manylinux2014_x86_64.manylinux_2_17_x86_64.whl", hash = "sha256:4dfdde206c34a18c5a5c1abaf765c6aee39776946998a017bf48f5fb6ea6eaa6", size = 4461245, upload-time = "2025-08-19T10:21:08.603Z" },
+    { url = "https://files.pythonhosted.org/packages/6b/76/b67437bc6f43c07a2068f4e47a101c53da55293c439a937175d2631e37d6/blosc2-3.7.2-cp310-cp310-win_amd64.whl", hash = "sha256:c3566c0c2710a4ff7342a9536b55d8998f5b1c81a1bbec530a42934923c290b2", size = 2256284, upload-time = "2025-08-19T10:21:10.209Z" },
 ]
 
 [[package]]
@@ -6845,7 +6845,7 @@ resolution-markers = [
     "python_full_version >= '3.10' and sys_platform == 'win32'",
 ]
 dependencies = [
-    { name = "blosc2", version = "3.7.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.10'" },
+    { name = "blosc2", version = "3.7.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.10'" },
     { name = "numexpr", version = "2.11.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.10'" },
     { name = "numpy", version = "1.26.4", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.10'" },
     { name = "packaging", marker = "python_full_version >= '3.10'" },
