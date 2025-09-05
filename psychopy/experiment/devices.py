@@ -27,29 +27,10 @@ class DeviceMixin:
         self.order += [
             "deviceLabel"
         ]
-        # functions for getting device labels
-        def getDevices():
-            # start with default
-            devices = [("", _translate("Default"))]
-            # iterate through saved devices
-            for name, device in prefs.devices.items():
-                # iterate through backends for this Component
-                for backend in self.backends:
-                    # if device is the correct type, include it
-                    if isinstance(device, backend):
-                        devices.append(
-                            (name, name)
-                        )
-            return devices
-        def getLabels():
-            return [device[1] for device in getDevices()]
-        def getValues():
-            return [device[0] for device in getDevices()]
         # label to refer to device by
         self.params['deviceLabel'] = Param(
             defaultLabel, valType="device", inputType="device", categ="Device",
-            allowedVals=getValues,
-            allowedLabels=getLabels,
+            allowedVals=list(self.backends),
             label=_translate("Device"),
             hint=_translate(
                 "The named device from Device Manager to use for this Component."
@@ -94,7 +75,7 @@ class DeviceBackend:
         self.order = []
         # add a param for the device label to all backends
         self.params['deviceLabel'] = Param(
-            "", valType="str", inputType="name",
+            "", valType="str", inputType="name", categ=None,
             label=_translate("Device label"),
             hint=_translate(
                 "A name to refer to this device by in Device Manager."

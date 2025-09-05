@@ -71,7 +71,7 @@ class BaseComponent:
         msg = _translate(
             "Name of this Component (alphanumeric or _, no spaces)")
         self.params['name'] = Param(name,
-            valType='code', inputType="name", categ='Basic',
+            valType='code', inputType="name", categ=None,
             hint=msg,
             label=_translate("Name"))
 
@@ -131,7 +131,7 @@ class BaseComponent:
 
         msg = _translate("Disable this Component")
         self.params['disabled'] = Param(disabled,
-            valType='bool', inputType="bool", categ="Testing",
+            valType='bool', inputType="bool", categ=None,
             hint=msg, allowedTypes=[], direct=False,
             label=_translate('Disable Component'))
     

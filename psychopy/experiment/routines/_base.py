@@ -52,7 +52,7 @@ class BaseStandaloneRoutine:
         msg = _translate(
             "Name of this Routine (alphanumeric or _, no spaces)")
         self.params['name'] = Param(name,
-                                    valType='code', inputType="name", categ='Basic',
+                                    valType='code', inputType="name", categ=None,
                                     hint=msg,
                                     label=_translate('Name'))
 
@@ -72,7 +72,7 @@ class BaseStandaloneRoutine:
         # Testing
         msg = _translate("Disable this Routine")
         self.params['disabled'] = Param(disabled,
-            valType='bool', inputType="bool", categ="Testing",
+            valType='bool', inputType="bool", categ=None,
             hint=msg, allowedTypes=[], direct=False,
             label=_translate('Disable Routine'))
 
