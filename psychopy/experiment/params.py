@@ -71,20 +71,23 @@ class SerializationError(Exception):
 
 
 def serializeCallable(func, param):
-            # if not callable, return as is
-            if not callable(func):
-                return func
-            # prepend this to the stringified output
-            preface = "python:///"
-            # get import path
-            path = f"{func.__module__}:{func.__qualname__}"
-            # if method is a local, we have a problem...
-            if "<locals>" in path:
-                logging.error(
-                    f"Param {param.label} contains a local method: {path}"
-                )
+    # if iterable, call for each item
+    if isinstance(func, (list, tuple)):
+        return [serializeCallable(item, param) for item in func]
+    # if not callable, return as is
+    if not callable(func):
+        return func
+    # prepend this to the stringified output
+    preface = "python:///"
+    # get import path
+    path = f"{func.__module__}:{func.__qualname__}"
+    # if method is a local, we have a problem...
+    if "<locals>" in path:
+        logging.error(
+            f"Param {param.label} contains a local method: {path}"
+        )
 
-            return preface + path
+    return preface + path
 
 
 class Param():
@@ -411,6 +414,8 @@ class Param():
         )
         # apply
         param.applyJSON(data)
+        
+        return param
     
     def applyJSON(self, data):
         if "val" in data:

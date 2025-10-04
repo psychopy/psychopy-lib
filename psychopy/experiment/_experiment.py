@@ -31,8 +31,7 @@ from .components.resourceManager import ResourceManagerComponent
 from .components.static import StaticComponent
 from .exports import IndentingBuffer, NameSpace
 from .flow import Flow
-from .loops import TrialHandler, LoopInitiator, \
-    LoopTerminator, StairHandler, MultiStairHandler
+from .loops import getAllLoopTypes, TrialHandler, LoopInitiator, LoopTerminator, StairHandler, MultiStairHandler
 from .params import _findParam, Param, legacyParams
 from psychopy.experiment.routines._base import Routine, BaseStandaloneRoutine
 from psychopy.experiment.routines import getAllStandaloneRoutines
@@ -931,15 +930,29 @@ class Experiment:
                     param.applyJSON(rtProfile['params'][paramName])
             # append to experiment
             self.routines[rtName] = rt
+        # array to store loops in
+        loops = {}
         # populate flow
         for nodeProfile in data['flow']:
             if "ref" in nodeProfile:
                 # if node is a reference, get routine
                 node = self.routines.get(nodeProfile['ref'], None)
+            elif nodeProfile['tag'] == "LoopTerminator":
+                # if node is a loop terminator, make it
+                node = LoopTerminator(
+                    loop=loops[nodeProfile['name']]
+                )
             else:
-                # otherwise, make the node from tag
-                # todo: recreate initiator from JSON
-                pass
+                # anything else, assume it's a loop
+                cls = getAllLoopTypes().get(nodeProfile['tag'], TrialHandler)
+                # make loop object
+                loops[nodeProfile['params']['name']['val']] = cls.fromJSON(
+                    self, nodeProfile
+                )
+                # make initiator
+                node = LoopInitiator(
+                    loop=loops[nodeProfile['params']['name']['val']]
+                )
             # append node
             self.flow.append(node)
 
@@ -1121,7 +1134,12 @@ class Experiment:
                 if loopName != elementNode.get('name'):
                     modifiedNames.append(elementNode.get('name'))
                 self.namespace.add(loopName)
-                loop = eval('%s(exp=self,name="%s")' % (loopType, loopName))
+                # make loop
+                cls = getAllLoopTypes().get(loopType, TrialHandler)
+                loop = cls(
+                    exp=self,
+                    name=loopName
+                )
                 loops[loopName] = loop
                 for paramNode in elementNode:
                     recognised = self._getXMLparam(paramNode=paramNode, params=loop.params)
