@@ -63,7 +63,7 @@ class DeviceBackend:
     # icon to use for this backend (relative to current file path, leave as None for no icon)
     icon = None
     # class of the device which this backend corresponds to
-    deviceClass = "psychopy.hardware.base.BaseDevice"
+    deviceClass = None
 
     plugin = None
       
@@ -100,6 +100,8 @@ class DeviceBackend:
         profile = {
             '__class__': f"{cls.__module__}:{cls.__qualname__}",
             '__name__': cls.__name__,
+            'label': cls.backendLabel,
+            'device': cls.deviceClass,
             'plugin': cls.plugin,
             'profile': {},
             'params': {}
@@ -120,6 +122,12 @@ class DeviceBackend:
             )
 
         return profile
+    
+    @classmethod
+    def getAvailableDevices(cls):
+        from psychopy.hardware import DeviceManager
+
+        return DeviceManager.getAvailableDevices(cls.deviceClass)
     
     def getParams(self):
         """
@@ -270,7 +278,10 @@ class DeviceBackend:
                 allBackends.append(cls)
 
         return allBackends
-        
+    
+    @staticmethod
+    def getBackendProfiles():
+        return [cls.getTemplateJSON() for cls in DeviceBackend.getAllBackends()]
     
     def writeBaseDeviceCode(self, buff, close=False):
         """

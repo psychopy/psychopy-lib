@@ -1593,9 +1593,8 @@ class BaseVisualComponent(BaseComponent):
 
         # --- Testing ---
         self.params['validator'] = Param(
-            validator, valType="code", inputType="choice", categ="Testing",
-            allowedVals=self.getAllValidatorRoutineVals,
-            allowedLabels=self.getAllValidatorRoutineLabels,
+            validator, valType="code", inputType="validator", categ="Testing",
+            allowedVals=self.validatorClasses,
             label=_translate("Validate with..."),
             hint=_translate(
                 "Name of validator Component/Routine to use to check the timing of this stimulus."
