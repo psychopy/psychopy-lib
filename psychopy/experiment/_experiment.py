@@ -292,12 +292,24 @@ class Experiment:
     def writeScript(self, expPath=None, target="PsychoPy", modular=True):
         """Write a PsychoPy script for the experiment
         """
-        # self.integrityCheck()
-
-        self.psychopyVersion = psychopy.__version__  # make sure is current
+        # sanitize and store expPath
+        if expPath is not None:
+            # if there is an expPath, convert it to a Path
+            expPath = Path(expPath)
+            # transform expPath from psyexp to py/js if needed
+            if expPath.suffix == ".psyexp":
+                if target == "PsychoPy":
+                    expPath = expPath.parent / (expPath.stem + ".py")
+                if target == "PsychoJS":
+                    expPath = expPath.parent / (expPath.stem + ".js")
+            # turn back into a string for actual writing
+            self.expPath = str(expPath)
+        else:
+            self.expPath = None
+        # make sure is current
+        self.psychopyVersion = psychopy.__version__
         # set this so that params write for approp target
         utils.scriptTarget = target
-        self.expPath = expPath
         script = IndentingBuffer(target=target)  # a string buffer object
 
         # get date info, in format preferred by current locale as set by app:
