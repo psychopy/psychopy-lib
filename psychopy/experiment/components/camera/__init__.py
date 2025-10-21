@@ -109,7 +109,7 @@ class CameraComponent(BaseDeviceComponent):
         ]
         # label to refer to device by
         self.params['micDeviceLabel'] = Param(
-            micDeviceLabel, valType="str", inputType="device", categ="Device",
+            micDeviceLabel, valType="device", inputType="device", categ="Device",
             allowedVals=[MicrophoneDeviceBackend],
             label=_translate("Microphone device"),
             hint=_translate(
@@ -155,7 +155,11 @@ class CameraComponent(BaseDeviceComponent):
 
         # if specified, get camera from device manager
         code = (
-            "%(name)s = camera.Camera(device=%(deviceLabel)s)"
+            "%(name)s = camera.Camera(\n"
+            "    win=win,\n"
+            "    device=%(deviceLabel)s,\n"
+            "    mic=%(micDeviceLabel)s,\n"
+            ")"
         )
         buff.writeIndentedLines(code % inits)
         if self.params['saveFile']:
@@ -183,25 +187,31 @@ class CameraComponent(BaseDeviceComponent):
         buff.writeIndentedLines(code % inits)
 
     def writeFrameCode(self, buff):
-        # Start webcam at component start
+        # start webcam at component start
         indented = self.writeStartTestCode(buff)
         if indented:
             code = (
-                "# Start %(name)s recording\n"
+                "# start %(name)s recording\n"
                 "%(name)s.record()\n"
             )
             buff.writeIndentedLines(code % self.params)
         buff.setIndentLevel(-indented, relative=True)
 
-        # Update any params while active
+        # update any params while active
         indented = self.writeActiveTestCode(buff)
+        if indented:
+            code = (
+                "# get current frame data from camera\n"
+                "%(name)s.poll()\n"
+            )
+            buff.writeIndentedLines(code % self.params)
         buff.setIndentLevel(-indented, relative=True)
 
-        # Stop webcam at component stop
+        # stop webcam at component stop
         indented = self.writeStopTestCode(buff)
         if indented:
             code = (
-                "# Stop %(name)s recording\n"
+                "# stop %(name)s recording\n"
                 "%(name)s.stop()\n"
             )
             buff.writeIndentedLines(code % self.params)
@@ -248,7 +258,7 @@ class CameraComponent(BaseDeviceComponent):
             "    %(name)sRecFolder, \n"
             "    'recording_%(name)s_%%s.mp4' %% data.utils.getDateStr()\n"
             ")\n"
-            "%(name)s.save(%(name)sFilename, encoderLib='ffpyplayer')\n"
+            "%(name)s.save(%(name)sFilename)\n"
             "thisExp.currentLoop.addData('%(name)s.clip', %(name)sFilename)\n"
             )
             buff.writeIndentedLines(code % self.params)

@@ -474,7 +474,7 @@ class CameraDevice(BaseDevice):
             for profile in self.getAvailableDevices(False):
                 if profile['device'] == device:
                     foundProfile = profile
-                    device = profile['device']
+                    device = profile['deviceName']
                     break
         elif isinstance(device, str):
             # if device is a string, use it as the device name
@@ -547,15 +547,18 @@ class CameraDevice(BaseDevice):
         
         # store device info
         profile = self.getDeviceProfile()
-        self.info = CameraInfo(
-            name=profile['deviceName'],
-            frameSize=profile['frameSize'],
-            frameRate=profile['frameRate'],
-            pixelFormat=profile['pixelFormat'],
-            codecFormat=profile['codecFormat'],
-            cameraLib=profile['captureLib'],
-            cameraAPI=profile['captureAPI']
-        )
+        if profile:
+            self.info = CameraInfo(
+                name=profile['deviceName'],
+                frameSize=profile['frameSize'],
+                frameRate=profile['frameRate'],
+                pixelFormat=profile['pixelFormat'],
+                codecFormat=profile['codecFormat'],
+                cameraLib=profile['captureLib'],
+                cameraAPI=profile['captureAPI']
+            )
+        else:
+            self.info = CameraInfo()
 
     def isSameDevice(self, other):
         """
@@ -576,7 +579,7 @@ class CameraDevice(BaseDevice):
         elif isinstance(other, Camera):
             return getattr(other, "_capture", None) == self
         elif isinstance(other, dict) and "device" in other:
-            return other['device'] == self._device
+            return other['deviceName'] == self._device
         else:
             return False
 
@@ -607,16 +610,22 @@ class CameraDevice(BaseDevice):
                     'pixels': 0,
                     'frameRate': 0
                 }
-                minFrameRate = max(30, min([cam.frameRate for cam in allCams]))
+                bestResolution = None
+                minFrameRate = max(28, min([cam.frameRate for cam in allCams]))
                 for cam in allCams:
                     # summarise spec of this cam
                     current = {
                         'pixels': cam.frameSize[0] * cam.frameSize[1],
                         'frameRate': cam.frameRate
                     }
+                    # store best frame rate as a fallback
+                    if bestResolution is None or current['pixels'] > lastBest['pixels']:
+                        bestResolution = cam
                     # if it's better than the last, set it as the only cam
                     if current['pixels'] > lastBest['pixels'] and current['frameRate'] >= minFrameRate:
                         cams = [cam]
+                # if no cameras meet frame rate requirement, use one with best resolution
+                cams = [bestResolution]
             # iterate through all (possibly filtered) cameras
             for cam in cams:
                 # construct a dict profile from the CameraInfo object
@@ -819,7 +828,10 @@ class CameraDevice(BaseDevice):
         time. If the camera stream is not open, this will return `-1.0`.
         
         """
-        return self._capture.get_pts() if self._capture is not None else -1.0
+        if self._cameraAPI == CAMERA_API_AVFOUNDATION:
+            return time.time() if self._capture is not None else -1.0
+        else:
+            return self._capture.get_pts() if self._capture is not None else -1.0
     
     def _toNumpyView(self, frame):
         """Convert a frame to a Numpy view.
@@ -901,6 +913,7 @@ class CameraDevice(BaseDevice):
             lib_opts['fflags'] = 'nobuffer'
             lib_opts['flags'] = 'low_delay'
             lib_opts['pixel_format'] = self._pixelFormat
+            lib_opts['use_wallclock_as_timestamps'] = '1'
             # ff_opts['framedrop'] = True
             # ff_opts['fast'] = True
         elif self._captureAPI == CAMERA_API_VIDEO4LINUX2:
@@ -916,7 +929,7 @@ class CameraDevice(BaseDevice):
         logging.debug(
             "Using camera mode {}x{} at {} fps".format(
                 camWidth, camHeight, _frameRate))
-
+        
         # configure the real-time buffer size, we compute using RGB8 since this 
         # is uncompressed and represents the largest size we can expect
         self._frameSizeBytes = int(camWidth * camHeight * 3)
@@ -933,20 +946,27 @@ class CameraDevice(BaseDevice):
 
         # common settings across libraries
         ff_opts['low_delay'] = True  # low delay for real-time playback
-        ff_opts['framedrop'] = True
+        # ff_opts['framedrop'] = True
         # ff_opts['use_wallclock_as_timestamps'] = True
         ff_opts['fast'] = True
         # ff_opts['sync'] = 'ext'
         ff_opts['rtbufsize'] = str(_bufferSize)  # set the buffer size
+        ff_opts['an'] = True
+        # ff_opts['infbuf'] = True  # enable infinite buffering
 
         # for ffpyplayer, we need to set the video size and framerate
         lib_opts['video_size'] = '{width}x{height}'.format(
             width=camWidth, height=camHeight)
         lib_opts['framerate'] = str(_frameRate)
+        ff_opts['loglevel'] = 'error'
+        ff_opts['nostdin'] = True
 
         # open the media player
         from ffpyplayer.player import MediaPlayer
-        self._capture = MediaPlayer(_camera, ff_opts=ff_opts, lib_opts=lib_opts)
+        self._capture = MediaPlayer(
+            _camera, 
+            ff_opts=ff_opts, 
+            lib_opts=lib_opts)
 
         # compute the frame interval, needed for generating timestamps
         self._frameInterval = 1.0 / self._frameRate 
@@ -988,6 +1008,7 @@ class CameraDevice(BaseDevice):
 
         """
         if self._capture is not None:
+            # self._capture.set_pause(True)  # pause the stream
             self._capture.close_player()
 
     def _getFramesFFPyPlayer(self):
@@ -1016,19 +1037,19 @@ class CameraDevice(BaseDevice):
             if frame is None:  # ditto 
                 break
 
-            self._frameCount += 1  # increment the frame count
-
             img, curPts = frame
             if curPts < self._absRecStreamStartTime and self._isRecording:
                 del img  # free the memory used by the frame
                 # if the frame is before the recording start time, skip it
                 continue
 
+            self._frameCount += 1  # increment the frame count
+
             recentFrames.append((
                 img, 
                 curPts-self._absRecStreamStartTime,
                 curPts))
-            
+
         return recentFrames
     
     # --------------------------------------------------------------------------
@@ -1120,6 +1141,11 @@ class CameraDevice(BaseDevice):
         resources associated with it.
 
         """
+        if self.isRecording:
+            self.stop()  # stop the recording if it is in progress
+            logging.warning(
+                "CameraDevice.close() called while recording. Stopping.")
+
         if self._captureLib == 'ffpyplayer':
             self._closeFFPyPlayer()
 
@@ -1177,8 +1203,14 @@ class CameraDevice(BaseDevice):
         self._frameCount = 0  # reset the frame count
         self._clearFrameStore()  # clear the frame store
         self._capture.set_pause(False)  # start the capture stream
-        self._absRecStreamStartTime = self._capture.get_pts()  # get the absolute start time
-        self._absRecExpStartTime = core.getTime()  # expected start time in seconds
+
+        # need to use a different timebase on macOS, due to a bug
+        if self._cameraAPI == CAMERA_API_AVFOUNDATION:
+            self._absRecStreamStartTime = time.time()
+        else:
+            self._absRecStreamStartTime = self._capture.get_pts()  # get the absolute start time
+
+        self._absRecExpStartTime = core.getTime()  # experiment start time in seconds
         self._isRecording = True 
 
         return self._absRecStreamStartTime
@@ -1199,10 +1231,16 @@ class CameraDevice(BaseDevice):
         will stop capturing frames from the camera and clear the frame store.
 
         """
-        self._capture.set_pause(True)
+        self._capture.set_pause(True)  # pause the capture stream
+
+        if self._cameraAPI == CAMERA_API_AVFOUNDATION:
+            absStopTime = time.time()
+        else:
+            absStopTime = self._capture.get_pts()
+
         self._isRecording = False
 
-        return self._capture.get_pts()
+        return absStopTime
 
     @property
     def isRecording(self):
@@ -1236,6 +1274,8 @@ class CameraDevice(BaseDevice):
         """
         if self._captureLib == 'ffpyplayer':
             return self._getFramesFFPyPlayer()
+        
+
 # class name alias for legacy support
 CameraInterface = CameraDevice
 
@@ -1394,39 +1434,40 @@ class Camera:
                     self._capture = DeviceManager.addDevice(**profile)
                     break
         elif isinstance(device, str):
-            # get available devices
-            availableDevices = CameraDevice.getAvailableDevices()
-            # if given a device name, try to find it
-            for profile in availableDevices:
-                if profile['deviceName'] != device:
-                    continue
-                paramsMatch = all([
-                    profile.get(key) == value
-                    for key, value in {
-                        'deviceName': device,
-                        'captureLib': cameraLib,
-                        'frameRate': frameRate if frameRate is not None else True,  # get first
-                        'frameSize': frameSize if frameSize is not None else True
-                    }.items() if value is not None
-                ])
-                if not paramsMatch:
-                    continue
-                
-                device = profile['device']
+            if DeviceManager.getDevice(device):
                 self._capture = DeviceManager.getDevice(device)
-                break
+            else:
+                # get available devices
+                availableDevices = CameraDevice.getAvailableDevices()
+                # if given a device name, try to find it
+                for profile in availableDevices:
+                    if profile['deviceName'] != device:
+                        continue
+                    paramsMatch = all([
+                        profile.get(key) == value
+                        for key, value in {
+                            'deviceName': device,
+                            'captureLib': cameraLib,
+                            'frameRate': frameRate if frameRate is not None else True,  # get first
+                            'frameSize': frameSize if frameSize is not None else True
+                        }.items() if value is not None
+                    ])
+                    if not paramsMatch:
+                        continue
+                    
+                    device = profile['device']
+                    break
 
-            # anything else, try to initialise a new device from params
-            self._capture = CameraDevice(
-                device=device,
-                captureLib=cameraLib,
-                frameRate=frameRate,
-                frameSize=frameSize,
-                pixelFormat=None,  # use default pixel format
-                codecFormat=None,  # use default codec format
-                captureAPI=None  # use default capture API
-            )
-
+                # anything else, try to initialise a new device from params
+                self._capture = CameraDevice(
+                    device=device,
+                    captureLib=cameraLib,
+                    frameRate=frameRate,
+                    frameSize=frameSize,
+                    pixelFormat=None,  # use default pixel format
+                    codecFormat=None,  # use default codec format
+                    captureAPI=None  # use default capture API
+                )
         else:
             # anything else, try to initialise a new device from params
             self._capture = CameraDevice(
@@ -1478,6 +1519,7 @@ class Camera:
         self._frameCount = 0  # number of frames read from the camera stream
         self._frameStore = collections.deque(maxlen=keepFrames)
         self._usageMode = usageMode  # usage mode for the camera
+        self._unsaved = False  # is there any footage not saved?
 
         # other information
         self.name = name
@@ -1526,6 +1568,9 @@ class Camera:
 
         # computer vison mode 
         self._objClassfiers = {}  # list of classifiers for CV mode
+
+        # keep track of files to merge
+        self._filesToMerge = []  # list of tuples (videoFile, audioFile)
 
         self.setWin(win)  # sets up OpenGL stuff if needed
 
@@ -1590,6 +1635,15 @@ class Camera:
         if self._absRecStreamStartTime < 0:
             return 0.0
         
+        if self._cameraAPI == CAMERA_API_AVFOUNDATION:
+            return time.time() - self._absRecStreamStartTime
+        
+        # for other APIs, use the PTS value
+        curPts = self._capture.get_pts()
+        if curPts is None:
+            return 0.0
+        
+        # return the difference between the current PTS and the absolute start time
         return self._capture.get_pts() - self._absRecStreamStartTime
 
     @property
@@ -1949,10 +2003,14 @@ class Camera:
         if self.win is not None:
             # if we have a window, setup texture buffers for displaying
             self._setupTextureBuffers()
+        
+        # open the mic when the camera opens
+        if hasattr(self.mic, "open"):
+            self.mic.open()
 
         self._isStarted = True
 
-    def record(self, clearLastRecording=True, waitForStart=True):
+    def record(self, clearLastRecording=True, waitForStart=False):
         """Start recording frames.
 
         This function will start recording frames and audio (if available). The
@@ -2007,6 +2065,8 @@ class Camera:
         if clearLastRecording:
             self._frameStore.clear()  # clear frames from last recording
 
+        self._capture._clearFrameStore()
+
         # reset the movie writer
         self._openMovieFileWriter()
 
@@ -2032,6 +2092,10 @@ class Camera:
                     self._absAudioActualRecStartTime = self._absAudioRecStartTime
 
         self._isRecording = True  # set recording flag
+        # do an initial poll to avoid frame dropping
+        self.update()
+        # mark that there's unsaved footage
+        self._unsaved = True
 
     def start(self, waitForStart=True):
         """Start the camera stream.
@@ -2053,7 +2117,7 @@ class Camera:
         self._absVideoRecStopTime = self._capture.stop()
         
         # stop audio recording if we have a microphone
-        if self.mic is not None:
+        if self.hasMic and not self.mic._stream._closed:
             _, overflows = self.mic.poll()
 
             if overflows > 0:
@@ -2077,14 +2141,115 @@ class Camera:
         to save the frames to disk.
 
         """
+        self._closeMovieFileWriter()
+
+        self._capture.close()  # close the camera stream
+        self._capture = None  # clear the capture object
+
         if self.mic is not None:
             self.mic.close()
 
-        self._capture.close()  # close the camera stream
-
-        self._closeMovieFileWriter()
-
         self._isStarted = False
+
+    def _mergeAudioVideoTracks(self, videoTrackFile, audioTrackFile,
+                               filename, writerOpts=None):
+        """Use FFMPEG to merge audio and video tracks into a single file.
+        
+        Parameters
+        ----------
+        videoTrackFile : str
+            Path to the video track file to merge.
+        audioTrackFile : str
+            Path to the audio track file to merge.
+        filename : str
+            Path to the output file to save the merged audio and video tracks.
+        writerOpts : dict or None
+            Options to pass to the movie writer. If `None`, default options
+            will be used. This is useful for specifying the codec, bitrate,
+            etc. for the output file.
+
+        Returns
+        -------
+        str
+            Path to the output file with merged audio and video tracks.
+        
+        """
+        import subprocess as sp
+
+        # check if the video and audio track files exist
+        if not os.path.exists(videoTrackFile):
+            raise FileNotFoundError(
+                "Video track file `{}` does not exist.".format(videoTrackFile))
+        if not os.path.exists(audioTrackFile):
+            raise FileNotFoundError(
+                "Audio track file `{}` does not exist.".format(audioTrackFile))
+        
+        # check if the output file already exists
+        if os.path.exists(filename):
+            logging.warning(
+                "Output file `{}` already exists, it will be overwritten.".format(filename))
+            os.remove(filename)
+
+        # build the command to merge audio and video tracks
+        cmd = [
+            'ffmpeg', 
+            '-loglevel', 'error',  # suppress output except errors
+            '-nostdin',  # do not read from stdin
+            '-y',  # overwrite output file if it exists
+            '-i', videoTrackFile,  # input video track
+            '-i', audioTrackFile,  # input audio track
+            '-c:v', 'copy',  # copy video codec
+            '-c:a', 'aac',  # use AAC for audio codec
+            '-strict', 'experimental',  # allow experimental codecs
+            '-threads', 'auto',  # use all available threads
+            '-shortest'  # stop when the shortest input ends
+        ]
+        # add output file
+        cmd.append(filename)
+
+        # apply any writer options if provided
+        if writerOpts is not None:
+            for key, value in writerOpts.items():
+                if isinstance(value, str):
+                    cmd.append('-' + key)
+                    cmd.append(value)
+                elif isinstance(value, bool) and value:
+                    cmd.append('-' + key)
+                elif isinstance(value, (int, float)):
+                    cmd.append('-' + key)
+                    cmd.append(str(value))
+
+        logging.debug(
+            "Merging audio and video tracks with command: {}".format(' '.join(cmd))
+        )
+
+        # run the command to merge audio and video tracks
+        try:
+            proc = sp.Popen(
+                cmd, 
+                stdout=sp.PIPE, 
+                stderr=sp.PIPE, 
+                stdin=sp.DEVNULL if hasattr(sp, 'DEVNULL') else None,
+                universal_newlines=True,  # use text mode for output
+                text=True
+            )
+            proc.wait()  # wait for the process to finish
+            if proc.returncode != 0:
+                logging.error(
+                    "FFMPEG returned non-zero exit code {} for command: {}".format(
+                        proc.returncode, cmd
+                    )
+                )
+            # wait for the process to finish
+        except sp.CalledProcessError as e:
+            logging.error(
+                "Failed to merge audio and video tracks: {}".format(e))
+            return None
+        
+        logging.info(
+            "Merged audio and video tracks into `{}`".format(filename))
+
+        return filename
 
     def save(self, filename, useThreads=True, mergeAudio=True, writerOpts=None):
         """Save the last recording to file.
@@ -2124,6 +2289,10 @@ class Camera:
                 "recording first."
             )
         
+        # if there's nothing to unsaved, do nothing
+        if not self._unsaved:
+            return
+        
         # check if we have an active movie writer
         if self._movieWriter is not None:
             self._movieWriter.close()  # close the movie writer
@@ -2135,7 +2304,8 @@ class Camera:
         tStart = time.time()  # start time for the operation
         if self.mic is not None:
             audioTrack = self.mic.getRecording()
-
+        
+        if audioTrack is not None:
             logging.debug(
                 "Saving audio track to file `{}`...".format(filename))
             
@@ -2155,31 +2325,38 @@ class Camera:
                 tempAudioFile.close()  # close the file so we can use it later
                 audioTrack.save(audioTrackFile)
 
-                # composite audio a video tracks using MoviePy (huge thanks to 
-                # that team)
-                from moviepy.video.io.VideoFileClip import VideoFileClip
-                from moviepy.audio.io.AudioFileClip import AudioFileClip
-                from moviepy.audio.AudioClip import CompositeAudioClip
+                # # composite audio a video tracks using MoviePy (huge thanks to 
+                # # that team)
+                # from moviepy.video.io.VideoFileClip import VideoFileClip
+                # from moviepy.audio.io.AudioFileClip import AudioFileClip
+                # from moviepy.audio.AudioClip import CompositeAudioClip
 
-                # default options for the writer, needed or we can crash
-                moviePyOpts = {
-                    'logger': None
-                }
+                # videoClip = VideoFileClip(videoTrackFile)
+                # audioClip = AudioFileClip(audioTrackFile)
+                # videoClip.audio = CompositeAudioClip([audioClip])
 
-                if writerOpts is not None:  # make empty dict if not provided
-                    moviePyOpts.update(writerOpts)
+                # # default options for the writer, needed or we can crash
+                # moviePyOpts = {
+                #     'logger': None
+                # }
 
-                videoClip = VideoFileClip(videoTrackFile)
-                audioClip = AudioFileClip(audioTrackFile)
-                videoClip.audio = CompositeAudioClip([audioClip])
+                # if writerOpts is not None:  # make empty dict if not provided
+                #     moviePyOpts.update(writerOpts)
 
-                # transcode with the format the user wants
-                videoClip.write_videofile(
-                    filename, 
-                    **moviePyOpts)  # expand out options
+                # # transcode with the format the user wants
+                # videoClip.write_videofile(
+                #     filename, 
+                #     **moviePyOpts)  # expand out options
 
-                videoClip.close()  # close the video clip
-                audioClip.close()
+                # videoClip.close()  # close the video clip
+                # audioClip.close()
+
+                # merge audio and video tracks using FFMPEG
+                mergedVideo = self._mergeAudioVideoTracks(
+                    videoTrackFile, 
+                   audioTrackFile, 
+                   filename, 
+                   writerOpts=writerOpts)
                 
                 os.remove(audioTrackFile)  # remove the temp file
 
@@ -2215,6 +2392,10 @@ class Camera:
         logging.info(
             "Saved recorded video to `{}` (took {:.6f} seconds)".format(
                 filename, time.time() - tStart))
+
+        self._frameStore.clear()  # clear the frame store
+        # mark that there's no longer unsaved footage
+        self._unsaved = False
 
         self._lastVideoFile = filename  # store the last video file saved
 
@@ -2354,7 +2535,7 @@ class Camera:
             # if we have new frames, we can set the video ready flag
             self._videoReady = True
 
-        if self.hasMic:
+        if self.hasMic and not self.mic._stream._closed:
             # poll the microphone for audio samples
             audioPos, overflows = self.mic.poll()
 
@@ -2838,13 +3019,14 @@ class Camera:
 
         # options to configure the writer
         frameWidth, frameHeight = self.frameSize
+
         writerOptions = {
             'pix_fmt_in': 'yuv420p',  # default for now using mp4
             'width_in': frameWidth,
             'height_in': frameHeight,
-            # 'codec': '',
+            'codec': 'libx264',
             'frame_rate': (int(self._capture.frameRate), 1)}
-        
+
         self._curPTS = 0.0  # current pts for the movie writer
 
         self._generatePTS = False  # whether to generate PTS for the movie writer
@@ -2855,7 +3037,11 @@ class Camera:
                 "writer.")
 
         self._movieWriter = MediaWriter(
-            filename, [writerOptions], libOpts=encoderOpts)
+            filename, 
+            [writerOptions], 
+            fmt='mp4',
+            overwrite=True,  # overwrite existing file
+            libOpts=encoderOpts)
 
     def _submitFrameToFileFFPyPlayer(self, frames):
         """Submit a frame to the movie file writer thread using FFPyPlayer.
@@ -2913,8 +3099,9 @@ class Camera:
         the writer. If the writer is not open, this will do nothing.
         """
         if self._movieWriter is not None:
+            logging.debug(
+                "Closing movie file writer using FFPyPlayer...")
             self._movieWriter.close()
-            self._movieWriter = None
         else:
             logging.debug(
                 "Attempting to call `_closeMovieFileWriterFFPyPlayer()` "
@@ -2998,6 +3185,10 @@ class Camera:
         ----------
         frames : MovieFrame
             Frame to submit to the movie file writer thread.
+        pts : float or None
+            Presentation timestamp for the frame. If `None`, timestamps will be
+            generated automatically by the movie file writer. This is only used
+            if the movie file writer is configured to generate PTS values.
 
         """
         if self._movieWriter is None:
@@ -3010,8 +3201,8 @@ class Camera:
             toReturn = self._submitFrameToFileFFPyPlayer(frames)
         else:
             raise ValueError(
-                "Invalid value for parameter `encoderLib`, expected one of "
-                "`'ffpyplayer'` or `'opencv'`.")
+                "Invalid value for parameter `encoderLib`, expected "
+                "`'ffpyplayer'.")
         
         logging.debug(
             "Submitted {} frames to the movie file writer (took {:.6f} seconds)".format(
@@ -3050,7 +3241,7 @@ class Camera:
         if hasattr(self, '_capture'):
             if self._capture is not None:
                 try:
-                    self._capture.close()
+                    self.close()
                 except AttributeError:
                     pass
 

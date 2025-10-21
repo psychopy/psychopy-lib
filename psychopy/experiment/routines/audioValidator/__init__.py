@@ -37,9 +37,10 @@ class AudioValidatorRoutine(BaseDeviceRoutine):
             self,
             # basic
             exp, name='audioVal',
-            threshold=0.5,
             # device
-            deviceLabel="", deviceBackend="microphone", channel="0",
+            deviceLabel="", channel="0",
+            # legacy
+            threshold=0.5, deviceBackend="microphone",
     ):
 
         self.exp = exp  # so we can access the experiment if necess
@@ -51,17 +52,6 @@ class AudioValidatorRoutine(BaseDeviceRoutine):
 
         exp.requirePsychopyLibs(["validation"])
 
-        # --- Basic ---
-        self.order += [
-            "threshold",
-        ]
-        self.params['threshold'] = Param(
-            threshold, valType="code", inputType="single", categ="Basic",
-            label=_translate("Threshold"),
-            hint=_translate(
-                "Arbitrary volume threshold at which the sound sensor should register a positive, units go from 0 (least volume) to 1 (most volume)."
-            )
-        )
         del self.params['stopType']
         del self.params['stopVal']
 
@@ -81,23 +71,12 @@ class AudioValidatorRoutine(BaseDeviceRoutine):
 
     def writeMainCode(self, buff):
         inits = getInitVals(self.params)
-        # get diode
-        code = (
-            "# diode object for %(name)s\n"
-            "%(name)sDevice = deviceManager.getDevice(%(deviceLabel)s)\n"
-        )
-        buff.writeIndentedLines(code % inits)
-
-        if self.params['threshold']:
-            code = (
-                "%(name)sDevice.setThreshold(%(threshold)s, channel=%(channel)s)\n"
-            )
-            buff.writeIndentedLines(code % inits)
         # create validator object
         code = (
             "# validator object for %(name)s\n"
             "%(name)s = validation.AudioValidator(\n"
-            "    %(name)sDevice, %(channel)s,\n"
+            "    deviceManager.getDevice(%(deviceLabel)s), \n"
+            "    %(channel)s,\n"
             ")\n"
         )
         buff.writeIndentedLines(code % inits)

@@ -1104,6 +1104,9 @@ class Experiment:
                     if paramNode.tag == "Param":
                         for key, val in paramNode.items():
                             name = paramNode.get("name")
+                            # "device" valType was introduced in 2025.2.0 and should always override saved valType
+                            if key == "valType" and routine.params[name].valType == "device":
+                                continue
                             if name in routine.params:
                                 setattr(routine.params[name], key, val)
                 # Add routine to experiment

@@ -408,9 +408,7 @@ class MicrophoneComponent(BaseDeviceComponent):
             inits['transcribeBackend'].val = None
         # Warn user if their transcriber won't work locally
         if inits['transcribe'].val:
-            if  self.params['transcribeBackend'].val in self.localTranscribers:
-                inits['transcribeBackend'].val = self.localTranscribers[self.params['transcribeBackend'].val]
-            else:
+            if  self.params['transcribeBackend'].val not in self.localTranscribers.values():
                 default = list(self.localTranscribers.values())[0]
                 alert(4610, strFields={"transcriber": inits['transcribeBackend'].val, "default": default})
         # Store recordings from this routine

@@ -781,9 +781,19 @@ class FontManager():
                                .format(list(self._fontInfos)))
 
     def getFontFamilyNames(self):
-        """Returns a list of the available font family names.
         """
-        return list(self._fontInfos.keys())
+        Returns a list of the available font family names.
+        """
+        families = []
+        # iterate through known font names
+        for fontName in self._fontInfos:
+            # convert to unicode
+            if isinstance(fontName, bytes):
+                fontName = fontName.decode(sys.getfilesystemencoding())
+            # append
+            families.append(fontName) 
+        
+        return families
 
     def getFontStylesForFamily(self, family_name):
         """For the given family, a list of style names supported is

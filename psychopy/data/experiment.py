@@ -988,9 +988,22 @@ class ExperimentHandler(_ComparisonMixin):
         origEntries = self.entries
         self.entries = self.getAllEntries()
 
+        # temporarily remove connected save methods so they don't get pickled
+        origConnectedSaveMethods = self.connectedSaveMethods
+        self.connectedSaveMethods = [
+            {
+                'fcn': f"<{callback['fcn'].__module__}:{callback['fcn'].__name__}>",
+                'args': callback['args'],
+                'kwargs': callback['kwargs']
+            } for callback in origConnectedSaveMethods
+        ]
+
         with openOutputFile(fileName=fileName, append=False,
                            fileCollisionMethod=fileCollisionMethod) as f:
             pickle.dump(self, f)
+        
+        # reinstate connected save methods
+        self.connectedSaveMethods = origConnectedSaveMethods
 
         if (fileName is not None) and (fileName != 'stdout'):
             logging.info('saved data to %s' % f.name)
