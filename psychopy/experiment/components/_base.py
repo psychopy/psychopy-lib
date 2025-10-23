@@ -34,6 +34,7 @@ class BaseComponent:
     targets = []
     plugin = None
     iconFile = Path(__file__).parent / "unknown" / "unknown.png"
+    iconSVG = Path(__file__).parent / "BaseComponent.svg"
     tooltip = ""
     # what version was this Component added in?
     version = "0.0.0"
@@ -138,6 +139,11 @@ class BaseComponent:
     @classmethod
     def getTemplateJSON(cls):
         from psychopy.experiment import Experiment
+        # try to load SVG
+        try:
+            iconSVG = cls.iconSVG.read_text("utf-8")
+        except:
+            iconSVG = None
         # include basic info
         profile = {
             '__class__': f"{cls.__module__}:{cls.__qualname__}",
@@ -145,6 +151,7 @@ class BaseComponent:
             "categories": cls.categories,
             "targets": cls.targets,
             "plugin": cls.plugin,
+            "iconSVG": iconSVG,
             "iconFile": cls.iconFile,
             "tooltip": cls.tooltip,
             "version": cls.version,

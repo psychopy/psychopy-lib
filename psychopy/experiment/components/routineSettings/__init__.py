@@ -12,6 +12,7 @@ class RoutineSettingsComponent(BaseComponent):
     categories = ['Other']
     targets = ['PsychoPy', 'PsychoJS']
     iconFile = Path(__file__).parent / 'routineSettings.png'
+    iconSVG = Path(__file__).parent / 'RoutineSettingsComponent.svg'
     tooltip = _translate('Settings for this Routine.')
     version = "2023.2.0"
     # a Routine only has one RoutineSettingsComponent, so hide it from the Components panel

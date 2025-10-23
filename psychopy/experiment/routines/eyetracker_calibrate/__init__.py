@@ -10,6 +10,7 @@ class EyetrackerCalibrationRoutine(BaseStandaloneRoutine):
     targets = ["PsychoPy"]
     version = "2021.2.0"
     iconFile = Path(__file__).parent / "eyetracker_calib.png"
+    iconSVG = Path(__file__).parent / 'EyetrackerCalibrationRoutine.svg'
     tooltip = _translate("Calibration routine for eyetrackers")
     beta = True
 

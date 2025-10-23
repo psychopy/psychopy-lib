@@ -2044,7 +2044,7 @@ requires-dist = [
     { name = "future" },
     { name = "gevent", specifier = "==25.5.1" },
     { name = "gitpython" },
-    { name = "h5py", marker = "extra == 'suggested'", specifier = "<3.15.0" },
+    { name = "h5py", marker = "extra == 'suggested'" },
     { name = "imageio" },
     { name = "imageio-ffmpeg" },
     { name = "jedi", specifier = ">=0.16" },

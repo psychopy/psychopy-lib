@@ -93,6 +93,7 @@ class SettingsComponent:
     categories = ['Custom']
     targets = ['PsychoPy', 'PsychoJS']
     iconFile = Path(__file__).parent / 'settings.png'
+    iconSVG = Path(__file__).parent / 'SettingsComponent.svg'
     tooltip = _translate("Edit settings for this experiment")
     plugin = None
     version = "0.0.0"
