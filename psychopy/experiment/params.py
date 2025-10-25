@@ -444,6 +444,7 @@ class Param():
             'allowedUpdates': self.allowedUpdates,
             'allowedVals': serializeCallable(self.allowedVals, self),
             'allowedLabels': serializeCallable(self.allowedLabels, self),
+            'ctrlParams': self.ctrlParams,
             'label': self.label,
             'hint': self.hint,
             'plugin': self.plugin,

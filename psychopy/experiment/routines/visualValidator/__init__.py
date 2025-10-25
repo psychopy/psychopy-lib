@@ -131,17 +131,6 @@ class VisualValidatorRoutine(BaseValidatorRoutine, PluginDevicesMixin):
             "deviceBackend",
             "channel",
         ]
-        # label to refer to device by
-        def getDeviceLabels():
-            # start with none
-            labels = []
-            # iterate through saved devices
-            for name, profile in prefs.devices.items():
-                # if device is the correct type, include it
-                if profile.get("deviceClass", None) in self.deviceClasses:
-                    labels.append(name)
-
-            return labels
         self.params['channel'] = Param(
             channel, valType="code", inputType="single", categ="Device",
             label=_translate("Light sensor channel"),
