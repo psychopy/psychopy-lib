@@ -680,7 +680,8 @@ dependencies = [
     { name = "cffi", marker = "platform_python_implementation == 'CPython' and sys_platform == 'win32'" },
     { name = "greenlet", marker = "platform_python_implementation == 'CPython'" },
     { name = "zope-event" },
-    { name = "zope-interface" },
+    { name = "zope-interface", version = "8.0.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.10'" },
+    { name = "zope-interface", version = "8.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.10'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/f1/58/267e8160aea00ab00acd2de97197eecfe307064a376fb5c892870a8a6159/gevent-25.5.1.tar.gz", hash = "sha256:582c948fa9a23188b890d0bc130734a506d039a2e5ad87dae276a456cc683e61", size = 6388207, upload-time = "2025-05-12T12:57:59.833Z" }
 wheels = [
@@ -1780,8 +1781,10 @@ suggested = [
 ]
 tests = [
     { name = "flake8" },
-    { name = "pytest" },
-    { name = "pytest-asyncio" },
+    { name = "pytest", version = "8.4.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.10'" },
+    { name = "pytest", version = "9.0.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.10'" },
+    { name = "pytest-asyncio", version = "1.2.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.10'" },
+    { name = "pytest-asyncio", version = "1.3.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.10'" },
     { name = "pytest-codecov" },
     { name = "pytest-cov" },
     { name = "xmlschema" },
@@ -4150,15 +4153,20 @@ wheels = [
 name = "pytest"
 version = "8.4.2"
 source = { registry = "https://pypi.org/simple" }
+resolution-markers = [
+    "python_full_version < '3.10' and platform_machine == 'arm64' and sys_platform == 'darwin'",
+    "python_full_version < '3.10' and platform_machine == 'aarch64' and sys_platform == 'linux'",
+    "(python_full_version < '3.10' and platform_machine != 'arm64' and sys_platform == 'darwin') or (python_full_version < '3.10' and platform_machine != 'aarch64' and sys_platform == 'linux') or (python_full_version < '3.10' and sys_platform != 'darwin' and sys_platform != 'linux' and sys_platform != 'win32')",
+    "python_full_version < '3.10' and sys_platform == 'win32'",
+]
 dependencies = [
-    { name = "colorama", marker = "sys_platform == 'win32'" },
-    { name = "exceptiongroup" },
+    { name = "colorama", marker = "python_full_version < '3.10' and sys_platform == 'win32'" },
+    { name = "exceptiongroup", marker = "python_full_version < '3.10'" },
     { name = "iniconfig", version = "2.1.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.10'" },
-    { name = "iniconfig", version = "2.3.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.10'" },
-    { name = "packaging" },
-    { name = "pluggy" },
-    { name = "pygments" },
-    { name = "tomli" },
+    { name = "packaging", marker = "python_full_version < '3.10'" },
+    { name = "pluggy", marker = "python_full_version < '3.10'" },
+    { name = "pygments", marker = "python_full_version < '3.10'" },
+    { name = "tomli", marker = "python_full_version < '3.10'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/a3/5c/00a0e072241553e1a7496d638deababa67c5058571567b92a7eaa258397c/pytest-8.4.2.tar.gz", hash = "sha256:86c0d0b93306b961d58d62a4db4879f27fe25513d4b969df351abdddb3c30e01", size = 1519618, upload-time = "2025-09-04T14:34:22.711Z" }
 wheels = [
@@ -4166,17 +4174,67 @@ wheels = [
 ]
 
 [[package]]
+name = "pytest"
+version = "9.0.0"
+source = { registry = "https://pypi.org/simple" }
+resolution-markers = [
+    "python_full_version >= '3.10' and sys_platform == 'darwin'",
+    "python_full_version >= '3.10' and platform_machine == 'aarch64' and sys_platform == 'linux'",
+    "(python_full_version >= '3.10' and platform_machine != 'aarch64' and sys_platform == 'linux') or (python_full_version >= '3.10' and sys_platform != 'darwin' and sys_platform != 'linux' and sys_platform != 'win32')",
+    "python_full_version >= '3.10' and sys_platform == 'win32'",
+]
+dependencies = [
+    { name = "colorama", marker = "python_full_version >= '3.10' and sys_platform == 'win32'" },
+    { name = "exceptiongroup", marker = "python_full_version >= '3.10'" },
+    { name = "iniconfig", version = "2.3.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.10'" },
+    { name = "packaging", marker = "python_full_version >= '3.10'" },
+    { name = "pluggy", marker = "python_full_version >= '3.10'" },
+    { name = "pygments", marker = "python_full_version >= '3.10'" },
+    { name = "tomli", marker = "python_full_version >= '3.10'" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/da/1d/eb34f286b164c5e431a810a38697409cca1112cee04b287bb56ac486730b/pytest-9.0.0.tar.gz", hash = "sha256:8f44522eafe4137b0f35c9ce3072931a788a21ee40a2ed279e817d3cc16ed21e", size = 1562764, upload-time = "2025-11-08T17:25:33.34Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/72/99/cafef234114a3b6d9f3aaed0723b437c40c57bdb7b3e4c3a575bc4890052/pytest-9.0.0-py3-none-any.whl", hash = "sha256:e5ccdf10b0bac554970ee88fc1a4ad0ee5d221f8ef22321f9b7e4584e19d7f96", size = 373364, upload-time = "2025-11-08T17:25:31.811Z" },
+]
+
+[[package]]
 name = "pytest-asyncio"
 version = "1.2.0"
 source = { registry = "https://pypi.org/simple" }
+resolution-markers = [
+    "python_full_version < '3.10' and platform_machine == 'arm64' and sys_platform == 'darwin'",
+    "python_full_version < '3.10' and platform_machine == 'aarch64' and sys_platform == 'linux'",
+    "(python_full_version < '3.10' and platform_machine != 'arm64' and sys_platform == 'darwin') or (python_full_version < '3.10' and platform_machine != 'aarch64' and sys_platform == 'linux') or (python_full_version < '3.10' and sys_platform != 'darwin' and sys_platform != 'linux' and sys_platform != 'win32')",
+    "python_full_version < '3.10' and sys_platform == 'win32'",
+]
 dependencies = [
-    { name = "backports-asyncio-runner" },
-    { name = "pytest" },
-    { name = "typing-extensions" },
+    { name = "backports-asyncio-runner", marker = "python_full_version < '3.10'" },
+    { name = "pytest", version = "8.4.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.10'" },
+    { name = "typing-extensions", marker = "python_full_version < '3.10'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/42/86/9e3c5f48f7b7b638b216e4b9e645f54d199d7abbbab7a64a13b4e12ba10f/pytest_asyncio-1.2.0.tar.gz", hash = "sha256:c609a64a2a8768462d0c99811ddb8bd2583c33fd33cf7f21af1c142e824ffb57", size = 50119, upload-time = "2025-09-12T07:33:53.816Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/04/93/2fa34714b7a4ae72f2f8dad66ba17dd9a2c793220719e736dda28b7aec27/pytest_asyncio-1.2.0-py3-none-any.whl", hash = "sha256:8e17ae5e46d8e7efe51ab6494dd2010f4ca8dae51652aa3c8d55acf50bfb2e99", size = 15095, upload-time = "2025-09-12T07:33:52.639Z" },
+]
+
+[[package]]
+name = "pytest-asyncio"
+version = "1.3.0"
+source = { registry = "https://pypi.org/simple" }
+resolution-markers = [
+    "python_full_version >= '3.10' and sys_platform == 'darwin'",
+    "python_full_version >= '3.10' and platform_machine == 'aarch64' and sys_platform == 'linux'",
+    "(python_full_version >= '3.10' and platform_machine != 'aarch64' and sys_platform == 'linux') or (python_full_version >= '3.10' and sys_platform != 'darwin' and sys_platform != 'linux' and sys_platform != 'win32')",
+    "python_full_version >= '3.10' and sys_platform == 'win32'",
+]
+dependencies = [
+    { name = "backports-asyncio-runner", marker = "python_full_version >= '3.10'" },
+    { name = "pytest", version = "9.0.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.10'" },
+    { name = "typing-extensions", marker = "python_full_version >= '3.10'" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/90/2c/8af215c0f776415f3590cac4f9086ccefd6fd463befeae41cd4d3f193e5a/pytest_asyncio-1.3.0.tar.gz", hash = "sha256:d7f52f36d231b80ee124cd216ffb19369aa168fc10095013c6b014a34d3ee9e5", size = 50087, upload-time = "2025-11-10T16:07:47.256Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/e5/35/f8b19922b6a25bc0880171a2f1a003eaeb93657475193ab516fd87cac9da/pytest_asyncio-1.3.0-py3-none-any.whl", hash = "sha256:611e26147c7f77640e6d0a92a38ed17c3e9848063698d5c93d5aa7aa11cebff5", size = 15075, upload-time = "2025-11-10T16:07:45.537Z" },
 ]
 
 [[package]]
@@ -4186,7 +4244,8 @@ source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "coverage", version = "7.10.7", source = { registry = "https://pypi.org/simple" }, extra = ["toml"], marker = "python_full_version < '3.10'" },
     { name = "coverage", version = "7.11.3", source = { registry = "https://pypi.org/simple" }, extra = ["toml"], marker = "python_full_version >= '3.10'" },
-    { name = "pytest" },
+    { name = "pytest", version = "8.4.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.10'" },
+    { name = "pytest", version = "9.0.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.10'" },
     { name = "pytest-cov" },
     { name = "requests" },
 ]
@@ -4203,7 +4262,8 @@ dependencies = [
     { name = "coverage", version = "7.10.7", source = { registry = "https://pypi.org/simple" }, extra = ["toml"], marker = "python_full_version < '3.10'" },
     { name = "coverage", version = "7.11.3", source = { registry = "https://pypi.org/simple" }, extra = ["toml"], marker = "python_full_version >= '3.10'" },
     { name = "pluggy" },
-    { name = "pytest" },
+    { name = "pytest", version = "8.4.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.10'" },
+    { name = "pytest", version = "9.0.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.10'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/5e/f7/c933acc76f5208b3b00089573cf6a2bc26dc80a8aece8f52bb7d6b1855ca/pytest_cov-7.0.0.tar.gz", hash = "sha256:33c97eda2e049a0c5298e91f519302a1334c26ac65c1a483d6206fd458361af1", size = 54328, upload-time = "2025-09-09T10:57:02.113Z" }
 wheels = [
@@ -5119,6 +5179,12 @@ wheels = [
 name = "zope-interface"
 version = "8.0.1"
 source = { registry = "https://pypi.org/simple" }
+resolution-markers = [
+    "python_full_version < '3.10' and platform_machine == 'arm64' and sys_platform == 'darwin'",
+    "python_full_version < '3.10' and platform_machine == 'aarch64' and sys_platform == 'linux'",
+    "(python_full_version < '3.10' and platform_machine != 'arm64' and sys_platform == 'darwin') or (python_full_version < '3.10' and platform_machine != 'aarch64' and sys_platform == 'linux') or (python_full_version < '3.10' and sys_platform != 'darwin' and sys_platform != 'linux' and sys_platform != 'win32')",
+    "python_full_version < '3.10' and sys_platform == 'win32'",
+]
 sdist = { url = "https://files.pythonhosted.org/packages/88/3a/7fcf02178b8fad0a51e67e32765cd039ae505d054d744d76b8c2bbcba5ba/zope_interface-8.0.1.tar.gz", hash = "sha256:eba5610d042c3704a48222f7f7c6ab5b243ed26f917e2bc69379456b115e02d1", size = 253746, upload-time = "2025-09-25T05:55:51.285Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/75/e5/ffef169d17b92c6236b3b18b890c0ce73502f3cbd5b6532ff20d412d94a3/zope_interface-8.0.1-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:fd7195081b8637eeed8d73e4d183b07199a1dc738fb28b3de6666b1b55662570", size = 207364, upload-time = "2025-09-25T05:58:50.262Z" },
@@ -5133,4 +5199,23 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/44/09/b10eda92f1373cd8e4e9dd376559414d1759a8b54e98eeef0d81844f0638/zope_interface-8.0.1-cp39-cp39-manylinux1_x86_64.manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_5_x86_64.whl", hash = "sha256:9e9bdca901c1bcc34e438001718512c65b3b8924aabcd732b6e7a7f0cd715f17", size = 253793, upload-time = "2025-09-25T05:58:16.92Z" },
     { url = "https://files.pythonhosted.org/packages/62/37/3529065a2b6b7dc8f287ff3c8d1e8b7d8c4681c069e520bd3c4ac995a95c/zope_interface-8.0.1-cp39-cp39-manylinux2014_aarch64.manylinux_2_17_aarch64.whl", hash = "sha256:bbd22d4801ad3e8ec704ba9e3e6a4ac2e875e4d77e363051ccb76153d24c5519", size = 254263, upload-time = "2025-09-25T06:26:29.371Z" },
     { url = "https://files.pythonhosted.org/packages/c3/31/42588bea7ddad3abd2d4987ec3b767bd09394cc091a4918b1cf7b9de07ae/zope_interface-8.0.1-cp39-cp39-win_amd64.whl", hash = "sha256:a0016ca85f93b938824e2f9a43534446e95134a2945b084944786e1ace2020bc", size = 211780, upload-time = "2025-09-25T05:59:50.015Z" },
+]
+
+[[package]]
+name = "zope-interface"
+version = "8.1"
+source = { registry = "https://pypi.org/simple" }
+resolution-markers = [
+    "python_full_version >= '3.10' and sys_platform == 'darwin'",
+    "python_full_version >= '3.10' and platform_machine == 'aarch64' and sys_platform == 'linux'",
+    "(python_full_version >= '3.10' and platform_machine != 'aarch64' and sys_platform == 'linux') or (python_full_version >= '3.10' and sys_platform != 'darwin' and sys_platform != 'linux' and sys_platform != 'win32')",
+    "python_full_version >= '3.10' and sys_platform == 'win32'",
+]
+sdist = { url = "https://files.pythonhosted.org/packages/6a/7d/b5b85e09f87be5f33decde2626347123696fc6d9d655cb16f5a986b60a97/zope_interface-8.1.tar.gz", hash = "sha256:a02ee40770c6a2f3d168a8f71f09b62aec3e4fb366da83f8e849dbaa5b38d12f", size = 253831, upload-time = "2025-11-10T07:56:24.825Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/64/08/dbb0aac0d2a769a02596ef8b058232b7cc88527b32bdaa8fd7cad222ad1a/zope_interface-8.1-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:b6370bc29799223e9a4756e89f358cbfba8e4112fc5046403c849bcc52f1ff32", size = 207352, upload-time = "2025-11-10T07:57:47.412Z" },
+    { url = "https://files.pythonhosted.org/packages/13/f8/0fb1b45fcadeb82f5f26a9308bb90beb38f744084542dde30f77db9d1df6/zope_interface-8.1-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:638e83a5c15a337e52d36620478d49dbf206a46d34bcc75ff03211e94b12267d", size = 207887, upload-time = "2025-11-10T07:57:48.559Z" },
+    { url = "https://files.pythonhosted.org/packages/89/35/15ac5f08c53c8fa6789e3d9733fecae451448fb7a884cd821757a71d3f0a/zope_interface-8.1-cp310-cp310-manylinux1_i686.manylinux2014_i686.manylinux_2_17_i686.manylinux_2_5_i686.whl", hash = "sha256:b88e0516bc7f3979839f44adfdbfa8a57d81154a161cbd64642ace22892969af", size = 249339, upload-time = "2025-11-10T07:58:28.711Z" },
+    { url = "https://files.pythonhosted.org/packages/af/61/a06ab6d74a131cc6ef450e6ff1c60d8d0f519028eb21726af40dbf100bd8/zope_interface-8.1-cp310-cp310-manylinux1_x86_64.manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_5_x86_64.whl", hash = "sha256:3c17d683a11cf09eebf332e4771fc2973c15f8428a9a4fc478b39a422f32157b", size = 254456, upload-time = "2025-11-10T07:58:31.753Z" },
+    { url = "https://files.pythonhosted.org/packages/72/0a/416202b02f8e08b3304a7d0e7934aabb77714576527177e3436e33ff62c7/zope_interface-8.1-cp310-cp310-win_amd64.whl", hash = "sha256:e826eeda579fcee2624eea6014877103ca7510bd1353bfae1d64e1cabd691d35", size = 211740, upload-time = "2025-11-10T07:59:44.202Z" },
 ]
