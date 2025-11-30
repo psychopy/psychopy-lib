@@ -1854,7 +1854,7 @@ wheels = [
 
 [[package]]
 name = "py2app"
-version = "0.28.8"
+version = "0.28.9"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "altgraph", marker = "(python_full_version < '3.10' and platform_machine != 'aarch64' and sys_platform == 'linux') or (python_full_version < '3.10' and sys_platform != 'linux' and sys_platform != 'win32') or sys_platform == 'darwin'" },
@@ -1862,9 +1862,9 @@ dependencies = [
     { name = "modulegraph", marker = "(python_full_version < '3.10' and platform_machine != 'aarch64' and sys_platform == 'linux') or (python_full_version < '3.10' and sys_platform != 'linux' and sys_platform != 'win32') or sys_platform == 'darwin'" },
     { name = "packaging", marker = "(python_full_version < '3.10' and platform_machine != 'aarch64' and sys_platform == 'linux') or (python_full_version < '3.10' and sys_platform != 'linux' and sys_platform != 'win32') or sys_platform == 'darwin'" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/d1/d8/a81d296560df958e496a03e4373615db5157dacb388945110404cbd0879b/py2app-0.28.8.tar.gz", hash = "sha256:cab7aec752a8b83e7c6cef7c15271dc720155275e44cbf610e3162e0807313ec", size = 1173004, upload-time = "2024-05-25T16:39:52.409Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/23/14/657162299713f5d33e4f90158f99da838013388ccb8f2529151735e3ee64/py2app-0.28.9.tar.gz", hash = "sha256:bcbddd3017c51203858428f4cd66a7d7ea1096c6d57f1257cc2fdb066927c7c5", size = 1236799, upload-time = "2025-11-29T11:54:11.951Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/83/12/a0932851fe222d9cf9193e192f01d7f62c89d9690b17d731ef5385df4360/py2app-0.28.8-py2.py3-none-any.whl", hash = "sha256:38b80f0c91f8d2dddb6396e6bbff8a84875f073c510f4f1a307e8ae44c7d73d8", size = 835661, upload-time = "2024-05-25T16:31:50.8Z" },
+    { url = "https://files.pythonhosted.org/packages/22/3a/294a507d73b8e3f261f75d778bd804d9ec183bb56c7052a9123ee86f1a65/py2app-0.28.9-py2.py3-none-any.whl", hash = "sha256:e698a8cc8ee8e899672ce93fee3727088c08b3c9a765cfc6519c24ca8e3e63f8", size = 837077, upload-time = "2025-11-29T11:54:09.72Z" },
 ]
 
 [[package]]
