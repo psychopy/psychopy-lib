@@ -150,7 +150,7 @@ wheels = [
 
 [[package]]
 name = "blosc2"
-version = "3.12.0"
+version = "3.12.1"
 source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
     "python_full_version >= '3.10' and sys_platform == 'darwin'",
@@ -167,13 +167,13 @@ dependencies = [
     { name = "py-cpuinfo", marker = "python_full_version >= '3.10' and platform_machine != 'wasm32'" },
     { name = "requests", marker = "python_full_version >= '3.10'" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/10/88/e562ac3bbb57b514c06eb663380b79b172bf11137294a2484ab6c54f97a1/blosc2-3.12.0.tar.gz", hash = "sha256:026cfe7bf8a102988075735a8cdc2033d142a0733f010118e1c660bb3f765333", size = 3974305, upload-time = "2025-12-02T16:06:17.585Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/d6/16/8acb3bbfc5d5411bf3b352d0d1dc468f9249aab5f7ba22a39ab259b61db1/blosc2-3.12.1.tar.gz", hash = "sha256:61e316a00a3f860f2f18fd05ce633a428cd49aed0f0b2f51058b8f931f8dc511", size = 3974636, upload-time = "2025-12-03T16:17:51.453Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/98/dd/0d5760267757a3183a55fe5e471e5135f8f3b68a84e4f5915aa100b7be74/blosc2-3.12.0-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:4a7f2999c48553d679f5c8901249d0a73b5976a3660361186cf6034fb1b1cd14", size = 3958642, upload-time = "2025-12-02T16:05:26.797Z" },
-    { url = "https://files.pythonhosted.org/packages/05/43/63a8ef572b50842ca3a9b34e6102f86f3c4d0bfa327d314654ea63ac9fe7/blosc2-3.12.0-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:69cf35ababcbb080418b0bba75efebeff6de3173a1997640b700f1a22a6c7b60", size = 3460474, upload-time = "2025-12-02T16:05:29.135Z" },
-    { url = "https://files.pythonhosted.org/packages/55/bd/b423c9d8b2931488d1b751e017c0646e1156fab1bc31e5700cdaeaa62a19/blosc2-3.12.0-cp310-cp310-manylinux2014_aarch64.manylinux_2_17_aarch64.whl", hash = "sha256:5f4e3298a176b17752a0ccc37ca9d6b4a373fbb4bd49a26050dddb802325960c", size = 4378662, upload-time = "2025-12-02T16:05:35.028Z" },
-    { url = "https://files.pythonhosted.org/packages/d0/8c/185fccdd4e4572a3a0398b6880097b59923ca2321e10a924e31812ca85fb/blosc2-3.12.0-cp310-cp310-manylinux2014_x86_64.manylinux_2_17_x86_64.whl", hash = "sha256:4b9007be7e27bdb2c998acf2feef908d53ef82e54cf6d088f85e378a6ac89389", size = 4513545, upload-time = "2025-12-02T16:05:36.272Z" },
-    { url = "https://files.pythonhosted.org/packages/57/4e/d16c31fd5ad87f8dc05c4122e1291b7c5f0c6ebb8150bb5737f9532de68c/blosc2-3.12.0-cp310-cp310-win_amd64.whl", hash = "sha256:192a2997fd125a0aca3ba28227c8b990d2ec0c308762afbda1562b6051661e9a", size = 2281873, upload-time = "2025-12-02T16:05:37.547Z" },
+    { url = "https://files.pythonhosted.org/packages/c3/99/c66f760aac1f3e3326b5c2a5fb31a701afa7cb3a5a0a186150a69cf4bf49/blosc2-3.12.1-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:666689319972a78c6f599cc0c959c4931f8b3e527556f01d8eb53906377dd997", size = 3958844, upload-time = "2025-12-03T16:16:59.139Z" },
+    { url = "https://files.pythonhosted.org/packages/4d/23/0bc058e807cee3d14a82c81425431e0aefb140299bc09d4b59dcb31a4d60/blosc2-3.12.1-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:6f3877be11dda47c034e74567e9c479cae5768e2cf31b0dc670ed544b3cf50bd", size = 3460673, upload-time = "2025-12-03T16:17:02.071Z" },
+    { url = "https://files.pythonhosted.org/packages/b9/6d/5b64005f3a8dd0c2eb7da654f2fa1313a3ac91be4550c5fa26dc77f51e12/blosc2-3.12.1-cp310-cp310-manylinux2014_aarch64.manylinux_2_17_aarch64.whl", hash = "sha256:efb2b893442bd154caefaf5aa76d5c78b1254e9b5a6ff8b05a37136fd02b6d9a", size = 4378831, upload-time = "2025-12-03T16:17:04.443Z" },
+    { url = "https://files.pythonhosted.org/packages/de/d6/d69f7ca9463fe7da9d6b4e3ca3bc9a45b14dbb3cd298c2c2326f0bcedaeb/blosc2-3.12.1-cp310-cp310-manylinux2014_x86_64.manylinux_2_17_x86_64.whl", hash = "sha256:fd572a3fcffaf570ded747f3f50586e6ac0c42ffc8ce59306a85a45dc985ef52", size = 4513712, upload-time = "2025-12-03T16:17:06.574Z" },
+    { url = "https://files.pythonhosted.org/packages/64/e3/46f9c349b3a50bf52ccd69367741459c4561929bc4db10c5af35eb652e4f/blosc2-3.12.1-cp310-cp310-win_amd64.whl", hash = "sha256:f418dc5fb59c265f41615435a806239ad70c89f90a7d38426c803b4c5c67c05e", size = 2282021, upload-time = "2025-12-03T16:17:07.86Z" },
 ]
 
 [[package]]
@@ -494,13 +494,33 @@ wheels = [
 name = "dmgbuild"
 version = "1.6.5"
 source = { registry = "https://pypi.org/simple" }
+resolution-markers = [
+    "python_full_version < '3.10' and platform_machine == 'arm64' and sys_platform == 'darwin'",
+    "(python_full_version < '3.10' and platform_machine != 'arm64' and sys_platform == 'darwin') or (python_full_version < '3.10' and platform_machine != 'aarch64' and sys_platform == 'linux') or (python_full_version < '3.10' and sys_platform != 'darwin' and sys_platform != 'linux' and sys_platform != 'win32')",
+]
 dependencies = [
-    { name = "ds-store", marker = "(python_full_version < '3.10' and platform_machine != 'aarch64' and sys_platform == 'linux') or (python_full_version < '3.10' and sys_platform != 'linux' and sys_platform != 'win32') or sys_platform == 'darwin'" },
-    { name = "mac-alias", marker = "(python_full_version < '3.10' and platform_machine != 'aarch64' and sys_platform == 'linux') or (python_full_version < '3.10' and sys_platform != 'linux' and sys_platform != 'win32') or sys_platform == 'darwin'" },
+    { name = "ds-store", version = "1.3.1", source = { registry = "https://pypi.org/simple" }, marker = "(python_full_version < '3.10' and platform_machine != 'aarch64' and sys_platform == 'linux') or (python_full_version < '3.10' and sys_platform != 'linux' and sys_platform != 'win32')" },
+    { name = "mac-alias", version = "2.2.2", source = { registry = "https://pypi.org/simple" }, marker = "(python_full_version < '3.10' and platform_machine != 'aarch64' and sys_platform == 'linux') or (python_full_version < '3.10' and sys_platform != 'linux' and sys_platform != 'win32')" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/16/93/b9702c68d5dedfd6b91c76268a89091ff681b8e3b9a026e7919b6ab730a4/dmgbuild-1.6.5.tar.gz", hash = "sha256:c5cbeec574bad84a324348aa7c36d4aada04568c99fb104dec18d22ba3259f45", size = 36848, upload-time = "2025-03-21T01:04:10.093Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/48/4a/b16f1081f69592c6dba92baa4d3ca7a5685091a0f840f4b5e01be41aaf84/dmgbuild-1.6.5-py3-none-any.whl", hash = "sha256:e19ab8c5e8238e6455d9ccb9175817be7fd62b9cdd1eef20f63dd88e0ec469ab", size = 34906, upload-time = "2025-03-21T01:04:08.044Z" },
+]
+
+[[package]]
+name = "dmgbuild"
+version = "1.6.6"
+source = { registry = "https://pypi.org/simple" }
+resolution-markers = [
+    "python_full_version >= '3.10' and sys_platform == 'darwin'",
+]
+dependencies = [
+    { name = "ds-store", version = "1.3.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.10' and sys_platform == 'darwin'" },
+    { name = "mac-alias", version = "2.2.3", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.10' and sys_platform == 'darwin'" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/86/2d/b7c29da855b4953acf298b724d6911e65f901313372a1402805745da48ef/dmgbuild-1.6.6.tar.gz", hash = "sha256:72ce448feec6aa24dba5e777c44a0397b7ae1b4d86fb4dd537e44cf1653c03ec", size = 36923, upload-time = "2025-12-04T01:00:21.42Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/ce/8d/b4009b8db76bb7af3a2df0221a503741053548bbaacfdf239a1515c093a2/dmgbuild-1.6.6-py3-none-any.whl", hash = "sha256:701e83b06155c189194408fab0cb39a6b85a0be8f4d052f6ac69a7507d578026", size = 34898, upload-time = "2025-12-04T01:00:19.77Z" },
 ]
 
 [[package]]
@@ -516,12 +536,31 @@ wheels = [
 name = "ds-store"
 version = "1.3.1"
 source = { registry = "https://pypi.org/simple" }
+resolution-markers = [
+    "python_full_version < '3.10' and platform_machine == 'arm64' and sys_platform == 'darwin'",
+    "(python_full_version < '3.10' and platform_machine != 'arm64' and sys_platform == 'darwin') or (python_full_version < '3.10' and platform_machine != 'aarch64' and sys_platform == 'linux') or (python_full_version < '3.10' and sys_platform != 'darwin' and sys_platform != 'linux' and sys_platform != 'win32')",
+]
 dependencies = [
-    { name = "mac-alias", marker = "(python_full_version < '3.10' and platform_machine != 'aarch64' and sys_platform == 'linux') or (python_full_version < '3.10' and sys_platform != 'linux' and sys_platform != 'win32') or sys_platform == 'darwin'" },
+    { name = "mac-alias", version = "2.2.2", source = { registry = "https://pypi.org/simple" }, marker = "(python_full_version < '3.10' and platform_machine != 'aarch64' and sys_platform == 'linux') or (python_full_version < '3.10' and sys_platform != 'linux' and sys_platform != 'win32')" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/7c/36/902259bf7ddb142dd91cf7a9794aa15e1a8ab985974f90375e5d3463b441/ds_store-1.3.1.tar.gz", hash = "sha256:c27d413caf13c19acb85d75da4752673f1f38267f9eb6ba81b3b5aa99c2d207c", size = 27052, upload-time = "2022-11-24T06:13:34.376Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/47/bf/b1c10362a0d670ee8ae086d92c3ab795fca2a927e4ff25e7cd15224d3863/ds_store-1.3.1-py3-none-any.whl", hash = "sha256:fbacbb0bd5193ab3e66e5a47fff63619f15e374ffbec8ae29744251a6c8f05b5", size = 16268, upload-time = "2022-11-24T06:13:30.797Z" },
+]
+
+[[package]]
+name = "ds-store"
+version = "1.3.2"
+source = { registry = "https://pypi.org/simple" }
+resolution-markers = [
+    "python_full_version >= '3.10' and sys_platform == 'darwin'",
+]
+dependencies = [
+    { name = "mac-alias", version = "2.2.3", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.10' and sys_platform == 'darwin'" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/e9/11/971e423750b219ec3f3a7f27dfb9bd74aef3d3fdfee6cc7df10a0217b5cd/ds_store-1.3.2.tar.gz", hash = "sha256:e4da49df901123481a85b9250945f2aac054a0f0c29352cd2cc858c536cdd364", size = 26574, upload-time = "2025-12-04T00:52:46.178Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/03/83/7135cae57531edc070c73ea92b9129be0714323f5face6e15f415ca8ef52/ds_store-1.3.2-py3-none-any.whl", hash = "sha256:3b37332d9f8c18ff04c385d2933b66a1d84950071364f94bfc5f5a3ab1fb361e", size = 15928, upload-time = "2025-12-04T00:52:44.528Z" },
 ]
 
 [[package]]
@@ -1048,9 +1087,25 @@ wheels = [
 name = "mac-alias"
 version = "2.2.2"
 source = { registry = "https://pypi.org/simple" }
+resolution-markers = [
+    "python_full_version < '3.10' and platform_machine == 'arm64' and sys_platform == 'darwin'",
+    "(python_full_version < '3.10' and platform_machine != 'arm64' and sys_platform == 'darwin') or (python_full_version < '3.10' and platform_machine != 'aarch64' and sys_platform == 'linux') or (python_full_version < '3.10' and sys_platform != 'darwin' and sys_platform != 'linux' and sys_platform != 'win32')",
+]
 sdist = { url = "https://files.pythonhosted.org/packages/ea/a3/83b50f620d318a98363dc7e701fb94856eaaecc472e23a89ac625697b3ea/mac_alias-2.2.2.tar.gz", hash = "sha256:c99c728eb512e955c11f1a6203a0ffa8883b26549e8afe68804031aa5da856b7", size = 34073, upload-time = "2022-12-06T00:37:47.779Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/39/a1/4136777ed6a56df83e7c748ad28892f0672cbbcdc3b3d15a57df6ba72443/mac_alias-2.2.2-py3-none-any.whl", hash = "sha256:504ab8ac546f35bbd75ad014d6ad977c426660aa721f2cd3acf3dc2f664141bd", size = 21220, upload-time = "2022-12-06T00:37:46.025Z" },
+]
+
+[[package]]
+name = "mac-alias"
+version = "2.2.3"
+source = { registry = "https://pypi.org/simple" }
+resolution-markers = [
+    "python_full_version >= '3.10' and sys_platform == 'darwin'",
+]
+sdist = { url = "https://files.pythonhosted.org/packages/fb/c9/2c28b2ea968a6bbc4327c0360b746fda3757cb11cf287d00078cf81a27e2/mac_alias-2.2.3.tar.gz", hash = "sha256:1c7fa367687d66979f2ce4d1a8b2716cf1c9fb811741cab3cf3ca356555c2beb", size = 33860, upload-time = "2025-12-04T00:58:13.679Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/13/20/103f4e4a6e8a524ea92eee7d938c6133d0b129aa999a50f8648ad126c728/mac_alias-2.2.3-py3-none-any.whl", hash = "sha256:7362b521d2132ef92f606a37abfed5fcd849ceb2f28b6f9743e014b02af92f0d", size = 21127, upload-time = "2025-12-04T00:58:11.931Z" },
 ]
 
 [[package]]
@@ -1712,7 +1767,8 @@ dependencies = [
 [package.optional-dependencies]
 building = [
     { name = "bdist-mpkg", marker = "sys_platform == 'darwin'" },
-    { name = "dmgbuild", marker = "sys_platform == 'darwin'" },
+    { name = "dmgbuild", version = "1.6.5", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.10' and sys_platform == 'darwin'" },
+    { name = "dmgbuild", version = "1.6.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.10' and sys_platform == 'darwin'" },
     { name = "py2app", marker = "sys_platform == 'darwin'" },
 ]
 docs = [
@@ -4717,7 +4773,7 @@ resolution-markers = [
     "python_full_version >= '3.10' and sys_platform == 'win32'",
 ]
 dependencies = [
-    { name = "blosc2", version = "3.12.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.10'" },
+    { name = "blosc2", version = "3.12.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.10'" },
     { name = "numexpr", version = "2.14.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.10'" },
     { name = "numpy", marker = "python_full_version >= '3.10'" },
     { name = "packaging", marker = "python_full_version >= '3.10'" },
