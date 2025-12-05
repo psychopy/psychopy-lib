@@ -150,7 +150,7 @@ wheels = [
 
 [[package]]
 name = "blosc2"
-version = "3.12.1"
+version = "3.12.2"
 source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
     "python_full_version >= '3.10' and sys_platform == 'darwin'",
@@ -167,13 +167,13 @@ dependencies = [
     { name = "py-cpuinfo", marker = "python_full_version >= '3.10' and platform_machine != 'wasm32'" },
     { name = "requests", marker = "python_full_version >= '3.10'" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/d6/16/8acb3bbfc5d5411bf3b352d0d1dc468f9249aab5f7ba22a39ab259b61db1/blosc2-3.12.1.tar.gz", hash = "sha256:61e316a00a3f860f2f18fd05ce633a428cd49aed0f0b2f51058b8f931f8dc511", size = 3974636, upload-time = "2025-12-03T16:17:51.453Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/07/14/f5287028e013d16ab6dadc06b27fd5cb37fa9992c6fed4918ba8bb9889be/blosc2-3.12.2.tar.gz", hash = "sha256:a42f915c4b73e788bdc205c5473dcd8dd7a0290693408be471391d0ca65fe39f", size = 3974613, upload-time = "2025-12-04T11:43:31.426Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/c3/99/c66f760aac1f3e3326b5c2a5fb31a701afa7cb3a5a0a186150a69cf4bf49/blosc2-3.12.1-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:666689319972a78c6f599cc0c959c4931f8b3e527556f01d8eb53906377dd997", size = 3958844, upload-time = "2025-12-03T16:16:59.139Z" },
-    { url = "https://files.pythonhosted.org/packages/4d/23/0bc058e807cee3d14a82c81425431e0aefb140299bc09d4b59dcb31a4d60/blosc2-3.12.1-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:6f3877be11dda47c034e74567e9c479cae5768e2cf31b0dc670ed544b3cf50bd", size = 3460673, upload-time = "2025-12-03T16:17:02.071Z" },
-    { url = "https://files.pythonhosted.org/packages/b9/6d/5b64005f3a8dd0c2eb7da654f2fa1313a3ac91be4550c5fa26dc77f51e12/blosc2-3.12.1-cp310-cp310-manylinux2014_aarch64.manylinux_2_17_aarch64.whl", hash = "sha256:efb2b893442bd154caefaf5aa76d5c78b1254e9b5a6ff8b05a37136fd02b6d9a", size = 4378831, upload-time = "2025-12-03T16:17:04.443Z" },
-    { url = "https://files.pythonhosted.org/packages/de/d6/d69f7ca9463fe7da9d6b4e3ca3bc9a45b14dbb3cd298c2c2326f0bcedaeb/blosc2-3.12.1-cp310-cp310-manylinux2014_x86_64.manylinux_2_17_x86_64.whl", hash = "sha256:fd572a3fcffaf570ded747f3f50586e6ac0c42ffc8ce59306a85a45dc985ef52", size = 4513712, upload-time = "2025-12-03T16:17:06.574Z" },
-    { url = "https://files.pythonhosted.org/packages/64/e3/46f9c349b3a50bf52ccd69367741459c4561929bc4db10c5af35eb652e4f/blosc2-3.12.1-cp310-cp310-win_amd64.whl", hash = "sha256:f418dc5fb59c265f41615435a806239ad70c89f90a7d38426c803b4c5c67c05e", size = 2282021, upload-time = "2025-12-03T16:17:07.86Z" },
+    { url = "https://files.pythonhosted.org/packages/38/d3/cf168f10d53b70762e2c0a1bca5fd125b0ca96a63f2c0b8b3ce1c4dd2859/blosc2-3.12.2-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:8a029e81341ecff6a6ffb978576989b4181ed9828484f37da33bdaec78417aa5", size = 3958786, upload-time = "2025-12-04T11:42:46.117Z" },
+    { url = "https://files.pythonhosted.org/packages/57/3d/853f04bfed2c9dc90a33cc2df7e80c06b708f4ef0e028624a0d948a584e7/blosc2-3.12.2-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:7d6c474246b08867d4ec08eb2172de8e57a33d9b800a4d1bdab9968d13018633", size = 3460665, upload-time = "2025-12-04T11:42:48.133Z" },
+    { url = "https://files.pythonhosted.org/packages/d0/0d/f500f07469494f8931fa9538b3a0da68ba63eedd043a827f8a6b8d2f711e/blosc2-3.12.2-cp310-cp310-manylinux2014_aarch64.manylinux_2_17_aarch64.whl", hash = "sha256:248860b909fb1439c4a79e844eec618327b1404bfc7ef2d8b4c25e2bf063bb01", size = 4378812, upload-time = "2025-12-04T11:42:49.987Z" },
+    { url = "https://files.pythonhosted.org/packages/a8/73/680aaee6611f3225e473a2f915883568d6e76a0e790e951f7ef9cb9f8c9e/blosc2-3.12.2-cp310-cp310-manylinux2014_x86_64.manylinux_2_17_x86_64.whl", hash = "sha256:2e755377b241df0005006d96467d02b985c0fc3cca8c3a4ecf503e0207141f4a", size = 4513720, upload-time = "2025-12-04T11:42:51.679Z" },
+    { url = "https://files.pythonhosted.org/packages/c2/fc/764772835f22befbb6c7d9ef83d42561e15c94ba87f28958f8a49a3907e8/blosc2-3.12.2-cp310-cp310-win_amd64.whl", hash = "sha256:e85e3a20039181e9b1ad7a47cce5b263a3d2d94d2436cb4c805b8ea163d79903", size = 2282056, upload-time = "2025-12-04T11:42:52.972Z" },
 ]
 
 [[package]]
@@ -734,7 +734,8 @@ version = "25.5.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "cffi", marker = "platform_python_implementation == 'CPython' and sys_platform == 'win32'" },
-    { name = "greenlet", marker = "platform_python_implementation == 'CPython'" },
+    { name = "greenlet", version = "3.2.4", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.10' and platform_python_implementation == 'CPython'" },
+    { name = "greenlet", version = "3.3.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.10' and platform_python_implementation == 'CPython'" },
     { name = "zope-event" },
     { name = "zope-interface", version = "8.0.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.10'" },
     { name = "zope-interface", version = "8.1.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.10'" },
@@ -774,6 +775,12 @@ wheels = [
 name = "greenlet"
 version = "3.2.4"
 source = { registry = "https://pypi.org/simple" }
+resolution-markers = [
+    "python_full_version < '3.10' and platform_machine == 'arm64' and sys_platform == 'darwin'",
+    "python_full_version < '3.10' and platform_machine == 'aarch64' and sys_platform == 'linux'",
+    "(python_full_version < '3.10' and platform_machine != 'arm64' and sys_platform == 'darwin') or (python_full_version < '3.10' and platform_machine != 'aarch64' and sys_platform == 'linux') or (python_full_version < '3.10' and sys_platform != 'darwin' and sys_platform != 'linux' and sys_platform != 'win32')",
+    "python_full_version < '3.10' and sys_platform == 'win32'",
+]
 sdist = { url = "https://files.pythonhosted.org/packages/03/b8/704d753a5a45507a7aab61f18db9509302ed3d0a27ac7e0359ec2905b1a6/greenlet-3.2.4.tar.gz", hash = "sha256:0dca0d95ff849f9a364385f36ab49f50065d76964944638be9691e1832e9f86d", size = 188260, upload-time = "2025-08-07T13:24:33.51Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/7d/ed/6bfa4109fcb23a58819600392564fea69cdc6551ffd5e69ccf1d52a40cbc/greenlet-3.2.4-cp310-cp310-macosx_11_0_universal2.whl", hash = "sha256:8c68325b0d0acf8d91dde4e6f930967dd52a5302cd4062932a6b2e7c2969f47c", size = 271061, upload-time = "2025-08-07T13:17:15.373Z" },
@@ -799,6 +806,28 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/9b/74/4bc433f91d0d09a1c22954a371f9df928cb85e72640870158853a83415e5/greenlet-3.2.4-cp39-cp39-musllinux_1_2_x86_64.whl", hash = "sha256:52206cd642670b0b320a1fd1cbfd95bca0e043179c1d8a045f2c6109dfe973be", size = 1609685, upload-time = "2025-11-04T12:42:29.242Z" },
     { url = "https://files.pythonhosted.org/packages/89/48/a5dc74dde38aeb2b15d418cec76ed50e1dd3d620ccda84d8199703248968/greenlet-3.2.4-cp39-cp39-win32.whl", hash = "sha256:65458b409c1ed459ea899e939f0e1cdb14f58dbc803f2f93c5eab5694d32671b", size = 281400, upload-time = "2025-08-07T14:02:20.263Z" },
     { url = "https://files.pythonhosted.org/packages/e5/44/342c4591db50db1076b8bda86ed0ad59240e3e1da17806a4cf10a6d0e447/greenlet-3.2.4-cp39-cp39-win_amd64.whl", hash = "sha256:d2e685ade4dafd447ede19c31277a224a239a0a1a4eca4e6390efedf20260cfb", size = 298533, upload-time = "2025-08-07T13:56:34.168Z" },
+]
+
+[[package]]
+name = "greenlet"
+version = "3.3.0"
+source = { registry = "https://pypi.org/simple" }
+resolution-markers = [
+    "python_full_version >= '3.10' and sys_platform == 'darwin'",
+    "python_full_version >= '3.10' and platform_machine == 'aarch64' and sys_platform == 'linux'",
+    "(python_full_version >= '3.10' and platform_machine != 'aarch64' and sys_platform == 'linux') or (python_full_version >= '3.10' and sys_platform != 'darwin' and sys_platform != 'linux' and sys_platform != 'win32')",
+    "python_full_version >= '3.10' and sys_platform == 'win32'",
+]
+sdist = { url = "https://files.pythonhosted.org/packages/c7/e5/40dbda2736893e3e53d25838e0f19a2b417dfc122b9989c91918db30b5d3/greenlet-3.3.0.tar.gz", hash = "sha256:a82bb225a4e9e4d653dd2fb7b8b2d36e4fb25bc0165422a11e48b88e9e6f78fb", size = 190651, upload-time = "2025-12-04T14:49:44.05Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/32/6a/33d1702184d94106d3cdd7bfb788e19723206fce152e303473ca3b946c7b/greenlet-3.3.0-cp310-cp310-macosx_11_0_universal2.whl", hash = "sha256:6f8496d434d5cb2dce025773ba5597f71f5410ae499d5dd9533e0653258cdb3d", size = 273658, upload-time = "2025-12-04T14:23:37.494Z" },
+    { url = "https://files.pythonhosted.org/packages/d6/b7/2b5805bbf1907c26e434f4e448cd8b696a0b71725204fa21a211ff0c04a7/greenlet-3.3.0-cp310-cp310-manylinux_2_24_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:b96dc7eef78fd404e022e165ec55327f935b9b52ff355b067eb4a0267fc1cffb", size = 574810, upload-time = "2025-12-04T14:50:04.154Z" },
+    { url = "https://files.pythonhosted.org/packages/94/38/343242ec12eddf3d8458c73f555c084359883d4ddc674240d9e61ec51fd6/greenlet-3.3.0-cp310-cp310-manylinux_2_24_ppc64le.manylinux_2_28_ppc64le.whl", hash = "sha256:73631cd5cccbcfe63e3f9492aaa664d278fda0ce5c3d43aeda8e77317e38efbd", size = 586248, upload-time = "2025-12-04T14:57:39.35Z" },
+    { url = "https://files.pythonhosted.org/packages/f0/d0/0ae86792fb212e4384041e0ef8e7bc66f59a54912ce407d26a966ed2914d/greenlet-3.3.0-cp310-cp310-manylinux_2_24_s390x.manylinux_2_28_s390x.whl", hash = "sha256:b299a0cb979f5d7197442dccc3aee67fce53500cd88951b7e6c35575701c980b", size = 597403, upload-time = "2025-12-04T15:07:10.831Z" },
+    { url = "https://files.pythonhosted.org/packages/b6/a8/15d0aa26c0036a15d2659175af00954aaaa5d0d66ba538345bd88013b4d7/greenlet-3.3.0-cp310-cp310-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:7dee147740789a4632cace364816046e43310b59ff8fb79833ab043aefa72fd5", size = 586910, upload-time = "2025-12-04T14:25:59.705Z" },
+    { url = "https://files.pythonhosted.org/packages/e1/9b/68d5e3b7ccaba3907e5532cf8b9bf16f9ef5056a008f195a367db0ff32db/greenlet-3.3.0-cp310-cp310-musllinux_1_2_aarch64.whl", hash = "sha256:39b28e339fc3c348427560494e28d8a6f3561c8d2bcf7d706e1c624ed8d822b9", size = 1547206, upload-time = "2025-12-04T15:04:21.027Z" },
+    { url = "https://files.pythonhosted.org/packages/66/bd/e3086ccedc61e49f91e2cfb5ffad9d8d62e5dc85e512a6200f096875b60c/greenlet-3.3.0-cp310-cp310-musllinux_1_2_x86_64.whl", hash = "sha256:b3c374782c2935cc63b2a27ba8708471de4ad1abaa862ffdb1ef45a643ddbb7d", size = 1613359, upload-time = "2025-12-04T14:27:26.548Z" },
+    { url = "https://files.pythonhosted.org/packages/f4/6b/d4e73f5dfa888364bbf02efa85616c6714ae7c631c201349782e5b428925/greenlet-3.3.0-cp310-cp310-win_amd64.whl", hash = "sha256:b49e7ed51876b459bd645d83db257f0180e345d3f768a35a85437a24d5a49082", size = 300740, upload-time = "2025-12-04T14:47:52.773Z" },
 ]
 
 [[package]]
@@ -4773,7 +4802,7 @@ resolution-markers = [
     "python_full_version >= '3.10' and sys_platform == 'win32'",
 ]
 dependencies = [
-    { name = "blosc2", version = "3.12.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.10'" },
+    { name = "blosc2", version = "3.12.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.10'" },
     { name = "numexpr", version = "2.14.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.10'" },
     { name = "numpy", marker = "python_full_version >= '3.10'" },
     { name = "packaging", marker = "python_full_version >= '3.10'" },
