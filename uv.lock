@@ -2129,14 +2129,18 @@ wheels = [
 
 [[package]]
 name = "pylsl"
-version = "1.18.0"
+version = "1.18.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "numpy" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/87/a3/e63d28720602539fcbab1608a5c399f4510a8654842c225ba09533987374/pylsl-1.18.0.tar.gz", hash = "sha256:ea24aac0c126910526aa49fd7a5cd409c8a005277b7612554bf0599a63369e36", size = 41000, upload-time = "2026-01-13T05:03:20.663Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/2b/e3/150c0e54f94c42320046488e0b521fdf5f31c74c1690cb33ad65c2059f2a/pylsl-1.18.1.tar.gz", hash = "sha256:a422d379f22e72ab94c65d815d420c9961dbc80064240062a4cbc72ba885f419", size = 41202, upload-time = "2026-01-14T14:56:44.161Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/b7/2b/81ff0843124e553e22f4e0d34b3db6ae2e9e4e8235e67ec896ed47ada25f/pylsl-1.18.0-py2.py3-none-manylinux_2_35_x86_64.whl", hash = "sha256:f656ddef3d02d20fcae4cdd4e4ae8412ed4e289f0b249e895d54a5c3a009c954", size = 982284, upload-time = "2026-01-13T05:03:19.034Z" },
+    { url = "https://files.pythonhosted.org/packages/50/a3/6500a0b926ae84208db1d17004cf3903c813ecf0889d16e9446af7279cd2/pylsl-1.18.1-py2.py3-none-any.whl", hash = "sha256:61a2eafe1b72dacc1d0bcf0f0fa2ba571d3183e55096b2bf37d3412b04cf33dc", size = 42305, upload-time = "2026-01-14T14:56:45.118Z" },
+    { url = "https://files.pythonhosted.org/packages/b5/ec/4df5b087acc0cb84f0b32804006177e2f96feba539659d0b1bd05f7cd6c2/pylsl-1.18.1-py2.py3-none-macosx_11_0_universal2.whl", hash = "sha256:435346577a8e518450bf9babebcc8bf16973a6855a1fd083f1010dd6647d4e16", size = 663590, upload-time = "2026-01-14T14:56:38.857Z" },
+    { url = "https://files.pythonhosted.org/packages/32/16/f83685655ae474e8096271ec90cb71bc7fa27a25d916a25196b8a6658789/pylsl-1.18.1-py2.py3-none-manylinux_2_35_x86_64.whl", hash = "sha256:be1363b0470b4763731dbb3973150ae9fd3102666a2df725f866213ce0dd1776", size = 982295, upload-time = "2026-01-14T14:56:42.036Z" },
+    { url = "https://files.pythonhosted.org/packages/b2/a5/6a534763ec6e4b608e3d8336c876bef3933e85f661c89f5478448210418e/pylsl-1.18.1-py2.py3-none-win32.whl", hash = "sha256:e1c3af9d1ec1e9c849316fd6abdad99ec3b33d81de7d7192b5edaa6c408c5819", size = 271745, upload-time = "2026-01-14T14:56:40.389Z" },
+    { url = "https://files.pythonhosted.org/packages/e6/d8/9d3ff8f00b228f3f41fbfaef2ae25dbc8f285d203051cc9d87b6c1365b4c/pylsl-1.18.1-py2.py3-none-win_amd64.whl", hash = "sha256:ea2418f54a8cd0635960525ff4b8d4d388384dfd95cd82efd056297e46879944", size = 306038, upload-time = "2026-01-14T14:56:43.116Z" },
 ]
 
 [[package]]
