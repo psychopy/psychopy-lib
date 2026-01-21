@@ -5,8 +5,8 @@
 """
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2025 Open Science Tools Ltd.
-# Distributed under the terms of the MIT License.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Distributed under the terms of the GNU General Public License (GPL).
 
 from pathlib import Path
 from statistics import mean
@@ -30,21 +30,19 @@ except ImportError:
 import copy
 import sys
 import os
-import ctypes
 from psychopy import logging
 
 # tools must only be imported *after* event or MovieStim breaks on win32
 # (JWP has no idea why!)
 from psychopy.tools.arraytools import val2array
 from psychopy.tools.attributetools import (attributeSetter, logAttrib,
-                                           setAttribute, AttributeGetSetMixin)
+                                           setAttribute)
 from psychopy.tools.monitorunittools import (cm2pix, deg2pix, pix2cm,
                                              pix2deg, convertToPix)
 from psychopy.visual.helpers import (pointInPolygon, polygonsOverlap,
                                      setColor, findImageFile)
 from psychopy.tools.typetools import float_uint8
 from psychopy.tools.arraytools import makeRadialMatrix, createLumPattern
-from psychopy.event import Mouse
 from psychopy.tools.colorspacetools import dkl2rgb, lms2rgb  # pylint: disable=W0611
 
 from . import globalVars
@@ -81,7 +79,7 @@ mixin(s) as needed to add functionality.
 """
 
 
-class MinimalStim(AttributeGetSetMixin):
+class MinimalStim:
     """Non-visual methods and attributes for BaseVisualStim and RatingScale.
 
     Includes: name, autoDraw, autoLog, status, __str__
@@ -94,7 +92,6 @@ class MinimalStim(AttributeGetSetMixin):
             self.__dict__['name'] = 'unnamed %s' % self.__class__.__name__
         self.status = NOT_STARTED
         self.autoLog = autoLog
-        self.validator = None
         super(MinimalStim, self).__init__()
         if self.autoLog:
             msg = ("%s is calling MinimalStim.__init__() with autolog=True. "
@@ -637,8 +634,6 @@ class ForeColorMixin(BaseColorMixin, LegacyForeColorMixin):
         if not self._foreColor:
             self._foreColor = Color()
             logging.error(f"'{value}' is not a valid {self.colorSpace} color")
-        # Handle logging
-        logAttrib(self, log=None, attrib="foreColor", value=value)
 
     @property
     def color(self):
@@ -649,27 +644,15 @@ class ForeColorMixin(BaseColorMixin, LegacyForeColorMixin):
     def color(self, value):
         self.foreColor = value
 
-    @property
-    def fontColor(self):
-        """Alternative way of setting `foreColor`."""
-        return self.foreColor
-
-    @fontColor.setter
-    def fontColor(self, value):
-        self.foreColor = value
-
     def setForeColor(self, color, colorSpace=None, operation='', log=None):
         """Hard setter for foreColor, allows suppression of the log message,
         simultaneous colorSpace setting and calls update methods.
         """
-        setColor(obj=self, colorAttrib="foreColor", color=color, colorSpace=colorSpace or self.colorSpace, operation=operation, log=log)
+        setColor(obj=self, colorAttrib="foreColor", color=color, colorSpace=colorSpace or self.colorSpace, operation=operation)
         # Trigger color update for components like Textbox which have different behaviours for a hard setter
         self.updateColors()
 
     def setColor(self, color, colorSpace=None, operation='', log=None):
-        self.setForeColor(color, colorSpace=colorSpace, operation=operation, log=log)
-
-    def setFontColor(self, color, colorSpace=None, operation='', log=None):
         self.setForeColor(color, colorSpace=colorSpace, operation=operation, log=log)
 
 
@@ -696,8 +679,6 @@ class FillColorMixin(BaseColorMixin, LegacyFillColorMixin):
             # If given an invalid color, set as transparent and log error
             self._fillColor = Color()
             logging.error(f"'{value}' is not a valid {self.colorSpace} color")
-        # Handle logging
-        logAttrib(self, log=None, attrib="fillColor", value=value)
 
     @property
     def backColor(self):
@@ -708,28 +689,16 @@ class FillColorMixin(BaseColorMixin, LegacyFillColorMixin):
     def backColor(self, value):
         self.fillColor = value
 
-    @property
-    def backgroundColor(self):
-        """Alternative way of setting fillColor"""
-        return self.fillColor
-
-    @backgroundColor.setter
-    def backgroundColor(self, value):
-        self.fillColor = value
-
     def setFillColor(self, color, colorSpace=None, operation='', log=None):
         """Hard setter for fillColor, allows suppression of the log message,
         simultaneous colorSpace setting and calls update methods.
         """
-        setColor(obj=self, colorAttrib="fillColor", color=color, colorSpace=colorSpace or self.colorSpace, operation=operation, log=log)
+        setColor(obj=self, colorAttrib="fillColor", color=color, colorSpace=colorSpace or self.colorSpace, operation=operation)
         # Trigger color update for components like Textbox which have different behaviours for a hard setter
         self.updateColors()
 
     def setBackColor(self, color, colorSpace=None, operation='', log=None):
-        self.setFillColor(color, colorSpace=colorSpace, operation=operation, log=log)
-
-    def setBackgroundColor(self, color, colorSpace=None, operation='', log=None):
-        self.setFillColor(color, colorSpace=colorSpace, operation=operation, log=log)
+        self.setFillColor(color, colorSpace=None, operation='', log=None)
 
 
 class BorderColorMixin(BaseColorMixin, LegacyBorderColorMixin):
@@ -751,9 +720,6 @@ class BorderColorMixin(BaseColorMixin, LegacyBorderColorMixin):
             self._borderColor = Color()
             logging.error(f"'{value}' is not a valid {self.colorSpace} color")
 
-        # Handle logging
-        logAttrib(self, log=None, attrib="borderColor", value=value)
-
     @property
     def lineColor(self):
         """Alternative way of setting `borderColor`."""
@@ -767,28 +733,12 @@ class BorderColorMixin(BaseColorMixin, LegacyBorderColorMixin):
         """Hard setter for `fillColor`, allows suppression of the log message,
         simultaneous colorSpace setting and calls update methods.
         """
-        setColor(obj=self, colorAttrib="borderColor", color=color, colorSpace=colorSpace or self.colorSpace, operation=operation, log=log)
+        setColor(obj=self, colorAttrib="borderColor", color=color, colorSpace=colorSpace or self.colorSpace, operation=operation)
         # Trigger color update for components like Textbox which have different behaviours for a hard setter
         self.updateColors()
 
     def setLineColor(self, color, colorSpace=None, operation='', log=None):
         self.setBorderColor(color, colorSpace=None, operation='', log=None)
-
-    @attributeSetter
-    def borderWidth(self, value):
-        self.__dict__['borderWidth'] = value
-        return self.__dict__['borderWidth']
-
-    def setBorderWidth(self, newWidth, operation='', log=None):
-        setAttribute(self, 'borderWidth', newWidth, log, operation)
-
-    @attributeSetter
-    def lineWidth(self, value):
-        self.__dict__['borderWidth'] = value
-        return self.__dict__['borderWidth']
-
-    def setLineWidth(self, newWidth, operation='', log=None):
-        setAttribute(self, 'lineWidth', newWidth, log, operation)
 
 
 class ColorMixin(ForeColorMixin, FillColorMixin, BorderColorMixin):
@@ -958,40 +908,38 @@ class TextureMixin:
 
     Could move visual.helpers.setTexIfNoShaders() into here.
 
+    Parameters
+    ----------
+    tex : Any
+        Texture data. Value can be anything that resembles image data.
+    id : int or :class:`~pyglet.gl.GLint`
+        Texture ID.
+    pixFormat : :class:`~pyglet.gl.GLenum` or int
+        Pixel format to use, values can be `GL_ALPHA` or `GL_RGB`.
+    stim : Any
+        Stimulus object using the texture.
+    res : int
+        The resolution of the texture (unless a bitmap image is used).
+    maskParams : dict or None
+        Additional parameters to configure the mask used with this texture.
+    forcePOW2 : bool
+        Force the texture to be stored in a square memory area. For grating
+        stimuli (anything that needs multiple cycles) `forcePOW2` should be
+        set to be `True`. Otherwise the wrapping of the texture will not
+        work.
+    dataType : class:`~pyglet.gl.GLenum`, int or None
+        None, `GL_UNSIGNED_BYTE`, `GL_FLOAT`. Only affects image files
+        (numpy arrays will be float).
+    wrapping : bool
+        Enable wrapping of the texture. A texture will be set to repeat (or
+        tile).
+
     """
     def _createTexture(self, tex, id, pixFormat, stim, res=128, maskParams=None,
                        forcePOW2=True, dataType=None, wrapping=True):
-        """Create a new OpenGL 2D image texture.
-
-        Parameters
-        ----------
-        tex : Any
-            Texture data. Value can be anything that resembles image data.
-        id : int or :class:`~pyglet.gl.GLint`
-            Texture ID.
-        pixFormat : :class:`~pyglet.gl.GLenum` or int
-            Pixel format to use, values can be `GL_ALPHA` or `GL_RGB`.
-        stim : Any
-            Stimulus object using the texture.
-        res : int
-            The resolution of the texture (unless a bitmap image is used).
-        maskParams : dict or None
-            Additional parameters to configure the mask used with this texture.
-        forcePOW2 : bool
-            Force the texture to be stored in a square memory area. For grating
-            stimuli (anything that needs multiple cycles) `forcePOW2` should be
-            set to be `True`. Otherwise the wrapping of the texture will not
-            work.
-        dataType : class:`~pyglet.gl.GLenum`, int or None
-            None, `GL_UNSIGNED_BYTE`, `GL_FLOAT`. Only affects image files
-            (numpy arrays will be float).
-        wrapping : bool
-            Enable wrapping of the texture. A texture will be set to repeat (or
-            tile).
-        """
 
         # transform all variants of `None` to that, simplifies conditions below
-        if isinstance(tex, str) and tex in ["none", "None", "color"]:
+        if tex in ["none", "None", "color"]:
             tex = None
 
         # Create an intensity texture, ranging -1:1.0
@@ -1065,34 +1013,12 @@ class TextureMixin:
                 try:
                     im = Image.open(filename)
                     im = im.transpose(Image.FLIP_TOP_BOTTOM)
-                except IOError as err:
-                    msg = (
-                        "Found file '{}' ('{}'), but failed to load as an image. Reason: {}"
-                    ).format(filename, os.path.abspath(tex), err)
-                    logging.error(msg)
+                except IOError:
+                    msg = "Found file '%s', failed to load as an image"
+                    logging.error(msg % (filename))
                     logging.flush()
-                    raise IOError(msg)
-            elif hasattr(tex, 'getRecentVideoFrame'):  # camera or movie textures
-                # get an image to configure the initial texture store
-                if hasattr(tex, 'frameSize'):
-                    if tex.frameSize is None or tex.frameSize == (-1, -1):
-                        raise RuntimeError(
-                            "`Camera.frameSize` is not yet specified, cannot "
-                            "initialize texture!")
-                    self._origSize = frameSize = tex.frameSize
-                    # empty texture for initialization
-                    blankTexture = numpy.zeros(
-                        (frameSize[0] * frameSize[1] * 3), dtype=numpy.uint8)
-                    im = Image.frombuffer(
-                        'RGB',
-                        frameSize,
-                        blankTexture
-                    ).transpose(Image.FLIP_TOP_BOTTOM)
-                else:
-                    msg = "Failed to initialize texture from camera stream."
-                    logging.error(msg)
-                    logging.flush()
-                    raise AttributeError(msg)
+                    msg = "Found file '%s' [= %s], failed to load as an image"
+                    raise IOError(msg % (tex, os.path.abspath(tex)))
             else:
                 # can't be a file; maybe its an image already in memory?
                 try:
@@ -1156,12 +1082,12 @@ class TextureMixin:
                     stim.win.glVendor.startswith('nvidia')):
                 # nvidia under win/linux might not support 32bit float
                 # could use GL_LUMINANCE32F_ARB here but check shader code?
-                internalFormat = GL.GL_RGB16F
+                internalFormat = GL.GL_RGB16F_ARB
             else:
                 # we've got a mac or an ATI card and can handle
                 # 32bit float textures
                 # could use GL_LUMINANCE32F_ARB here but check shader code?
-                internalFormat = GL.GL_RGB32F
+                internalFormat = GL.GL_RGB32F_ARB
             # initialise data array as a float
             data = numpy.ones((intensity.shape[0], intensity.shape[1], 3),
                               numpy.float32)
@@ -1181,7 +1107,7 @@ class TextureMixin:
             data[:, :, 2] = intensity  # B
         elif pixFormat == GL.GL_RGB and dataType == GL.GL_FLOAT:
             # probably a custom rgb array or rgb image
-            internalFormat = GL.GL_RGB32F
+            internalFormat = GL.GL_RGB32F_ARB
             data = intensity
         elif pixFormat == GL.GL_RGB:
             # not wasLum, not useShaders  - an RGB bitmap with no shader
@@ -1204,33 +1130,9 @@ class TextureMixin:
                 pixFormat = GL.GL_RGBA
             if internalFormat == GL.GL_RGB:
                 internalFormat = GL.GL_RGBA
-            elif internalFormat == GL.GL_RGB32F:
-                internalFormat = GL.GL_RGBA32F
+            elif internalFormat == GL.GL_RGB32F_ARB:
+                internalFormat = GL.GL_RGBA32F_ARB
         texture = data.ctypes  # serialise
-
-        # Create the pixel buffer object which will serve as the texture memory
-        # store. First we compute the number of bytes used to store the texture.
-        # We need to determine the data type in use by the texture to do this.
-        if stim is not None and hasattr(stim, '_pixbuffID'):
-            if dataType == GL.GL_UNSIGNED_BYTE:
-                storageType = GL.GLubyte
-            elif dataType == GL.GL_FLOAT:
-                storageType = GL.GLfloat
-            else:
-                # raise waring or error? just default to `GLfloat` for now
-                storageType = GL.GLfloat
-
-            # compute buffer size
-            bufferSize = data.size * ctypes.sizeof(storageType)
-
-            # create the pixel buffer to access texture memory as an array
-            GL.glBindBuffer(GL.GL_PIXEL_UNPACK_BUFFER, stim._pixbuffID)
-            GL.glBufferData(
-                GL.GL_PIXEL_UNPACK_BUFFER,
-                bufferSize,
-                None,
-                GL.GL_STREAM_DRAW)  # one-way app -> GL
-            GL.glBindBuffer(GL.GL_PIXEL_UNPACK_BUFFER, 0)
 
         # bind the texture in openGL
         GL.glEnable(GL.GL_TEXTURE_2D)
@@ -1243,9 +1145,9 @@ class TextureMixin:
                 GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_T, GL.GL_REPEAT)
         else:
             GL.glTexParameteri(
-                GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_S, GL.GL_CLAMP_TO_BORDER)
+                GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_S, GL.GL_CLAMP)
             GL.glTexParameteri(
-                GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_T, GL.GL_CLAMP_TO_BORDER)
+                GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_T, GL.GL_CLAMP)
         # data from PIL/numpy is packed, but default for GL is 4 bytes
         GL.glPixelStorei(GL.GL_UNPACK_ALIGNMENT, 1)
         # important if using bits++ because GL_LINEAR
@@ -1253,8 +1155,11 @@ class TextureMixin:
         if interpolate:
             GL.glTexParameteri(
                 GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, GL.GL_LINEAR)
+            # GL_GENERATE_MIPMAP was only available from OpenGL 1.4
             GL.glTexParameteri(
                 GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR)
+            GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_GENERATE_MIPMAP,
+                               GL.GL_TRUE)
             GL.glTexImage2D(GL.GL_TEXTURE_2D, 0, internalFormat,
                             data.shape[1], data.shape[0], 0,
                             pixFormat, dataType, texture)
@@ -1266,10 +1171,9 @@ class TextureMixin:
             GL.glTexImage2D(GL.GL_TEXTURE_2D, 0, internalFormat,
                             data.shape[1], data.shape[0], 0,
                             pixFormat, dataType, texture)
-        GL.glGenerateMipmap(GL.GL_TEXTURE_2D)
 
-        # GL.glTexEnvi(GL.GL_TEXTURE_ENV, GL.GL_TEXTURE_ENV_MODE,
-        #              GL.GL_MODULATE)  # ?? do we need this - think not!
+        GL.glTexEnvi(GL.GL_TEXTURE_ENV, GL.GL_TEXTURE_ENV_MODE,
+                     GL.GL_MODULATE)  # ?? do we need this - think not!
         # unbind our texture so that it doesn't affect other rendering
         GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
 
@@ -1281,14 +1185,9 @@ class TextureMixin:
         As of v1.61.00 this is called automatically during garbage collection
         of your stimulus, so doesn't need calling explicitly by the user.
         """
-        if hasattr(self, '_texID'):
-            GL.glDeleteTextures(1, self._texID)
-
+        GL.glDeleteTextures(1, self._texID)
         if hasattr(self, '_maskID'):
             GL.glDeleteTextures(1, self._maskID)
-
-        if hasattr(self, '_pixBuffID'):
-            GL.glDeleteBuffers(1, self._pixBuffID)
 
     @attributeSetter
     def mask(self, value):
@@ -1408,16 +1307,7 @@ class WindowMixin:
 
     @pos.setter
     def pos(self, value):
-        # If no autolog attribute, assume silent
-        if hasattr(self, "autoLog"):
-            log = self.autoLog
-        else:
-            log = False
-        # Do attribute setting
-        setAttribute(self, '_pos', Position(value, units=self.units, win=self.win), log)
-
-        if hasattr(self, "_vertices"):
-            self._vertices._pos = self._pos
+        self._pos = Position(value, units=self.units, win=self.win)
 
         if hasattr(self, "_vertices"):
             self._vertices._pos = self._pos
@@ -1429,19 +1319,9 @@ class WindowMixin:
 
     @size.setter
     def size(self, value):
-        # Convert None to a 2x1 tuple
         if value is None:
             value = (None, None)
-        # If no autolog attribute, assume silent
-        if hasattr(self, "autoLog"):
-            log = self.autoLog
-        else:
-            log = False
-        # Do attribute setting
-        setAttribute(self, '_size', Size(value, units=self.units, win=self.win), log)
-
-        if hasattr(self, "_vertices"):
-            self._vertices._size = self._size
+        self._size = Size(value, units=self.units, win=self.win)
 
         if hasattr(self, "_vertices"):
             self._vertices._size = self._size
@@ -1660,139 +1540,6 @@ class WindowMixin:
         self._updateListShaders()
 
 
-class PointerMixin:
-    """Mixin class to handle mouse/pointer interaction with an object.
-
-    Attributes
-    ==========
-    clickable : bool
-        This attribute determines whether the stimulus can be clicked on and 
-        trigger the `onMouse` method. 
-
-    Methods
-    =======
-    containsPointer
-        Check if the mouse is within the stimulus boundaries.
-    doClickActions
-        Handle mouse interaction with the stimulus. This is called by the 
-        `Window` object each frame to update the stimulus based on mouse
-        interactions.
-
-    """ 
-    def containsPointer(self):
-        """Check if the mouse is within the stimulus boundaries.
-
-        Returns
-        -------
-        bool
-            Whether the mouse is within the stimulus.
-
-        """
-        if not isinstance(self.mouse, Mouse):
-            self.mouse = Mouse(visible=self.win.mouseVisible, win=self.win)
-
-        # Check if mouse is within vertices
-        return self.mouse.isPressedIn(self, buttons=[0])
-    
-    def doPointerActions(self):
-        """Handle mouse interaction with the stimulus.
-
-        This method should be called each frame to update the stimulus based
-        on mouse interactions.
-
-        """
-        # If the stimulus is clickable and the mouse is within the stimulus
-        if self.clickable and self.containsPointer():
-            if not hasattr(self, '_onMouse'):
-                return  
-                
-            self._onMouse()
-             
-    @attributeSetter
-    def clickable(self, value):
-        """Whether the stimulus can be clicked on.
-
-        If set to `True`, the stimulus will be checked for mouse clicks
-        and the `_onMouse` method will be called if the stimulus is clicked.
-
-        """
-        # if we don't have reference to a mouse, make one
-        if not isinstance(self.mouse, Mouse):
-            self.mouse = Mouse(visible=self.win.mouseVisible, win=self.win)
-
-        self.__dict__['clickable'] = value
-
-
-class DraggingMixin:
-    """
-    Mixin to give an object innate dragging behaviour.
-
-    Attributes
-    ==========
-    draggable : bool
-        Can this object be dragged by a Mouse click?
-    isDragging : bool
-        Is this object currently being dragged? (read only)
-
-    Methods
-    ==========
-    doDragging :
-        Call this each frame to make sure dragging behaviour happens. If
-        `autoDraw` and `draggable` are both True, then this will be called
-        automatically by the Window object on flip.
-    """
-    isDragging = False
-
-    def doDragging(self):
-        """
-        If this stimulus is draggable, do the necessary actions on a frame
-        flip to drag it.
-        """
-        # if not draggable, do nothing
-        if not self.draggable:
-            return
-        # if something else is already dragging, do nothing
-        if self.win.currentDraggable is not None and self.win.currentDraggable != self:
-            return
-        # if just clicked on, start dragging
-        self.isDragging = self.isDragging or self.mouse.isPressedIn(self, buttons=[0])
-        # if click is released, stop dragging
-        self.isDragging = self.isDragging and self.mouse.getPressed()[0]
-        # get relative mouse pos
-        rel = self.mouse.getRel()
-
-        # if dragging, do necessary updates
-        if self.isDragging:
-            # set as current draggable
-            self.win.currentDraggable = self
-            # get own pos in win units
-            pos = getattr(self._pos, self.win.units)
-            # add mouse movement to pos
-            setattr(
-                self._pos,
-                self.win.units,
-                pos + rel
-            )
-            # set pos
-            self.pos = getattr(self._pos, self.units)
-        else:
-            # remove as current draggable
-            self.win.currentDraggable = None
-
-    @attributeSetter
-    def draggable(self, value):
-        """
-        Can this stimulus be dragged by a mouse click?
-        """
-        # if we don't have reference to a mouse, make one
-        if not isinstance(self.mouse, Mouse):
-            self.mouse = Mouse(visible=self.win.mouseVisible, win=self.win)
-            # make sure it has an initial pos for rel pos comparisons
-            self.mouse.lastPos = self.mouse.getPos()
-        # store value
-        self.__dict__['draggable'] = value
-
-
 class BaseVisualStim(MinimalStim, WindowMixin, LegacyVisualMixin):
     """A template for a visual stimulus class.
 
@@ -1808,7 +1555,6 @@ class BaseVisualStim(MinimalStim, WindowMixin, LegacyVisualMixin):
         self.win = win
         self.units = units
         self._rotationMatrix = [[1., 0.], [0., 1.]]  # no rotation by default
-        self.mouse = None
         # self.autoLog is set at end of MinimalStim.__init__
         super(BaseVisualStim, self).__init__(name=name, autoLog=autoLog)
         if self.autoLog:
@@ -1824,10 +1570,17 @@ class BaseVisualStim(MinimalStim, WindowMixin, LegacyVisualMixin):
         (transparent). :ref:`Operations <attrib-operations>` are supported.
         Precisely how this is used depends on the :ref:`blendMode`.
         """
-        if not hasattr(self, "_opacity"):
+        alphas = []
+        if hasattr(self, '_foreColor'):
+            alphas.append(self._foreColor.alpha)
+        if hasattr(self, '_fillColor'):
+            alphas.append(self._fillColor.alpha)
+        if hasattr(self, '_borderColor'):
+            alphas.append(self._borderColor.alpha)
+        if alphas:
+            return mean(alphas)
+        else:
             return 1
-        
-        return self._opacity 
 
     @opacity.setter
     def opacity(self, value):
@@ -1835,7 +1588,6 @@ class BaseVisualStim(MinimalStim, WindowMixin, LegacyVisualMixin):
         if value is None:
             # If opacity is set to be None, this indicates that each color should handle its own opacity
             return
-        self._opacity = value
         if hasattr(self, '_foreColor'):
             if self._foreColor != None:
                 self._foreColor.alpha = value
@@ -1967,10 +1719,7 @@ class BaseVisualStim(MinimalStim, WindowMixin, LegacyVisualMixin):
         if units is None:
             # need to change this to create several units from one
             units = self.units
-        # If we have an original size (e.g. for an image or movie), then we CAN set size with None
-        useNone = hasattr(self, "origSize")
-        # Set attribute
-        setAttribute(self, 'size', val2array(newSize, useNone), log, operation)
+        setAttribute(self, 'size', val2array(newSize, False), log, operation)
 
     def setOri(self, newOri, operation='', log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
@@ -1998,7 +1747,7 @@ class BaseVisualStim(MinimalStim, WindowMixin, LegacyVisualMixin):
         """
         # format the input value as float vectors
         if type(val) in [tuple, list, numpy.ndarray]:
-            val = val2array(val, length=len(val))
+            val = val2array(val)
 
         # Set attribute with operation and log
         setAttribute(self, attrib, val, log, op)
@@ -2006,22 +1755,3 @@ class BaseVisualStim(MinimalStim, WindowMixin, LegacyVisualMixin):
         # For DotStim
         if attrib in ('nDots', 'coherence'):
             self.coherence = round(self.coherence * self.nDots) / self.nDots
-
-    @attributeSetter
-    def alphaThreshold(self, value):
-        """Threshold for alpha values.
-
-        If the alpha value of a pixel is below this threshold, the pixel will
-        be rejected (not drawn). This can be useful for creating a mask from
-        an image with an alpha channel. The default value is 0.0, which means
-        that no thresholding will be applied.
-
-        """
-        self.__dict__['alphaThreshold'] = value
-    
-    def setAlphaThreshold(self, value, log=None):
-        """Usually you can use 'stim.attribute = value' syntax instead,
-        but use this method if you need to suppress the log message.
-        """
-        setAttribute(self, 'alphaThreshold', value, log)
-

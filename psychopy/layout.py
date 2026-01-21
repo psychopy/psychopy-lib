@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2025 Open Science Tools Ltd.
-# Distributed under the terms of the MIT License.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Distributed under the terms of the GNU General Public License (GPL).
 
 """Classes and functions for working with coordinates systems."""
 
@@ -171,16 +171,16 @@ class Vector:
             self.valid = False
 
         # Replace None with the matching window dimension
-        if (value == None).any() or np.isnan(value).any():  # noqa: E711
+        if (value == None).any() or np.isnan(value).any():
             win = Vector((1, 1), units="norm", win=self.win)
             if len(value.shape) == 1:
-                value[value == None] = getattr(win, units)[value == None]  # noqa: E711
+                value[value == None] = getattr(win, units)[value == None]
                 value[np.isnan(value)] = getattr(win, units)[np.isnan(value)]
             else:
                 value[np.isnan(value[:, 0]), 0] = getattr(win, units)[0]
                 value[np.isnan(value[:, 1]), 1] = getattr(win, units)[1]
-                value[value[:, 0] == None, 0] = getattr(win, units)[0]  # noqa: E711
-                value[value[:, 1] == None, 1] = getattr(win, units)[1]  # noqa: E711
+                value[value[:, 0] == None, 0] = getattr(win, units)[0]
+                value[value[:, 1] == None, 1] = getattr(win, units)[1]
 
         assert self.valid, (f"Array of position/size values must be either "
                             f"Nx1, Nx2 or Nx3, not {value.shape}")
@@ -760,16 +760,12 @@ class Vertices:
         if hasattr(self, "_anchorX") and hasattr(self, "_anchorY"):
             # If set, return set values
             return self._anchorX, self._anchorY
-        if hasattr(self.obj, "anchor"):
-            return self.obj.anchor
 
         # Otherwise, assume center
         return "center", "center"
 
     @anchor.setter
     def anchor(self, anchor):
-        if anchor is None and hasattr(self.obj, "anchor"):
-            anchor = self.obj.anchor
         # Set defaults
         self._anchorY = None
         self._anchorX = None
@@ -799,6 +795,8 @@ class Vertices:
         # Start with base values
         verts = self.base.copy()
         verts = verts.astype(float)
+        # Apply anchor
+        verts += self.anchorAdjust
         # Apply size
         if self.size is None:
             raise ValueError(
@@ -807,8 +805,6 @@ class Vertices:
         verts *= getattr(self.size, units)
         # Apply flip
         verts *= self._flip
-        # Apply anchor
-        verts += self.anchorAdjust * getattr(self.size, units)
         # Apply pos
         if self.pos is None:
             raise ValueError(
@@ -830,8 +826,6 @@ class Vertices:
         value /= getattr(self.size, units)
         # Account for flip
         value *= self._flip
-        # Account for anchor
-        value -= self.anchorAdjust * getattr(self.size, units)
         # Account for pos
         if self.pos is None:
             raise ValueError(

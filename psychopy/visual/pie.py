@@ -4,8 +4,8 @@
 """Create a pie shape."""
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2025 Open Science Tools Ltd.
-# Distributed under the terms of the MIT License.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Distributed under the terms of the GNU General Public License (GPL).
 
 from psychopy.visual.shape import BaseShapeStim
 from psychopy.tools.attributetools import attributeSetter, setAttribute
@@ -13,9 +13,7 @@ import numpy as np
 
 
 class Pie(BaseShapeStim):
-    """Creates a pie shape which is a circle with a wedge cut-out. This is a 
-    lazy-imported class, therefore import using full path 
-    `from psychopy.visual.pie import Pie` when inheriting from it.
+    """Creates a pie shape which is a circle with a wedge cut-out.
 
     This shape is sometimes referred to as a Pac-Man shape which is often
     used for creating Kanizsa figures. However, the shape can be adapted for
@@ -48,6 +46,11 @@ class Pie(BaseShapeStim):
     lineColor, fillColor : array_like, str, :class:`~psychopy.colors.Color` or None
         Color of the shape outline and fill. If `None`, a fully transparent
         color is used which makes the fill or outline invisible.
+    lineColorSpace, fillColorSpace : str
+        Colorspace to use for the outline and fill. These change how the
+        values passed to `lineColor` and `fillColor` are interpreted.
+        *Deprecated*. Please use `colorSpace` to set both outline and fill
+        colorspace. These arguments may be removed in a future version.
     pos : array_like
         Initial position (`x`, `y`) of the shape on-screen relative to
         the origin located at the center of the window or buffer in `units`.
@@ -80,6 +83,9 @@ class Pie(BaseShapeStim):
     interpolate : bool
         Enable smoothing (anti-aliasing) when drawing shape outlines. This
         produces a smoother (less-pixelated) outline of the shape.
+    lineRGB, fillRGB: array_like, :class:`~psychopy.colors.Color` or None
+        *Deprecated*. Please use `lineColor` and `fillColor`. These
+        arguments may be removed in a future version.
     name : str
         Optional name of the stimuli for logging.
     autoLog : bool
@@ -107,7 +113,6 @@ class Pie(BaseShapeStim):
         if radius != 0.5 which will result in undefined behavior.
 
     """
-
     def __init__(self,
                  win,
                  radius=.5,
@@ -117,7 +122,9 @@ class Pie(BaseShapeStim):
                  units='',
                  lineWidth=1.5,
                  lineColor=None,
+                 lineColorSpace='rgb',
                  fillColor=None,
+                 fillColorSpace='rgb',
                  pos=(0, 0),
                  size=1.0,
                  ori=0.0,
@@ -125,17 +132,13 @@ class Pie(BaseShapeStim):
                  contrast=1.0,
                  depth=0,
                  interpolate=True,
+                 lineRGB=False,
+                 fillRGB=False,
                  name=None,
                  autoLog=None,
                  autoDraw=False,
-                 colorSpace=None,
-                 # legacy
-                 color=False,
-                 fillColorSpace='rgb',
-                 lineColorSpace='rgb',
-                 lineRGB=False,
-                 fillRGB=False,
-                 ):
+                 color=None,
+                 colorSpace=None):
 
         self.__dict__['radius'] = radius
         self.__dict__['edges'] = edges

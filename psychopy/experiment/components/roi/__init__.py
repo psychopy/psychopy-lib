@@ -2,24 +2,26 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2025 Open Science Tools Ltd.
-# Distributed under the terms of the MIT License.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Distributed under the terms of the GNU General Public License (GPL).
 
 from pathlib import Path
 
+from psychopy.alerts import alert
 from psychopy.experiment.components import Param, getInitVals, _translate, BaseVisualComponent
+from psychopy.experiment.components.eyetracker_record import EyetrackerRecordComponent
 from psychopy.experiment.components.polygon import PolygonComponent
+from psychopy.localization import _localized as __localized
+_localized = __localized.copy()
 
 
 class RegionOfInterestComponent(PolygonComponent):
     """A class for using one of several eyetrackers to follow gaze"""
     categories = ['Eyetracking']
     targets = ['PsychoPy']
-    version = "2021.2.0"
     iconFile = Path(__file__).parent / 'eyetracker_roi.png'
-    iconSVG = Path(__file__).parent / 'RegionOfInterestComponent.svg'
     tooltip = _translate('Region Of Interest: Define a region of interest for use with eyetrackers')
-    beta = False
+    beta = True
 
     def __init__(self, exp, parentName, name='roi',
                  units='from exp settings',
@@ -57,30 +59,30 @@ class RegionOfInterestComponent(PolygonComponent):
         self.params['endRoutineOn'] = Param(endRoutineOn,
             valType='str', inputType='choice', categ='Basic',
             allowedVals=["look at", "look away", "none"],
-            hint=_translate("Under what condition should this ROI end the Routine?"),
-            label=_translate("End Routine on...")
+            hint=_translate("Under what condition should this ROI end the routine?"),
+            label=_translate("End Routine On...")
         )
 
         self.depends.append(
             {"dependsOn": "endRoutineOn",  # must be param name
-             "condition": "!='none'",  # val to check for
+             "condition": "=='none'",  # val to check for
              "param": "lookDur",  # param property to alter
-             "true": "show",  # what to do with param if condition is True
-             "false": "hide",  # permitted: hide, show, enable, disable
+             "true": "hide",  # what to do with param if condition is True
+             "false": "show",  # permitted: hide, show, enable, disable
              }
         )
 
         self.params['lookDur'] = Param(lookDur,
             valType='num', inputType='single', categ='Basic',
             hint=_translate("Minimum dwell time within roi (look at) or outside roi (look away)."),
-            label=_translate("Min. look time")
+            label=_translate("Min. Look Time")
         )
 
         self.params['debug'] = Param(
             debug, valType='bool', inputType='bool', categ='Testing',
             hint=_translate("In debug mode, the ROI is drawn in red. Use this to see what area of the "
                             "screen is in the ROI."),
-            label=_translate("Debug mode")
+            label=_translate("Debug Mode")
         )
 
         self.params['save'] = Param(
@@ -89,7 +91,7 @@ class RegionOfInterestComponent(PolygonComponent):
             direct=False,
             hint=_translate(
                 "What looks on this ROI should be saved to the data output?"),
-            label=_translate("Save..."))
+            label=_translate('Save...'))
 
         self.params['timeRelativeTo'] = Param(
             timeRelativeTo, valType='str', inputType="choice", categ='Data',
@@ -98,7 +100,7 @@ class RegionOfInterestComponent(PolygonComponent):
             hint=_translate(
                 "What should the values of roi.time should be "
                 "relative to?"),
-            label=_translate("Time relative to..."))
+            label=_translate('Time Relative To...'))
 
     def writePreWindowCode(self, buff):
         pass
@@ -109,16 +111,12 @@ class RegionOfInterestComponent(PolygonComponent):
             unitsStr = ""
         else:
             unitsStr = "units=%(units)s, " % self.params
-        # handle dependent params
-        params = self.params.copy()
-
-        if params['shape'] == 'regular polygon...':
-            params['shape'] = params['nVertices']
-        elif params['shape'] == 'custom polygon...':
-            params['shape'] = params['vertices']
         # do writing of init
-        inits = getInitVals(params, 'PsychoPy')
-        inits['depth'] = -self.getPosInRoutine()
+        inits = getInitVals(self.params, 'PsychoPy')
+        if self.params['shape'] == 'regular polygon...':
+            inits['shape'] = self.params['nVertices']
+        elif self.params['shape'] == 'custom polygon...':
+            inits['shape'] = self.params['vertices']
 
         code = (
             "%(name)s = visual.ROI(win, name='%(name)s', device=eyetracker,\n"
@@ -128,9 +126,7 @@ class RegionOfInterestComponent(PolygonComponent):
         code = (
                 "debug=%(debug)s,\n"
                 "shape=%(shape)s,\n"
-                + unitsStr + "pos=%(pos)s, size=%(size)s, \n"
-                "anchor=%(anchor)s, ori=0.0, depth=%(depth)s\n"
-                ")\n"
+                + unitsStr + "pos=%(pos)s, size=%(size)s, anchor=%(anchor)s, ori=0.0)\n"
         )
         buff.writeIndentedLines(code % inits)
         buff.setIndentLevel(-1, relative=True)
@@ -152,14 +148,14 @@ class RegionOfInterestComponent(PolygonComponent):
         """
         # do writing of init
         inits = getInitVals(self.params, 'PsychoPy')
-        # Write start code
-        indented = self.writeStartTestCode(buff)
-        if indented:
-            code = (
-                "%(name)s.setAutoDraw(True)\n"
-            )
-            buff.writeIndentedLines(code % inits)
-        buff.setIndentLevel(-indented, relative=True)
+        # Write basics
+        BaseVisualComponent.writeFrameCode(self, buff)
+        buff.setIndentLevel(1, relative=True)
+        code = (
+            "%(name)s.status = STARTED\n"
+        )
+        buff.writeIndentedLines(code % inits)
+        buff.setIndentLevel(-1, relative=True)
         # String to get time
         if inits['timeRelativeTo'] == 'roi onset':
             timing = "%(name)s.clock.getTime()"
@@ -170,7 +166,11 @@ class RegionOfInterestComponent(PolygonComponent):
         else:
             timing = "globalClock.getTime()"
         # Assemble code
-        indented = self.writeActiveTestCode(buff)
+        code = (
+            f"if %(name)s.status == STARTED:\n"
+        )
+        buff.writeIndentedLines(code % inits)
+        buff.setIndentLevel(1, relative=True)
         code = (
             f"# check whether %(name)s has been looked in\n"
             f"if %(name)s.isLookedIn:\n"
@@ -204,7 +204,7 @@ class RegionOfInterestComponent(PolygonComponent):
             buff.writeIndentedLines(code % inits)
             buff.setIndentLevel(1, relative=True)
             code = (
-                    "continueRoutine = False # end Routine on sufficiently long look\n"
+                    "continueRoutine = False # end routine on sufficiently long look\n"
             )
             buff.writeIndentedLines(code % inits)
             buff.setIndentLevel(-1, relative=True)
@@ -237,7 +237,7 @@ class RegionOfInterestComponent(PolygonComponent):
             buff.writeIndentedLines(code % inits)
             buff.setIndentLevel(1, relative=True)
             code = (
-                    f"continueRoutine = False # end Routine after sufficiently long look outside roi\n"
+                    f"continueRoutine = False # end routine after sufficiently long look outside roi\n"
             )
             buff.writeIndentedLines(code % inits)
             buff.setIndentLevel(-1, relative=True)
@@ -248,7 +248,7 @@ class RegionOfInterestComponent(PolygonComponent):
             buff.writeIndentedLines(code % inits)
             buff.setIndentLevel(1, relative=True)
             code = (
-                    f"continueRoutine = False # end Routine after sufficiently long look outside roi\n"
+                    f"continueRoutine = False # end routine after sufficiently long look outside roi\n"
             )
             buff.writeIndentedLines(code % inits)
 
@@ -258,10 +258,7 @@ class RegionOfInterestComponent(PolygonComponent):
 
         )
         buff.writeIndentedLines(code % inits)
-        buff.setIndentLevel(-1, relative=True)
-
-        buff.setIndentLevel(-indented, relative=True)
-
+        buff.setIndentLevel(-2, relative=True)
         code = (
             f"else:\n"
         )
@@ -273,15 +270,6 @@ class RegionOfInterestComponent(PolygonComponent):
         )
         buff.writeIndentedLines(code % inits)
         buff.setIndentLevel(-1, relative=True)
-
-        # Write stop code
-        indented = self.writeStopTestCode(buff)
-        if indented:
-            code = (
-                "%(name)s.setAutoDraw(False)\n"
-            )
-            buff.writeIndentedLines(code % inits)
-        buff.setIndentLevel(-indented, relative=True)
 
     def writeRoutineEndCode(self, buff):
         BaseVisualComponent.writeRoutineEndCode(self, buff)
@@ -302,11 +290,6 @@ class RegionOfInterestComponent(PolygonComponent):
                 f"if {name}.numLooks:\n"
                 f"   {currLoop.params['name']}.addData('{name}.timesOn', {name}.timesOn{index})\n"
                 f"   {currLoop.params['name']}.addData('{name}.timesOff', {name}.timesOff{index})\n"
-                f"   # calculate and store dwell times i.e. the duration between look onsets and offsets\n"
-                f"   {name}.dwellTime = 0.0\n"
-                f"   for i in range(len({name}.timesOn)):\n"
-                f"       {name}.dwellTime += {name}.timesOff[i] - {name}.timesOn[i]\n"
-                f"   {currLoop.params['name']}.addData('{name}.dwellTime', {name}.dwellTime)\n"
                 f"else:\n"
                 f"   {currLoop.params['name']}.addData('{name}.timesOn', \"\")\n"
                 f"   {currLoop.params['name']}.addData('{name}.timesOff', \"\")\n"

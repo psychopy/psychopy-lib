@@ -57,11 +57,8 @@ class TextGrid:
         if shape:
             self._shape = shape
         else:
-            if (te_size[0] >= self._cell_size[0]) and (te_size[1] >= self._cell_size[1]):
-                self._shape = (te_size[0] // self._cell_size[0],
-                               te_size[1] // self._cell_size[1])
-            else:
-                raise ValueError(f"Invalid TextBox size provided. Increase size or use `textgrid_shape` for more precise control.")
+            self._shape = (te_size[0] // self._cell_size[0],
+                           te_size[1] // self._cell_size[1])
 
         self._size = (self._cell_size[0] * self._shape[0],
                       self._cell_size[1] * self._shape[1])
@@ -274,5 +271,5 @@ class TextGrid:
                 glDeleteLists(self._text_dlist, 1)
                 self._text_dlist = 0
             self._current_font_display_lists = None
-        except (ModuleNotFoundError, ImportError, AttributeError):
+        except (ModuleNotFoundError, ImportError):
             pass

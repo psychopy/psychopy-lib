@@ -5,92 +5,11 @@ from tempfile import mkdtemp
 from psychopy.experiment import getAllComponents, Experiment
 from psychopy.tests.utils import compareTextFiles, TESTS_DATA_PATH
 from psychopy.scripts import psyexpCompile
-from psychopy import constants
-
-
-class _TestBoilerplateMixin:
-    """
-    Mixin for tests of classes in the PsychoPy library to check they are able to work with the compiled code from
-    Builder.
-    """
-
-    obj = None
-
-    def test_input_params(self):
-        """
-        All classes called from boilerplate should accept name and autoLog as input params
-        """
-        if self.obj is None:
-            return
-        # Define list of names which need to be accepted by init
-        required = (
-            "name",
-            "autoLog"
-        )
-        # Get names of input variables
-        varnames = type(self.obj).__init__.__code__.co_varnames
-        # Make sure required names are accepted
-        for name in required:
-            assert name in varnames, (
-                f"{type(self.obj)} init function should accept {name}, but could not be found in list of kw args."
-            )
-
-    def test_status(self):
-        """
-        All classes called from boilerplate should have a settable status attribute which accepts psychopy constants
-        """
-        if self.obj is None:
-            return
-        # Check that status can be NOT_STARTED without error
-        self.obj.status = constants.NOT_STARTED
-        # Check that status can be STARTED without error
-        self.obj.status = constants.STARTED
-        # Check that status can be FINISHED without error
-        self.obj.status = constants.FINISHED
-
-        # Set back to NOT_STARTED for other tests
-        self.obj.status = constants.NOT_STARTED
-
-    # Define classes to skip depth tests on
-    depthExceptions = ("NoneType", "PanoramaStim")
-    # Error string for how to mark depth exempt
-    exemptInstr = (
-        "If this component is a special case, you can mark it as exempt by adding its class name to the "
-        "`depthExceptions` variable in this test."
-    )
-
-    def test_can_accept_depth(self):
-        # Get class name
-        compName = type(self.obj).__name__
-        # Skip if exception
-        if compName in self.depthExceptions:
-            return
-        # Get accepted varnames for init function
-        varnames = type(self.obj).__init__.__code__.co_varnames
-        # Check whether depth is in there
-        assert "depth" in varnames, (
-            f"Init function for class {compName} cannot accept `depth` as an input, only accepts:\n"
-            f"{varnames}\n"
-            f"Any component drawn to the screen should be given a `depth` on init. {self.exemptInstr}\n"
-        )
-
-    def test_depth_attr(self):
-        # Get class name
-        compName = type(self.obj).__name__
-        # Skip if exception
-        if compName in self.depthExceptions:
-            return
-        # Check that created object has a depth
-        assert hasattr(self.obj, "depth"), (
-            f"Could not find depth attribute in {compName}.\n"
-            f"\n"
-            f"Any component drawn to the screen should have a `depth` attribute. {self.exemptInstr}\n"
-        )
 
 
 class TestComponentCompilerPython():
     """A class for testing the Python code compiler for all components"""
-    def setup_method(self):
+    def setup(self):
         self.temp_dir = mkdtemp()
         self.allComp = getAllComponents(fetchIcons=False)
         self.exp = Experiment() # create once, not every test
@@ -100,7 +19,7 @@ class TestComponentCompilerPython():
         if not os.path.isdir(os.path.join(TESTS_DATA_PATH, "correctScript", "python")):
             os.mkdir(os.path.join(TESTS_DATA_PATH, "correctScript", "python"))
 
-    def teardown_method(self):
+    def teardown(self):
         shutil.rmtree(self.temp_dir)
 
     def test_all_components(self):
@@ -149,11 +68,8 @@ class TestComponentCompilerPython():
         psyexpCompile.compileScript(infile=self.exp, outfile=pyFilePath)
 
     def test_component_type_in_experiment(self):
-        for compName, compObj in self.allComp.items():
-            if (compName not in [
-                'SettingsComponent', 'UnknownComponent',
-                'UnknownPluginComponent', 'RoutineSettingsComponent'
-            ] and "PsychoPy" in compObj.targets):
+        for compName in self.allComp:
+            if compName not in ['SettingsComponent', 'UnknownComponent']:
                 # reset exp
                 self.reset_experiment()
                 # Add components

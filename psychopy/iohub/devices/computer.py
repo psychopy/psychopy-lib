@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # Part of the PsychoPy library
 # Copyright (C) 2012-2020 iSolver Software Solutions (C) 2021 Open Science Tools Ltd.
-# Distributed under the terms of the MIT License.
+# Distributed under the terms of the GNU General Public License (GPL).
 import gc
 import sys
 
@@ -522,20 +522,6 @@ class Computer():
            None
         """
         return Computer.global_clock.getTime()
-
-    @staticmethod
-    def syncClock(params):
-        """
-        Sync parameters between Computer.global_clock and a given dict.
-
-        Parameters
-        ----------
-        params : dict
-            Dict of attributes and values to apply to the computer's global clock. See
-            `psychopy.clock.MonotonicClock` for what attributes to include.
-        """
-        for key, value in params.items():
-            setattr(Computer.global_clock, key, value)
 
     @staticmethod
     def getPhysicalSystemMemoryInfo():

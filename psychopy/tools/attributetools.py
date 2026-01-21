@@ -2,75 +2,26 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2025 Open Science Tools Ltd.
-# Distributed under the terms of the MIT License.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Distributed under the terms of the GNU General Public License (GPL).
 
 """Functions and classes related to attribute handling
 """
 
 import numpy
-import inspect
 from psychopy import logging
-from functools import partialmethod
-from psychopy.tools.stringtools import CaseSwitcher
-
-
-class UndefinedType:
-    """
-    Represents a value which has not been defined - useful for distinguishing between something not 
-    being set and something being set to None.
-    """
-
-    instance = None
-
-    def __new__(cls):
-        """
-        There should only ever be one instance of UndefinedType
-        """
-        if cls.instance is None:
-            cls.instance = super(cls, cls).__new__(cls)
-        
-        return cls.instance
-    
-    def __eq__(self, other):
-        """
-        Comparing undefined by ``==`` should be the same as by ``is``
-        """
-        return self is other
-    
-    def __bool__(self):
-        """
-        When used as a boolean, undefined is always ``False``
-        """
-        return False
-
-    def __repr__(self):
-        """
-        Display as simply ``undefined`` when printed.
-        """
-        return "undefined"
-
-
-undefined = UndefinedType()
 
 
 class attributeSetter:
     """Makes functions appear as attributes. Takes care of autologging.
     """
 
-    def __init__(self, func):
+    def __init__(self, func, doc=None):
         self.func = func
-        self.__doc__ = func.__doc__
-    
-    def __set_name__(self, owner: type, name: str):
-        # if we already have docs, no further action needed
-        if self.__doc__ is not None:
-            return
-        # inherit docs from first base class which has any for this method
-        for base in owner.__bases__:
-            if hasattr(base, name) and getattr(base, name).__doc__ is not None:
-                self.__doc__ = getattr(base, name).__doc__
-                break
+        if doc is not None:
+            self.__doc__ = doc
+        else:
+            self.__doc__ = func.__doc__
 
     def __set__(self, obj, value):
         newValue = self.func(obj, value)
@@ -91,23 +42,12 @@ class attributeSetter:
         #        origin[1], origin[3].__repr__())))  # long
         '''
         return newValue
-    
-    def serialize(self):
-        """
-        If an attributeSetter is received by serializer as an attribute, return the default value or 
-        None
-        """
-        defaults = inspect.getfullargspec(self.func).defaults
-        if defaults:
-            return defaults[0]
-        else:
-            return None
 
     def __repr__(self):
         return repr(self.__getattribute__)
 
 
-def setAttribute(self, attrib, value, log=None,
+def setAttribute(self, attrib, value, log,
                  operation=False, stealth=False):
     """This function is useful to direct the old set* functions to the
     @attributeSetter.
@@ -132,10 +72,6 @@ def setAttribute(self, attrib, value, log=None,
     History: introduced in version 1.79 to avoid exec-calls.
     Even though it looks complex, it is very fast :-)
     """
-
-    # if log is None, use autoLog
-    if log is None:
-        log = getattr(self, "autoLog", False)
 
     # Change the value of "value" if there is an operation. Even if it is '',
     # which indicates that this value could potentially be subjected to an
@@ -224,40 +160,3 @@ def logAttrib(obj, log, attrib, value=None):
         except AttributeError:
             # the "win" attribute only exists if sync-to-visual (e.g. stimuli)
             logging.log(message, level=logging.EXP, obj=obj)
-
-
-class AttributeGetSetMixin:
-    """
-    For all attributeSetter and property/setter methods, makes a get and set method whose names are the attribute name,
-    in PascalCase, preceeded by "set" or "get"
-    """
-    def __init_subclass__(cls, **kwargs):
-        # iterate through methods
-        for name in dir(cls):
-            # get function
-            func = getattr(cls, name)
-            # ignore any which aren't attributeSetters
-            if not isinstance(func, (attributeSetter, property)):
-                continue
-            # work out getter method name
-            getterName = "get" + CaseSwitcher.camel2pascal(name)
-            # ignore any which already have a getter method
-            if not hasattr(cls, getterName):
-                # create a pre-populated caller for getattr
-                meth = partialmethod(getattr, name)
-                # assign setter method
-                setattr(cls, getterName, meth)
-            # any non-settable properties are now done
-            if isinstance(func, property) and func.fset is None:
-                continue
-            # work out setter method name
-            setterName = "set" + CaseSwitcher.camel2pascal(name)
-            # ignore any which already have a setter method
-            if not hasattr(cls, setterName):
-                # create a pre-populated caller for setAttribute
-                meth = partialmethod(setAttribute, name)
-                # assign setter method
-                setattr(cls, setterName, meth)
-
-        # return class
-        return cls

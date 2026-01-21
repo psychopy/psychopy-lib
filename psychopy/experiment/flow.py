@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2025 Open Science Tools Ltd.
-# Distributed under the terms of the MIT License.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Distributed under the terms of the GNU General Public License (GPL).
 
 """Describes the Flow of an experiment
 """
@@ -13,8 +13,6 @@ from xml.etree.ElementTree import Element
 from psychopy.experiment import getAllStandaloneRoutines
 from psychopy.experiment.routines._base import Routine, BaseStandaloneRoutine
 from psychopy.experiment.loops import LoopTerminator, LoopInitiator
-from psychopy.tools import filetools as ft
-from psychopy.preferences import prefs
 
 
 class Flow(list):
@@ -41,7 +39,7 @@ class Flow(list):
         loopStack = [currentList]
         for thisEntry in self:
             if thisEntry.getType() == 'LoopInitiator':
-                currentList.append(thisEntry.loop)  # this loop is child of current
+                currentList.append(thisEntry.loop) # this loop is child of current
                 loopDict[thisEntry.loop] = []  # and is (current) empty list awaiting children
                 currentList = loopDict[thisEntry.loop]
                 loopStack.append(loopDict[thisEntry.loop])  # update the list of loops (for depth)
@@ -71,20 +69,6 @@ class Flow(list):
             element.append(sub)
 
         return element
-
-    def getUniqueEntries(self):
-        """
-        Get all entries on the flow, without duplicate entries.
-        """
-        # array to store entries in
-        entries = []
-        # iterate through all entries
-        for entry in self:
-            # append if not present
-            if entry not in entries:
-                entries.append(entry)
-
-        return entries
 
     def addLoop(self, loop, startPos, endPos):
         """Adds initiator and terminator objects for the loop
@@ -140,6 +124,7 @@ class Flow(list):
                 # right-click in GUI)
                 del self[id]
 
+
     def integrityCheck(self):
         """Check that the flow makes sense together and check each component"""
 
@@ -167,7 +152,7 @@ class Flow(list):
                     if not hasattr(field, 'label'):
                         continue  # no problem, no warning
                     if (field.label.lower() in ['text', 'customize'] or
-                            field.valType not in ('str', 'code')):
+                            not field.valType in ('str', 'code')):
                         continue
                     if (isinstance(field.val, str) and
                             field.val != field.val.strip()):
@@ -203,7 +188,7 @@ class Flow(list):
             # non-redundant, order unknown
             print('\n  '.join(list(set(warnings))))
 
-    def writePreCode(self, script):
+    def writePreCode(self,script):
         """Write the code that comes before the Window is created
         """
         script.writeIndentedLines("\n# Start Code - component code to be "
@@ -230,127 +215,17 @@ class Flow(list):
     def writeBody(self, script):
         """Write the rest of the code
         """
-        # Open function def
-        code = (
-            '\n'
-            'def run(expInfo, thisExp, win, globalClock=None, thisSession=None):\n'
-            '    """\n'
-            '    Run the experiment flow.\n'
-            '    \n'
-            '    Parameters\n'
-            '    ==========\n'
-            '    expInfo : dict\n'
-            '        Information about this experiment, created by the `setupExpInfo` function.\n'
-            '    thisExp : psychopy.data.ExperimentHandler\n'
-            '        Handler object for this experiment, contains the data to save and information about \n'
-            '        where to save it to.\n'
-            '    psychopy.visual.Window\n'
-            '        Window in which to run this experiment.\n'
-            '    globalClock : psychopy.core.clock.Clock or None\n'
-            '        Clock to get global time from - supply None to make a new one.\n'
-            '    thisSession : psychopy.session.Session or None\n'
-            '        Handle of the Session object this experiment is being run from, if any.\n'
-            '    """\n'
-        )
-        script.writeIndentedLines(code)
-        script.setIndentLevel(+1, relative=True)
-
-        # start rush mode
-        if self.exp.settings.params['rush']:
-            code = (
-                "# enter 'rush' mode (raise CPU priority)\n"
-            )
-            # put inside an if statement if rush can be overwritten by piloting
-            if prefs.piloting['forceNonRush']:
-                code += (
-                    "if not PILOTING:\n"
-                    "    "
-                )
-            code += (
-                "core.rush(enable=True)\n"
-            )
-            script.writeIndentedLines(code)
-        # initialisation
-        code = (
-            "# mark experiment as started\n"
-            "thisExp.status = STARTED\n"
-            "# update experiment info\n"
-            "expInfo['date'] = data.getDateStr()\n"
-            "expInfo['expName'] = expName\n"
-            "expInfo['expVersion'] = expVersion\n"
-            "expInfo['psychopyVersion'] = psychopyVersion\n"
-            "# make sure window is set to foreground to prevent losing focus\n"
-            "win.winHandle.activate()\n"
-            "# make sure variables created by exec are available globally\n"
-            "exec = environmenttools.setExecEnvironment(globals())\n"
-            "# get device handles from dict of input devices\n"
-            "ioServer = deviceManager.ioServer\n"
-            "# get/create a default keyboard (e.g. to check for escape)\n"
-            "defaultKeyboard = deviceManager.getDevice('defaultKeyboard')\n"
-            "if defaultKeyboard is None:\n"
-            "    deviceManager.addDevice(\n"
-            "        deviceClass='keyboard', deviceName='defaultKeyboard', backend=%(keyboardBackend)s\n"
-            "    )\n"
-            "eyetracker = deviceManager.getDevice('eyetracker')\n"
-            "# make sure we're running in the directory for this experiment\n"
-            "os.chdir(_thisDir)\n"
-            "# get filename from ExperimentHandler for convenience\n"
-            "filename = thisExp.dataFileName\n"
-            "frameTolerance = 0.001  # how close to onset before 'same' frame\n"
-            "endExpNow = False  # flag for 'escape' or other condition => quit the exp\n"
-        )
-        script.writeIndentedLines(code % self.exp.settings.params)
-        # get frame dur from frame rate
-        code = (
-            "# get frame duration from frame rate in expInfo\n"
-            "if 'frameRate' in expInfo and expInfo['frameRate'] is not None:\n"
-            "    frameDur = 1.0 / round(expInfo['frameRate'])\n"
-            "else:\n"
-            "    frameDur = 1.0 / 60.0  # could not measure, so guess\n"
-        )
-        script.writeIndentedLines(code)
-
-        # writes any components with a writeStartCode()
-        self.writeStartCode(script)
         # writeStartCode and writeInitCode:
         for entry in self:
             # NB each entry is a routine or LoopInitiator/Terminator
             self._currentRoutine = entry
-            if hasattr(entry, 'writeRunOnceInitCode'):
-                entry.writeRunOnceInitCode(script)
             entry.writeInitCode(script)
         # create clocks (after initialising stimuli)
-        code = ("\n"
-                "# create some handy timers\n"
-                "\n"
-                "# global clock to track the time since experiment started\n"
-                "if globalClock is None:\n"
-                "    # create a clock if not given one\n"
-                "    globalClock = core.Clock()\n"
-                "if isinstance(globalClock, str):\n"
-                "    # if given a string, make a clock accoridng to it\n"
-                "    if globalClock == 'float':\n"
-                "        # get timestamps as a simple value\n"
-                "        globalClock = core.Clock(format='float')\n"
-                "    elif globalClock == 'iso':\n"
-                "        # get timestamps in ISO format\n"
-                "        globalClock = core.Clock(format='%Y-%m-%d_%H:%M:%S.%f%z')\n"
-                "    else:\n"
-                "        # get timestamps in a custom format\n"
-                "        globalClock = core.Clock(format=globalClock)\n"
-                "if ioServer is not None:\n"
-                "    ioServer.syncClock(globalClock)\n"
-                "logging.setDefaultClock(globalClock)\n"
-                "if eyetracker is not None:\n"
-                "    eyetracker.enableEventReporting()\n"
-                "# routine timer to track time remaining of each (possibly non-slip) routine\n"
-                "routineTimer = core.Clock()\n"
-                "win.flip()  # flip window to reset last flip timer\n"
-                "# store the exact time the global clock started\n"
-                "expInfo['expStart'] = data.getDateStr(\n"
-                "    format='%Y-%m-%d %Hh%M.%S.%f %z', fractionalSecondDigits=6\n"
-                ")\n"
-                )
+        code = ("\n# Create some handy timers\n"
+                "globalClock = core.Clock()  # to track the "
+                "time since experiment started\n"
+                "routineTimer = core.CountdownTimer()  # to "
+                "track time remaining of each (non-slip) routine \n")
         script.writeIndentedLines(code)
         # run-time code
         for entry in self:
@@ -363,24 +238,6 @@ class Flow(list):
             self._currentRoutine = entry
             entry.writeExperimentEndCode(script)
 
-        # Mark as finished
-        code = (
-            "\n"
-            "# mark experiment as finished\n"
-            "endExperiment(thisExp, win=win)\n"
-        )
-        script.writeIndentedLines(code)
-        # end rush mode
-        if self.exp.settings.params['rush']:
-            code = (
-                "# end 'rush' mode\n"
-                "core.rush(enable=False)\n"
-            )
-            script.writeIndentedLines(code)
-
-        # Exit function def
-        script.setIndentLevel(-1, relative=True)
-        script.writeIndentedLines("\n")
 
     def writeFlowSchedulerJS(self, script):
         """Initialise each component and then write the per-frame code too
@@ -409,14 +266,13 @@ class Flow(list):
                 "\n"
                 "const flowScheduler = new Scheduler(psychoJS);\n"
                 "const dialogCancelScheduler = new Scheduler(psychoJS);\n"
-                "psychoJS.scheduleCondition(function() { return (psychoJS.gui.dialogComponent.button === 'OK'); },"
-                "flowScheduler, dialogCancelScheduler);\n"
+                "psychoJS.scheduleCondition(function() { return (psychoJS.gui.dialogComponent.button === 'OK'); }, flowScheduler, dialogCancelScheduler);\n"
                 "\n")
         script.writeIndentedLines(code)
 
         code = ("// flowScheduler gets run if the participants presses OK\n"
-                "flowScheduler.add(updateInfo); // add timeStamp\n"
-                "flowScheduler.add(experimentInit);\n")
+               "flowScheduler.add(updateInfo); // add timeStamp\n"
+               "flowScheduler.add(experimentInit);\n")
         script.writeIndentedLines(code)
         loopStack = []
         for thisEntry in self:
@@ -428,7 +284,7 @@ class Flow(list):
                             "flowScheduler.add({name}LoopEnd);\n"
                             .format(name=thisEntry.loop.params['name'].val))
                     loopStack.append(thisEntry.loop)
-                elif isinstance(thisEntry, (Routine, BaseStandaloneRoutine)):
+                elif thisEntry.getType() == "Routine":
                     code = ("flowScheduler.add({params[name]}RoutineBegin());\n"
                             "flowScheduler.add({params[name]}RoutineEachFrame());\n"
                             "flowScheduler.add({params[name]}RoutineEnd());\n"
@@ -441,52 +297,18 @@ class Flow(list):
                     loopStack.remove(thisEntry.loop)
             script.writeIndentedLines(code)
         # quit when all routines are finished
-        code = (
-            "flowScheduler.add(quitPsychoJS, %(End Message)s, true);\n"
-        )
-        script.writeIndentedLines(code % self.exp.settings.params)
+        script.writeIndented("flowScheduler.add(quitPsychoJS, '', true);\n")
         # handled all the flow entries
-        code = (
-            "\n"
-            "// quit if user presses Cancel in dialog box:\n"
-            "dialogCancelScheduler.add(quitPsychoJS, %(End Message)s, false);\n"
-            "\n"
-        )
-        script.writeIndentedLines(code % self.exp.settings.params)
+        code = ("\n// quit if user presses Cancel in dialog box:\n"
+                "dialogCancelScheduler.add(quitPsychoJS, '', false);\n\n")
+        script.writeIndentedLines(code)
 
         # Write resource list
-        resourceFiles = []
-        for resource in self.exp.getResourceFiles():
-            if isinstance(resource, dict):
-                # Get name
-                if "https://" in resource:
-                    name = resource.split('/')[-1]
-                elif 'surveyId' in resource:
-                    name = 'surveyId'
-                elif 'name' in resource:
-                    name = resource['name']
-                elif 'rel' in resource:
-                    name = resource['rel']
-                else:
-                    name = ""
-
-                # Get resource
-                resourceFile = None
-                if 'rel' in resource:
-                    # If resource is a file path, add its relative path
-                    resourceFile = resource['rel'].replace("\\", "/")
-                elif 'surveyId' in resource:
-                    # If resource is a survey ID, add it and mark as a survey id
-                    resourceFile = "sid:" + resource['surveyId']
-
-                # If we have a resource, add it
-                if resourceFile is not None:
-                    resourceFiles.append((name, resourceFile))
+        resourceFiles = set([resource['rel'].replace("\\", "/") for resource in self.exp.getResourceFiles()])
         if self.exp.htmlFolder:
             resourceFolderStr = "resources/"
         else:
             resourceFolderStr = ""
-        # start PsychoJS
         script.writeIndented("psychoJS.start({\n")
         script.setIndentLevel(1, relative=True)
         script.writeIndentedLines("expName: expName,\n"
@@ -496,32 +318,12 @@ class Flow(list):
         if not self.exp.htmlFolder:
             script.writeIndentedLines("resources: [\n")
             script.setIndentLevel(1, relative=True)
-            # do we need to load surveys?
-            needsSurveys = False
-            for rt in self:
-                if hasattr(rt, "type") and rt.type == "PavloviaSurvey":
-                    needsSurveys = True
-            if needsSurveys:
-                script.writeIndentedLines(
-                    "// libraries:\n"
-                    "{'surveyLibrary': true},\n"
-                )
-            code = "// resources:\n"
-            for name, resource in resourceFiles:
-                if "sid:" in resource:
-                    # Strip sid prefix from survey id
-                    resource = resource.replace("sid:", "")
-                    # Add this line
-                    code += f"{{'surveyId': '{resource}'}},\n"
-                else:
-                    if "https://" in resource:
-                        # URL paths are already fine
-                        pass
-                    else:
-                        # Anything else make it relative to resources folder
-                        resource = resourceFolderStr + resource
-                    # Add this line
-                    code += f"{{'name': '{name}', 'path': '{resource}'}},\n"
+            code = ""
+            for idx, resource in enumerate(resourceFiles):
+                temp = "{{'name': '{0}', 'path': '{1}{0}'}}".format(resource, resourceFolderStr)
+                code += temp
+                if idx != (len(resourceFiles)-1):
+                    code += ",\n"  # Trailing comma
             script.writeIndentedLines(code)
             script.setIndentLevel(-1, relative=True)
             script.writeIndented("]\n")

@@ -4,10 +4,9 @@
 """Library for working with internet connections"""
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2025 Open Science Tools Ltd.
-# Distributed under the terms of the MIT License.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Distributed under the terms of the GNU General Public License (GPL).
 
-import pathlib
 import sys
 import socket
 import re
@@ -116,10 +115,8 @@ def getPacFiles():
             pacFiles.append(subkeys['AutoConfigURL'])
     elif sys.platform == 'darwin':
         import plistlib
-        prefs_loc = pathlib.Path('/Library/Preferences/SystemConfiguration/preferences.plist')
-        if prefs_loc.exists():
-            with open(prefs_loc, 'rb') as fp :
-                sysPrefs = plistlib.loads(fp.read())
+        sysPrefs = plistlib.readPlist('/Library/Preferences/System'
+                                      'Configuration/preferences.plist')
         networks = sysPrefs['NetworkServices']
         # loop through each possible network (e.g. Ethernet, Airport...)
         for network in list(networks.items()):

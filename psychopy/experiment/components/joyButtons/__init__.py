@@ -2,13 +2,24 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2025 Open Science Tools Ltd.
-# Distributed under the terms of the MIT License.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Distributed under the terms of the GNU General Public License (GPL).
 
 from pathlib import Path
 
 from psychopy.experiment.components import BaseComponent, Param, _translate
 from psychopy.experiment import CodeGenerationException, valid_var_re
+from psychopy.localization import _localized as __localized
+_localized = __localized.copy()
+
+# only use _localized values for label values, nothing functional:
+_localized.update({'allowedKeys': _translate('Allowed buttons'),
+                   'store': _translate('Store'),
+                   'forceEndRoutine': _translate('Force end of Routine'),
+                   'storeCorrect': _translate('Store correct'),
+                   'correctAns': _translate('Correct answer'),
+                   'deviceNumber': _translate('Device number'),
+                   'syncScreenRefresh': _translate('sync RT with screen')})
 
 
 class JoyButtonsComponent(BaseComponent):
@@ -17,7 +28,6 @@ class JoyButtonsComponent(BaseComponent):
     categories = ['Responses']
     targets = ['PsychoPy']
     iconFile = Path(__file__).parent / 'joyButtons.png'
-    iconSVG = Path(__file__).parent / 'JoyButtonsComponent.svg'
     tooltip = _translate('JoyButtons: check and record joystick/gamepad button presses')
 
     def __init__(self, exp, parentName, name='button_resp',
@@ -52,7 +62,7 @@ class JoyButtonsComponent(BaseComponent):
             updates='constant',
             allowedUpdates=['constant', 'set every repeat'],
             hint=(msg),
-            label=_translate("Allowed buttons"))
+            label=_localized['allowedKeys'])
 
         msg = _translate("Choose which (if any) responses to store at the "
                          "end of a trial")
@@ -61,7 +71,7 @@ class JoyButtonsComponent(BaseComponent):
             allowedVals=['last key', 'first key', 'all keys', 'nothing'],
             updates='constant', direct=False,
             hint=msg,
-            label=_translate("Store"))
+            label=_localized['store'])
 
         msg = _translate("Should a response force the end of the Routine "
                          "(e.g end the trial)?")
@@ -69,7 +79,7 @@ class JoyButtonsComponent(BaseComponent):
             forceEndRoutine, valType='bool', inputType="bool", allowedTypes=[], categ='Basic',
             updates='constant',
             hint=msg,
-            label=_translate("Force end of Routine"))
+            label=_localized['forceEndRoutine'])
 
         msg = _translate("Do you want to save the response as "
                          "correct/incorrect?")
@@ -77,7 +87,7 @@ class JoyButtonsComponent(BaseComponent):
             storeCorrect, valType='bool', inputType="bool", allowedTypes=[], categ='Data',
             updates='constant',
             hint=msg,
-            label=_translate("Store correct"))
+            label=_localized['storeCorrect'])
 
         self.depends += [  # allows params to turn each other off/on
             {"dependsOn": "storeCorrect",  # must be param name
@@ -96,7 +106,7 @@ class JoyButtonsComponent(BaseComponent):
             correctAns, valType='list', inputType="single", allowedTypes=[], categ='Data',
             updates='constant',
             hint=msg,
-            label=_translate("Correct answer"))
+            label=_localized['correctAns'])
 
         msg = _translate(
             "A reaction time to a visual stimulus should be based on when "
@@ -105,16 +115,16 @@ class JoyButtonsComponent(BaseComponent):
             syncScreenRefresh, valType='bool', inputType="bool", categ='Data',
             updates='constant',
             hint=msg,
-            label=_translate("Sync RT with screen"))
+            label=_localized['syncScreenRefresh'])
 
         msg = _translate(
             "Device number, if you have multiple devices which"
             " one do you want (0, 1, 2...)")
         self.params['deviceNumber'] = Param(
-            deviceNumber, valType='int', inputType="int", allowedTypes=[], categ="Device",
+            deviceNumber, valType='int', inputType="int", allowedTypes=[], categ='Hardware',
             updates='constant', allowedUpdates=[],
             hint=msg,
-            label=_translate("Device number"))
+            label=_localized['deviceNumber'])
 
     def writeStartCode(self, buff):
         code = ("from psychopy.hardware import joystick as joysticklib  "
@@ -133,7 +143,7 @@ class JoyButtonsComponent(BaseComponent):
         buff.writeIndentedLines(code % self.params)
 
         buff.setIndentLevel(+1, relative=True)
-        code = ("numJoysticks = len(joysticklib.Joystick.getAvailableDevices())\n"
+        code = ("numJoysticks = joysticklib.getNumJoysticks()\n"
                 "if numJoysticks > 0:\n")
         buff.writeIndentedLines(code % self.params)
 
@@ -230,61 +240,66 @@ class JoyButtonsComponent(BaseComponent):
         buff.writeIndented("\n")
         buff.writeIndented("# *%s* updates\n" % self.params['name'])
         # writes an if statement to determine whether to draw etc
-        allowedKeysIsVar = (valid_var_re.match(str(allowedKeys)) and not allowedKeys == 'None')
-        indented = self.writeStartTestCode(buff)
-        if indented:
-            if allowedKeysIsVar:
-                # if it looks like a variable, check that the variable is suitable
-                # to eval at run-time
-                code = ("# AllowedKeys looks like a variable named `{0}`\n"
-                        "if not type({0}) in [list, tuple, np.ndarray]:\n")
+        self.writeStartTestCode(buff)
+        buff.writeIndented("%(name)s.status = STARTED\n" % self.params)
 
-                buff.writeIndentedLines(code.format(allowedKeys))
+        allowedKeysIsVar = (valid_var_re.match(str(allowedKeys)) and not
+                            allowedKeys == 'None')
 
-                buff.setIndentLevel(1, relative=True)
-                code = ("if type({0}) == int:\n")
-                buff.writeIndentedLines(code.format(allowedKeys))
+        if allowedKeysIsVar:
+            # if it looks like a variable, check that the variable is suitable
+            # to eval at run-time
+            code = ("# AllowedKeys looks like a variable named `{0}`\n"
+                    "if not type({0}) in [list, tuple, np.ndarray]:\n")
 
-                buff.setIndentLevel(1, relative=True)
-                code = ("{0} = [{0}]\n")
-                buff.writeIndentedLines(code.format(allowedKeys))
-                buff.setIndentLevel(-1, relative=True)
+            buff.writeIndentedLines(code.format(allowedKeys))
 
-                code = ("elif not (isinstance({0}, str) "
-                        "or isinstance({0}, unicode)):\n")
-                buff.writeIndentedLines(code.format(allowedKeys))
+            buff.setIndentLevel(1, relative=True)
+            code = ("if type({0}) == int:\n")
+            buff.writeIndentedLines(code.format(allowedKeys))
 
-                buff.setIndentLevel(1, relative=True)
-                code = ("logging.error('AllowedKeys variable `{0}` is "
-                        "not string- or list-like.')\n"
-                        "core.quit()\n")
-                buff.writeIndentedLines(code.format(allowedKeys))
-                buff.setIndentLevel(-1, relative=True)
+            buff.setIndentLevel(1, relative=True)
+            code = ("{0} = [{0}]\n")
+            buff.writeIndentedLines(code.format(allowedKeys))
+            buff.setIndentLevel(-1, relative=True)
 
-                code = (
-                    "elif not ',' in {0}: {0} = eval(({0},))\n"
-                    "else: {0} = eval({0})\n")
-                buff.writeIndentedLines(code.format(allowedKeys))
-                buff.setIndentLevel(-1, relative=True)
+            code = ("elif not (isinstance({0}, str) "
+                    "or isinstance({0}, unicode)):\n")
+            buff.writeIndentedLines(code.format(allowedKeys))
 
-            buff.writeIndented("# joyButtons checking is just starting\n")
+            buff.setIndentLevel(1, relative=True)
+            code = ("logging.error('AllowedKeys variable `{0}` is "
+                    "not string- or list-like.')\n"
+                    "core.quit()\n")
+            buff.writeIndentedLines(code.format(allowedKeys))
+            buff.setIndentLevel(-1, relative=True)
 
-            if store != 'nothing':
-                if self.params['syncScreenRefresh'].val:
-                    code = ("win.callOnFlip(%(name)s.clock.reset)  # t=0 on next"
-                            " screen flip\n") % self.params
-                else:
-                    code = "%(name)s.clock.reset()  # now t=0\n" % self.params
+            code = (
+                "elif not ',' in {0}: {0} = eval(({0},))\n"
+                "else: {0} = eval({0})\n")
+            buff.writeIndentedLines(code.format(allowedKeys))
+            buff.setIndentLevel(-1, relative=True)
 
-                buff.writeIndented(code)
+        buff.writeIndented("# joyButtons checking is just starting\n")
+
+        if store != 'nothing':
+            if self.params['syncScreenRefresh'].val:
+                code = ("win.callOnFlip(%(name)s.clock.reset)  # t=0 on next"
+                        " screen flip\n") % self.params
+            else:
+                code = "%(name)s.clock.reset()  # now t=0\n" % self.params
+
+            buff.writeIndented(code)
 
         # to get out of the if statement
-        buff.setIndentLevel(-indented, relative=True)
-
+        buff.setIndentLevel(-1, relative=True)
         # test for stop (only if there was some setting for duration or stop)
-        indented = self.writeStopTestCode(buff)
-        # to get out of the if statement
-        buff.setIndentLevel(-indented, relative=True)
+        if self.params['stopVal'].val not in ['', None, -1, 'None']:
+            # writes an if statement to determine whether to draw etc
+            self.writeStopTestCode(buff)
+            buff.writeIndented("%(name)s.status = FINISHED\n" % self.params)
+            # to get out of the if statement
+            buff.setIndentLevel(-2, relative=True)
 
         buff.writeIndented("if %(name)s.status == STARTED:\n" % self.params)
         buff.setIndentLevel(1, relative=True)  # to get out of if statement
@@ -452,3 +467,6 @@ class JoyButtonsComponent(BaseComponent):
                     "    %s.addData('%s.rt', %s.rt)\n" %
                     (currLoop.params['name'], name, name))
             buff.writeIndentedLines(code)
+
+        if currLoop.params['name'].val == self.exp._expHandler.name:
+            buff.writeIndented("%s.nextEntry()\n" % self.exp._expHandler.name)

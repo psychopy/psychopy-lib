@@ -1,18 +1,14 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import json
+
 import sys
 import copy
 import pickle
 import atexit
-import pandas as pd
 
-from psychopy import constants, clock
 from psychopy import logging
-from psychopy.data.trial import TrialHandler2
 from psychopy.tools.filetools import (openOutputFile, genDelimiter,
-                                      genFilenameFromDelimiter, handleFileCollision)
-from psychopy.localization import _translate
+                                      genFilenameFromDelimiter)
 from .utils import checkValidFilePath
 from .base import _ComparisonMixin
 
@@ -37,7 +33,6 @@ class ExperimentHandler(_ComparisonMixin):
                  originPath=None,
                  savePickle=True,
                  saveWideText=True,
-                 sortColumns=False,
                  dataFileName='',
                  autoLog=True,
                  appendFiles=False):
@@ -74,18 +69,10 @@ class ExperimentHandler(_ComparisonMixin):
 
             saveWideText : True (default) or False
 
-            sortColumns : str or bool
-                How (if at all) to sort columns in the data file, if none is given to saveAsWideText. Can be:
-                - "alphabetical", "alpha", "a" or True: Sort alphabetically by header name
-                - "priority", "pr" or "p": Sort according to priority
-                - other: Do not sort, columns remain in order they were added
-
-
             autoLog : True (default) or False
         """
         self.loops = []
         self.loopsUnfinished = []
-        self.currentRoutine = None
         self.name = name
         self.version = version
         self.runtimeInfo = runtimeInfo
@@ -96,23 +83,13 @@ class ExperimentHandler(_ComparisonMixin):
         self.originPath = originPath
         self.savePickle = savePickle
         self.saveWideText = saveWideText
-        self.dataFileName = handleFileCollision(dataFileName, "rename")
-        self.sortColumns = sortColumns
+        self.dataFileName = dataFileName
         self.thisEntry = {}
         self.entries = []  # chronological list of entries
         self._paramNamesSoFar = []
-        self.dataNames = ['thisRow.t', 'notes']  # names of all the data (eg. resp.keys)
-        self.columnPriority = {
-            'thisRow.t': constants.priority.CRITICAL - 1,
-            'notes': constants.priority.MEDIUM - 1,
-        }
+        self.dataNames = []  # names of all the data (eg. resp.keys)
         self.autoLog = autoLog
         self.appendFiles = appendFiles
-        self.status = constants.NOT_STARTED
-        # dict of filenames to collision method to be used next time it's saved
-        self._nextSaveCollision = {}
-        # list of call profiles for connected save methods
-        self.connectedSaveMethods = []
 
         if dataFileName in ['', None]:
             logging.warning('ExperimentHandler created with no dataFileName'
@@ -125,43 +102,19 @@ class ExperimentHandler(_ComparisonMixin):
 
     def __del__(self):
         self.close()
-    
-    def getCurrentLoop(self, isTrials=True):
-        """
-        Return the loop which we are currently in, this will either be a handle to a loop, such as
-        a :class:`~psychopy.data.TrialHandler` or :class:`~psychopy.data.StairHandler`, or the handle
-        of the :class:`~psychopy.data.ExperimentHandler` itself if we are not in a loop.
-
-        Parameters
-        ----------
-        isTrials : bool
-            Filter for only loops which have isTrials checked
-        """
-        if len(self.loopsUnfinished):
-            # iterate through unfinished (aka active) loops, starting with the most recent
-            for loop in reversed(self.loopsUnfinished):
-                # if not filtering, just return the first one
-                if not isTrials:
-                    return loop
-                # otherwise, return the first one which is a trials loop
-                if getattr(loop, 'isTrials', False):
-                    return loop
-        # if we are not in a loop, return to experiment handler
-        return self
 
     @property
     def currentLoop(self):
         """
-        Calls `.getCurrentLoop` with `isTrials=False`
+        Return the loop which we are currently in, this will either be a handle to a loop, such as
+        a :class:`~psychopy.data.TrialHandler` or :class:`~psychopy.data.StairHandler`, or the handle
+        of the :class:`~psychopy.data.ExperimentHandler` itself if we are not in a loop.
         """
-        return self.getCurrentLoop(isTrials=False)
-    
-    @property
-    def currentTrialsLoop(self):
-        """
-        Calls `.getCurrentLoop` with `isTrials=True`
-        """
-        return self.getCurrentLoop(isTrials=True)
+        # If there are unfinished (aka currently active) loops, return the most recent
+        if len(self.loopsUnfinished):
+            return self.loopsUnfinished[-1]
+        # If we are not in a loop, return handle to experiment handler
+        return self
 
     def addLoop(self, loopHandler):
         """Add a loop such as a :class:`~psychopy.data.TrialHandler`
@@ -200,7 +153,7 @@ class ExperimentHandler(_ComparisonMixin):
     def _getExtraInfo(self):
         """Get the names and vals from the extraInfo dict (if it exists)
         """
-        if not isinstance(self.extraInfo, dict):
+        if type(self.extraInfo) != dict:
             names = []
             vals = []
         else:
@@ -244,9 +197,8 @@ class ExperimentHandler(_ComparisonMixin):
 
         return names, vals
 
-    def addData(self, name, value, row=None, priority=None):
-        """
-        Add the data with a given name to the current experiment.
+    def addData(self, name, value):
+        """Add the data with a given name to the current experiment.
 
         Typically the user does not need to use this function; if you added
         your data to the loop and had already added the loop to the
@@ -264,24 +216,6 @@ class ExperimentHandler(_ComparisonMixin):
             exp.addData('resp.key', 'k')
             # end of trial - move to next line in data output
             exp.nextEntry()
-
-        Parameters
-        ----------
-        name : str
-            Name of the column to add data as.
-        value : any
-            Value to add
-        row : int or None
-            Row in which to add this data. Leave as None to add to the current entry.
-        priority : int
-            Priority value to set the column to - higher priority columns appear nearer to the start of
-            the data file. Use values from `constants.priority` as landmark values:
-            - CRITICAL: Always at the start of the data file, generally reserved for Routine start times
-            - HIGH: Important columns which are near the front of the data file
-            - MEDIUM: Possibly important columns which are around the middle of the data file
-            - LOW: Columns unlikely to be important which are at the end of the data file
-            - EXCLUDE: Always at the end of the data file, actively marked as unimportant
-
         """
         if name not in self.dataNames:
             self.dataNames.append(name)
@@ -291,401 +225,7 @@ class ExperimentHandler(_ComparisonMixin):
         except TypeError:
             # unhashable type (list, dict, ...) == mutable, so need a copy()
             value = copy.deepcopy(value)
-
-        # if value is a Timestamp, resolve to a simple value
-        if isinstance(value, clock.Timestamp):
-            value = value.resolve()
-
-        # get entry from row number
-        entry = self.thisEntry
-        if row is not None:
-            # if row exceeds size of entries, warn and abort
-            if row > len(self.entries):
-                logging.error(_translate(
-                    "Cannot add data to row {} as there are only {} entries"
-                ).format(row, len(self.entries)))
-            # get entry from row
-            entry = self.entries[row]
-        entry[name] = value
-
-        # set priority if given
-        if priority is not None:
-            self.setPriority(name, priority)
-
-    def getPriority(self, name):
-        """
-        Get the priority value for a given column. If no priority value is
-        stored, returns best guess based on column name.
-
-        Parameters
-        ----------
-        name : str
-            Column name
-
-        Returns
-        -------
-        int
-            The priority value stored/guessed for this column, most likely a value from `constants.priority`, one of:
-            - CRITICAL (30): Always at the start of the data file, generally reserved for Routine start times
-            - HIGH (20): Important columns which are near the front of the data file
-            - MEDIUM (10): Possibly important columns which are around the middle of the data file
-            - LOW (0): Columns unlikely to be important which are at the end of the data file
-            - EXCLUDE (-10): Always at the end of the data file, actively marked as unimportant
-        """
-        if name not in self.columnPriority:
-            # store priority if not specified already
-            self.columnPriority[name] = self._guessPriority(name)
-        # return stored priority
-        return self.columnPriority[name]
-
-    def _guessPriority(self, name):
-        """
-        Get a best guess at the priority of a column based on its name
-
-        Parameters
-        ----------
-        name : str
-            Name of the column
-
-        Returns
-        -------
-        int
-            One of the following:
-            - HIGH (19): Important columns which are near the front of the data file
-            - MEDIUM (9): Possibly important columns which are around the middle of the data file
-            - LOW (-1): Columns unlikely to be important which are at the end of the data file
-
-            NOTE: Values returned from this function are 1 less than values in `constants.priority`,
-            columns whose priority was guessed are behind equivalently prioritised columns whose priority
-            was specified.
-        """
-        # if there's a dot, get attribute name
-        if "." in name:
-            name = name.split(".")[-1]
-
-        # start off assuming low priority
-        priority = constants.priority.LOW
-        # if name is one of identified likely high priority columns, it's medium priority
-        if name in [
-            "keys", "rt", "x", "y", "leftButton", "numClicks", "numLooks", "clip", "response", "value",
-            "frameRate", "participant"
-        ]:
-            priority = constants.priority.MEDIUM
-
-        return priority - 1
-
-    def setPriority(self, name, value=constants.priority.HIGH):
-        """
-        Set the priority of a column in the data file.
-
-        Parameters
-        ----------
-        name : str
-            Name of the column, e.g. `text.started`
-        value : int
-            Priority value to set the column to - higher priority columns appear nearer to the start of
-            the data file. Use values from `constants.priority` as landmark values:
-            - CRITICAL (30): Always at the start of the data file, generally reserved for Routine start times
-            - HIGH (20): Important columns which are near the front of the data file
-            - MEDIUM (10): Possibly important columns which are around the middle of the data file
-            - LOW (0): Columns unlikely to be important which are at the end of the data file
-            - EXCLUDE (-10): Always at the end of the data file, actively marked as unimportant
-        """
-        self.columnPriority[name] = value
-
-    def addAnnotation(self, value):
-        """
-        Add an annotation at the current point in the experiment
-
-        Parameters
-        ----------
-        value : str
-            Value of the annotation
-        """
-        self.addData("notes", value)
-
-    def timestampOnFlip(self, win, name, format=float):
-        """Add a timestamp (in the future) to the current row
-
-        Parameters
-        ----------
-
-        win : psychopy.visual.Window
-            The window object that we'll base the timestamp flip on
-        name : str
-            The name of the column in the datafile being written,
-            such as 'myStim.stopped'
-        format : str, class or None
-            Format in which to return time, see clock.Timestamp.resolve() for more info. Defaults to `float`.
-        """
-        # make sure the name is used when writing the datafile
-        if name not in self.dataNames:
-            self.dataNames.append(name)
-        # tell win to record timestamp on flip
-        win.timeOnFlip(self.thisEntry, name, format=format)
-
-    @property
-    def status(self):
-        return self._status
-
-    @status.setter
-    def status(self, value):
-        """
-        Status of this experiment, from psychopy.constants.
-
-        Parameters
-        ----------
-        value : int
-            One of the values from psychopy.constants.
-        """
-        # log change
-        valStr = {
-            constants.NOT_STARTED: "NOT_STARTED",
-            constants.STARTED: "STARTED",
-            constants.PAUSED: "PAUSED",
-            constants.RECORDING: "RECORDING",
-            constants.STOPPED: "STOPPED",
-            constants.SEEKING: "SEEKING",
-            constants.STOPPING: "STOPPING",
-            constants.INVALID: "INVALID"
-        }[value]
-        logging.exp(f"{self.name}: status = {valStr}", obj=self)
-        # make change
-        self._status = value
-
-    def pause(self):
-        """
-        Set status to be PAUSED.
-        """
-        logging.exp(_translate(
-            "Experiment '{}' paused."
-        ).format(self.name))
-        # warn if experiment is already paused
-        if self.status == constants.PAUSED:
-            logging.warn(_translate(
-                "Attempted to pause experiment '{}', but it is already paused. "
-                "Status will remain unchanged.".format(self.name)
-            ))
-        # set own status
-        self.status = constants.PAUSED
-
-    def resume(self):
-        """
-        Set status to be STARTED.
-        """
-        logging.exp(_translate(
-            "Experiment '{}' resumed."
-        ).format(self.name))
-        # warn if experiment is already running
-        if self.status == constants.STARTED:
-            logging.warn(_translate(
-                "Attempted to resume experiment '{}', but it is not paused. "
-                "Status will remain unchanged.".format(self.name)
-            ))
-        # set own status
-        self.status = constants.STARTED
-
-    def stop(self):
-        """
-        Set status to be FINISHED.
-        """
-        # warn if experiment is already paused
-        if self.status == constants.FINISHED:
-            logging.warn(_translate(
-                "Attempted to stop experiment '{}', but it is already stopping. "
-                "Status will remain unchanged.".format(self.name)
-            ))
-        # set own status
-        self.status = constants.STOPPED
-    
-    def next(self, isTrials=True):
-        """
-        Move on to either the next trial (if in a trials loop) or the next Routine.
-
-        Parameters
-        ----------
-        isTrials : bool
-            Filter for only loops which have isTrials checked
-        """
-        if isinstance(self.getCurrentLoop(isTrials=isTrials), TrialHandler2):
-            # if there is a loop, skip trials
-            self.skipTrials(1, isTrials=isTrials)
-        elif self.currentRoutine is not None:
-            # if not, but there is a Routine, end it
-            self.endCurrentRoutine()
-        else:
-            # otherwise, do nothing
-            return
-    
-    def endCurrentRoutine(self):
-        """
-        End the current Routine (via the Routine.forceEnded attribute)
-        """
-        # if there's no current Routine yet, do nothing
-        if self.currentRoutine is None:
-            return
-        # force end the Routine
-        self.currentRoutine.forceEnded = True
-
-    def skipTrials(self, n=1, isTrials=True):
-        """
-        Skip ahead n trials - the trials inbetween will be marked as "skipped". If you try to
-        skip past the last trial, will log a warning and skip *to* the last trial.
-
-        Parameters
-        ----------
-        n : int
-            Number of trials to skip ahead
-        isTrials : bool
-            Filter for only loops which have isTrials checked
-        """
-        loop = self.getCurrentLoop(isTrials=isTrials)
-        # return if there isn't a TrialHandler2 active
-        if not isinstance(loop, TrialHandler2):
-            return
-        # end inner loops
-        for innerLoop in self.loopsUnfinished[
-            self.loopsUnfinished.index(loop)+1:
-        ].copy():
-            innerLoop.finished = True
-            self.loopEnded(innerLoop)
-        # skip trials in current loop
-        return loop.skipTrials(n)
-
-    def rewindTrials(self, n=1, isTrials=True):
-        """
-        Skip ahead n trials - the trials inbetween will be marked as "skipped". If you try to
-        skip past the last trial, will log a warning and skip *to* the last trial.
-
-        Parameters
-        ----------
-        n : int
-            Number of trials to skip ahead
-        isTrials : bool
-            Filter for only loops which have isTrials checked
-        """
-        loop = self.getCurrentLoop(isTrials=isTrials)
-        # return if there isn't a TrialHandler2 active
-        if not isinstance(loop, TrialHandler2):
-            return
-        # restart inner loops
-        for innerLoop in self.loopsUnfinished[
-            self.loopsUnfinished.index(loop)+1:
-        ]:
-            innerLoop.rewindTrials(
-                len(innerLoop.elapsedTrials)
-            )
-        # rewind trials in current loop
-        return loop.rewindTrials(n)
-    
-    def cueTrial(self, trial, isTrials=True):
-        """
-        Queue up a trial to be next in the current TrialHandler.
-
-        Parameters
-        ----------
-        trial : int, dict or Trial
-            Trial or index to queue up
-        isTrials : bool
-            Filter for only loops which have isTrials checked
-        """
-        loop = self.getCurrentLoop(isTrials=isTrials)
-        # return if there isn't a TrialHandler2 active
-        if not isinstance(loop, TrialHandler2):
-            return
-        
-        return loop.cueTrial(trial)
-    
-    def getAllTrials(self, isTrials=True):
-        """
-        Returns all trials (elapsed, current and upcoming) with an index indicating which trial is 
-        the current trial.
-
-        Parameters
-        ----------
-        isTrials : bool
-            Filter for only loops which have isTrials checked
-
-        Returns
-        -------
-        list[Trial]
-            List of trials, in order (oldest to newest)
-        int
-            Index of the current trial in this list
-        """
-        # return None if there isn't a TrialHandler2 active
-        if not isinstance(self.getCurrentLoop(isTrials=isTrials), TrialHandler2):
-            return [None], 0
-        # get all trials from current loop
-        return self.getCurrentLoop(isTrials=isTrials).getAllTrials()
-
-    def getCurrentTrial(self, isTrials=True):
-        """
-        Returns the current trial (`.thisTrial`)
-
-        Parameters
-        ----------
-        isTrials : bool
-            Filter for only loops which have isTrials checked
-
-        Returns
-        -------
-        Trial
-            The current trial
-        """
-        # return None if there isn't a TrialHandler2 active
-        if not isinstance(self.getCurrentLoop(isTrials=isTrials), TrialHandler2):
-            return None
-        
-        return self.getCurrentLoop(isTrials=isTrials).getCurrentTrial()
-    
-    def getFutureTrial(self, n=1, isTrials=True):
-        """
-        Returns the condition for n trials into the future, without
-        advancing the trials. Returns 'None' if attempting to go beyond
-        the last trial in the current loop, or if there is no current loop.
-
-        Parameters
-        ----------
-        isTrials : bool
-            Filter for only loops which have isTrials checked
-        """
-        # return None if there isn't a TrialHandler2 active
-        if not isinstance(self.getCurrentLoop(isTrials=isTrials), TrialHandler2):
-            return None
-        # get future trial from current loop
-        return self.getCurrentLoop(isTrials=isTrials).getFutureTrial(n)
-
-    def getFutureTrials(self, n=1, start=0, isTrials=True):
-        """
-        Returns Trial objects for a given range in the future. Will start looking at `start` trials 
-        in the future and will return n trials from then, so e.g. to get all trials from 2 in the 
-        future to 5 in the future you would use `start=2` and `n=3`.
-
-        Parameters
-        ----------
-        n : int, optional
-            How many trials into the future to look, by default 1
-        start : int, optional
-            How many trials into the future to start looking at, by default 0
-        isTrials : bool
-            Filter for only loops which have isTrials checked
-        
-        Returns
-        -------
-        list[Trial or None]
-            List of Trial objects n long. Any trials beyond the last trial are None.
-        """
-        # blank list to store trials in
-        trials = []
-        # iterate through n trials
-        for i in range(n):
-            # add each to the list
-            trials.append(
-                self.getFutureTrial(start + i, isTrials=isTrials)
-            )
-        
-        return trials
+        self.thisEntry[name] = value
 
     def nextEntry(self):
         """Calling nextEntry indicates to the ExperimentHandler that the
@@ -695,31 +235,14 @@ class ExperimentHandler(_ComparisonMixin):
         this = self.thisEntry
         # fetch data from each (potentially-nested) loop
         for thisLoop in self.loopsUnfinished:
-            self.updateEntryFromLoop(thisLoop)
+            names, vals = self._getLoopInfo(thisLoop)
+            for n, name in enumerate(names):
+                this[name] = vals[n]
         # add the extraInfo dict to the data
-        if isinstance(self.extraInfo, dict):
+        if type(self.extraInfo) == dict:
             this.update(self.extraInfo)
         self.entries.append(this)
-        # add new entry with its
         self.thisEntry = {}
-
-    def updateEntryFromLoop(self, thisLoop):
-        """
-        Add all values from the given loop to the current entry.
-
-        Parameters
-        ----------
-        thisLoop : BaseLoopHandler
-            Loop to get fields from
-        """
-        # for each name and value in the current trial...
-        names, vals = self._getLoopInfo(thisLoop)
-        for n, name in enumerate(names):
-            # add/update value
-            self.thisEntry[name] = vals[n]
-            # make sure name is in data names
-            if name not in self.dataNames:
-                self.dataNames.append(name)
 
     def getAllEntries(self):
         """Fetches a copy of all the entries including a final (orphan) entry
@@ -734,90 +257,14 @@ class ExperimentHandler(_ComparisonMixin):
             entries.append(self.thisEntry)
         return entries
 
-    def queueNextCollision(self, fileCollisionMethod, fileName=None):
-        """
-        Tell this ExperimentHandler than, next time the named file is saved, it should handle 
-        collisions a certain way. This is useful if you want to save multiple times within an 
-        experiment.
-
-        Parameters
-        ----------
-        fileCollisionMethod : str
-            File collision method to use, see `saveAsWideText` or `saveAsPickle` for 
-            details.
-        fileName : str
-            Filename to queue collision on, if None (default) will use this ExperimentHandler's 
-            `dataFileName`
-        """
-        # handle default
-        if fileName is None:
-            fileName = self.dataFileName
-        # make filename iterable
-        if not isinstance(fileName, (list, tuple)):
-            fileName = [fileName]
-        # queue collision
-        for thisFileName in fileName:
-            self._nextSaveCollision[thisFileName] = fileCollisionMethod
-    
-    def connectSaveMethod(self, fcn, *args, **kwargs):
-        """
-        Tell this experiment handler to call the given function with the given arguments and 
-        keyword arguments whenever it saves its own data.
-
-        Parameters
-        ----------
-        fcn : function
-            Function to call
-        *args
-            Positional arguments to be given to the function when it's called
-        **kwargs
-            Keyword arguments to be given to the function when it's called
-        """
-        # create a call profile for the given function
-        profile = {
-            'fcn': fcn,
-            'args': args,
-            'kwargs': kwargs
-        }
-        # connect it
-        self.connectedSaveMethods.append(profile)
-    
-    def save(self):
-        """
-        Work out from own settings how to save, then use the appropriate method (saveAsWideText, 
-        saveAsPickle, etc.)
-        """
-        savedNames = []
-        if self.dataFileName not in ['', None]:
-            if self.autoLog:
-                msg = 'Saving data for %s ExperimentHandler' % self.name
-                logging.debug(msg)
-            if self.savePickle:
-                savedNames.append(
-                    self.saveAsPickle(self.dataFileName)
-                )
-            if self.saveWideText:
-                savedNames.append(
-                    self.saveAsWideText(self.dataFileName + '.csv')
-                )
-        else:
-            logging.warn(
-                "ExperimentHandler.save was called on an ExperimentHandler with no dataFileName set."
-            )
-        # call connected save functions
-        for profile in self.connectedSaveMethods:
-            profile['fcn'](*profile['args'], **profile['kwargs'])
-        
-        return savedNames
-
     def saveAsWideText(self,
                        fileName,
                        delim='auto',
                        matrixOnly=False,
                        appendFile=None,
                        encoding='utf-8-sig',
-                       fileCollisionMethod=None,
-                       sortColumns=None):
+                       fileCollisionMethod='rename',
+                       sortColumns=False):
         """Saves a long, wide-format text file, with one line representing
         the attributes and data for a single trial. Suitable for analysis
         in R and SPSS.
@@ -832,43 +279,35 @@ class ExperimentHandler(_ComparisonMixin):
         which can be handy if you want to append data to an existing file
         of the same format.
 
-        Parameters
-        ----------
+        :Parameters:
 
-        fileName:
-            if extension is not specified, '.csv' will be appended if
-            the delimiter is ',', else '.tsv' will be appended.
-            Can include path info.
+            fileName:
+                if extension is not specified, '.csv' will be appended if
+                the delimiter is ',', else '.tsv' will be appended.
+                Can include path info.
 
-        delim:
-            allows the user to use a delimiter other than the default
-            tab ("," is popular with file extension ".csv")
+            delim:
+                allows the user to use a delimiter other than the default
+                tab ("," is popular with file extension ".csv")
 
-        matrixOnly:
-            outputs the data with no header row.
+            matrixOnly:
+                outputs the data with no header row.
 
-        appendFile:
-            will add this output to the end of the specified file if
-            it already exists.
+            appendFile:
+                will add this output to the end of the specified file if
+                it already exists.
 
-        encoding:
-            The encoding to use when saving a the file.
-            Defaults to `utf-8-sig`.
+            encoding:
+                The encoding to use when saving a the file.
+                Defaults to `utf-8-sig`.
 
-        fileCollisionMethod:
-            Collision method passed to
-            :func:`~psychopy.tools.fileerrortools.handleFileCollision`
+            fileCollisionMethod:
+                Collision method passed to
+                :func:`~psychopy.tools.fileerrortools.handleFileCollision`
 
-        sortColumns : str or bool
-            How (if at all) to sort columns in the data file. Can be:
-            - "alphabetical", "alpha", "a" or True: Sort alphabetically by header name
-            - "priority", "pr" or "p": Sort according to priority
-            - other: Do not sort, columns remain in order they were added
-        
-        Returns
-        -------
-        str
-            Final filename (including _1, _2, etc. and file extension) which data was saved as
+            sortColumns:
+                will sort columns alphabetically by header name if True
+
         """
         # set default delimiter if none given
         delimOptions = {
@@ -883,11 +322,6 @@ class ExperimentHandler(_ComparisonMixin):
 
         if appendFile is None:
             appendFile = self.appendFiles
-        # check for queued collision methods if using default, fallback to rename
-        if fileCollisionMethod is None and fileName in self._nextSaveCollision:
-            fileCollisionMethod = self._nextSaveCollision.pop(fileName)
-        elif fileCollisionMethod is None:
-            fileCollisionMethod = "rename"
 
         # create the file or send to stdout
         fileName = genFilenameFromDelimiter(fileName, delim)
@@ -896,27 +330,14 @@ class ExperimentHandler(_ComparisonMixin):
                            encoding=encoding)
 
         names = self._getAllParamNames()
-        for name in self.dataNames:
-            if name not in names:
-                names.append(name)
+        names.extend(self.dataNames)
         # names from the extraInfo dictionary
         names.extend(self._getExtraInfo()[0])
         if len(names) < 1:
             logging.error("No data was found, so data file may not look as expected.")
-        # if sort columns not specified, use default from self
-        if sortColumns is None:
-            sortColumns = self.sortColumns
-        # sort names as requested
-        if sortColumns in ("alphabetical", "alpha", "a", True):
-            # sort alphabetically
+        # sort names if requested
+        if sortColumns:
             names.sort()
-        elif sortColumns in ("priority", "pr" or "p"):
-            # map names to their priority
-            priorityMap = []
-            for name in names:
-                priority = self.columnPriority.get(name, self._guessPriority(name))
-                priorityMap.append((priority, name))
-            names = [name for priority, name in sorted(priorityMap, reverse=True)]
         # write a header line
         if not matrixOnly:
             for heading in names:
@@ -940,23 +361,15 @@ class ExperimentHandler(_ComparisonMixin):
             f.close()
         logging.info('saved data to %r' % f.name)
 
-        return fileName
-
-    def saveAsPickle(self, fileName, fileCollisionMethod=None):
+    def saveAsPickle(self, fileName, fileCollisionMethod='rename'):
         """Basically just saves a copy of self (with data) to a pickle file.
 
         This can be reloaded if necessary and further analyses carried out.
 
-        Parameters
-        ----------
+        :Parameters:
 
-        fileCollisionMethod : str
-            Collision method passed to :func:`~psychopy.tools.fileerrortools.handleFileCollision`
-        
-        Returns
-        -------
-        str
-            Final filename (including _1, _2, etc. and file extension) which data was saved as
+            fileCollisionMethod: Collision method passed to
+            :func:`~psychopy.tools.fileerrortools.handleFileCollision`
         """
         # Store the current state of self.savePickle and self.saveWideText
         # for later use:
@@ -972,38 +385,19 @@ class ExperimentHandler(_ComparisonMixin):
         savePickle = self.savePickle
         saveWideText = self.saveWideText
 
-        # append extension
-        if not fileName.endswith('.psydat'):
-            fileName += '.psydat'
-
-        # check for queued collision methods if using default, fallback to rename
-        if fileCollisionMethod is None and fileName in self._nextSaveCollision:
-            fileCollisionMethod = self._nextSaveCollision.pop(fileName)
-        elif fileCollisionMethod is None:
-            fileCollisionMethod = "rename"
-
         self.savePickle = False
         self.saveWideText = False
 
         origEntries = self.entries
         self.entries = self.getAllEntries()
 
-        # temporarily remove connected save methods so they don't get pickled
-        origConnectedSaveMethods = self.connectedSaveMethods
-        self.connectedSaveMethods = [
-            {
-                'fcn': f"<{callback['fcn'].__module__}:{callback['fcn'].__name__}>",
-                'args': callback['args'],
-                'kwargs': callback['kwargs']
-            } for callback in origConnectedSaveMethods
-        ]
+        # otherwise use default location
+        if not fileName.endswith('.psydat'):
+            fileName += '.psydat'
 
         with openOutputFile(fileName=fileName, append=False,
                            fileCollisionMethod=fileCollisionMethod) as f:
             pickle.dump(self, f)
-        
-        # reinstate connected save methods
-        self.connectedSaveMethods = origConnectedSaveMethods
 
         if (fileName is not None) and (fileName != 'stdout'):
             logging.info('saved data to %s' % f.name)
@@ -1011,45 +405,16 @@ class ExperimentHandler(_ComparisonMixin):
         self.entries = origEntries  # revert list of completed entries post-save
         self.savePickle = savePickle
         self.saveWideText = saveWideText
-
-        return fileName
-
-    def getJSON(self, priorityThreshold=constants.priority.EXCLUDE+1):
-        """
-        Get the experiment data as a JSON string.
-
-        Parameters
-        ----------
-        priorityThreshold : int
-            Output will only include columns whose priority is greater than or equal to this value. Use values in
-            psychopy.constants.priority as a guideline for priority levels. Default is -9 (constants.priority.EXCLUDE +
-            1)
-
-        Returns
-        -------
-        str
-            JSON string with the following fields:
-            - 'type': Indicates that this is data from an ExperimentHandler (will always be "trials_data")
-            - 'trials': `list` of `dict`s representing requested trials data
-            - 'priority': `dict` of column names
-        """
-        # get columns which meet threshold
-        cols = [col for col in self.dataNames if self.getPriority(col) >= priorityThreshold]
-        # convert just relevant entries to a DataFrame
-        trials = pd.DataFrame(self.entries, columns=cols).fillna(value="")
-        # put in context
-        context = {
-            'type': "trials_data",
-            'thisTrial': self.thisEntry,
-            'trials': trials.to_dict(orient="records"),
-            'priority': self.columnPriority,
-            'threshold': priorityThreshold,
-        }
-
-        return json.dumps(context, indent=True, allow_nan=False, default=str)
         
     def close(self):
-        self.save()
+        if self.dataFileName not in ['', None]:
+            if self.autoLog:
+                msg = 'Saving data for %s ExperimentHandler' % self.name
+                logging.debug(msg)
+            if self.savePickle:
+                self.saveAsPickle(self.dataFileName)
+            if self.saveWideText:
+                self.saveAsWideText(self.dataFileName + '.csv')
         self.abort()
         self.autoLog = False
 

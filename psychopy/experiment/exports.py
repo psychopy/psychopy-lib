@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2025 Open Science Tools Ltd.
-# Distributed under the terms of the MIT License.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Distributed under the terms of the GNU General Public License (GPL).
 
 """Experiment classes:
     Experiment, Flow, Routine, Param, Loop*, *Handlers, and NameSpace
@@ -31,12 +31,11 @@ from .utils import nonalphanumeric_re, valid_var_re
 
 class IndentingBuffer(io.StringIO):
 
-    def __init__(self, target='PsychoPy', initial_value='', newline='\n'):
-        io.StringIO.__init__(self, initial_value, newline)
+    def __init__(self, *args, **kwargs):
+        io.StringIO.__init__(self, *args, **kwargs)
         self.oneIndent = "    "
         self.indentLevel = 0
         self._writtenOnce = []
-        self.target = target  # useful to keep track of what language is written here
 
     def writeIndented(self, text):
         """Write to the StringIO buffer, but add the current indent.
@@ -46,16 +45,14 @@ class IndentingBuffer(io.StringIO):
             self.getvalue()[-1]=='\n'
 
         """
-        for line in text.splitlines(keepends=True):
-            self.write(self.oneIndent * self.indentLevel + line)
+        self.write(self.oneIndent * self.indentLevel + text)
 
     def writeIndentedLines(self, text):
         """As writeIndented(text) except that each line in text gets
         the indent level rather than the first line only.
         """
-        if not text.endswith("\n"):
-            text += "\n"
-        self.writeIndented(text)
+        for line in text.splitlines():
+            self.write(self.oneIndent * self.indentLevel + line + '\n')
 
     def writeOnceIndentedLines(self, text):
         """Add code to the experiment that is only run exactly once,
@@ -127,78 +124,36 @@ class NameSpace:
         2011 Jeremy Gray
     """
 
-    # numpy imports
-    numpy = _numpyImports + _numpyRandomImports + ['np']
-    # core python keywords
-    keywords = keyword.kwlist + dir(__builtins__) + ['self']
-    # builder stuff
-    builder = [
-        'KeyResponse', 'keyboard', 'buttons', 'continueRoutine', 'expInfo', 'expName', 'thisExp', 
-        'filename', 'logFile', 'paramName', 't', 'frameN', 'currentLoop', 'dlg', '_thisDir', 
-        'endExpNow', 'globalClock', 'routineTimer', 'frameDur', 'theseKeys', 'win', 'x', 'y', 
-        'level', 'component', 'thisComponent'
-    ]
-    # PsychoPy constants
-    constants = dir(constants)
-    # PsychoPy modules
-    psychopy = psychopy.__all__ + ['psychopy', 'os']
-    # all non-user builder stuff
-    nonUserBuilder = numpy + keywords + psychopy + constants
-    
     def __init__(self, exp):
         """Set-up an experiment's namespace: reserved words and user space
         """
         super(NameSpace, self).__init__()
         self.exp = exp
+        # deepcopy fails if you pre-compile regular expressions and stash here
+
+        self.numpy = _numpyImports + _numpyRandomImports + ['np']
+        # noinspection PyUnresolvedReferences
+        self.keywords = keyword.kwlist + dir(__builtins__)
+        # these are based on a partial test, known to be incomplete:
+        self.psychopy = psychopy.__all__ + ['psychopy', 'os']
+        self.constants = dir(constants)
+        self.builder = ['KeyResponse', 'keyboard', 'buttons',
+                        'continueRoutine', 'expInfo', 'expName', 'thisExp',
+                        'filename', 'logFile', 'paramName',
+                        't', 'frameN', 'currentLoop', 'dlg', '_thisDir',
+                        'endExpNow',
+                        'globalClock', 'routineTimer', 'frameDur',
+                        'theseKeys', 'win', 'x', 'y', 'level', 'component',
+                        'thisComponent']
         # user-entered, from Builder dialog or conditions file:
         self.user = []
+        self.nonUserBuilder = self.numpy + self.keywords + self.psychopy
 
     def __str__(self, numpy_count_only=True):
         varibs = self.user + self.builder + self.psychopy
         if numpy_count_only:
             return "%s + [%d numpy]" % (str(varibs), len(self.numpy))
         return str(varibs + self.numpy)
-
-    @property
-    def all(self):
-        return (
-                self.builder +
-                self.constants +
-                self.keywords +
-                self.nonUserBuilder +
-                self.numpy +
-                self.psychopy +
-                self.user
-        )
-
-    def getCategories(self, name):
-        """
-        Get list of categories in which a given name is found.
-
-        Parameters
-        ----------
-        name : str
-            Name to look for
-        """
-        # Define possible categories
-        categories = (
-            "builder",
-            "constants",
-            "keywords",
-            "nonUserBuilder",
-            "numpy",
-            "psychopy",
-            "user"
-        )
-        # Check for name in each category
-        found = []
-        for cat in categories:
-            if name in getattr(self, cat):
-                found.append(cat)
-
-        return found
-
-
 
     def getDerived(self, basename):
         """ buggy
@@ -233,8 +188,7 @@ class NameSpace:
                        if i < len(su) - 1 and su[i + 1] == var]
         return duplicates or None
 
-    @staticmethod
-    def isValid(name):
+    def isValid(self, name):
         """var-name compatible? return True if string name is
         alphanumeric + underscore only, with non-digit first
         """

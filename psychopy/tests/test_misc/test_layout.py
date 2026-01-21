@@ -3,10 +3,10 @@ from psychopy import layout, visual
 
 
 class TestVector:
-    def setup_method(self):
+    def setup(self):
         self.win = visual.Window(size=(128, 64), monitor="testMonitor")
 
-    def teardown_method(self):
+    def teardown(self):
         self.win.close()
         del self.win
 

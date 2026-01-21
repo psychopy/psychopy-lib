@@ -2,12 +2,21 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2025 Open Science Tools Ltd.
-# Distributed under the terms of the MIT License.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Distributed under the terms of the GNU General Public License (GPL).
 
 from pathlib import Path
 from psychopy.experiment.components import BaseComponent, Param, _translate
 from psychopy import prefs
+from psychopy.localization import _localized as __localized
+_localized = __localized.copy()
+
+# only use _localized values for label values, nothing functional:
+_localized.update({'address': _translate('Port address'),
+                   'register': _translate('U3 Register'),
+                   'startData': _translate("Start data"),
+                   'stopData': _translate("Stop data"),
+                   'syncScreen': _translate('Sync to screen')})
 
 
 class ParallelOutComponent(BaseComponent):
@@ -15,8 +24,7 @@ class ParallelOutComponent(BaseComponent):
 
     categories = ['I/O', 'EEG']
     targets = ['PsychoPy']
-    iconFile = Path(__file__).parent / 'parallel.png'
-    iconSVG = Path(__file__).parent / 'ParallelOutComponent.svg'
+    iconFile = Path(__file__).parent / 'parallelOut.png'
     tooltip = _translate('Parallel out: send signals from the parallel port')
 
     def __init__(self, exp, parentName, name='p_port',
@@ -50,7 +58,7 @@ class ParallelOutComponent(BaseComponent):
                          "options in preferences>general)")
         self.params['address'] = Param(
             address, valType='str', inputType="choice", allowedVals=addressOptions,
-            categ="Device", hint=msg, label=_translate("Port address"))
+            categ='Hardware', hint=msg, label=_localized['address'])
 
         self.depends.append(
             {"dependsOn": "address",  # must be param name
@@ -64,17 +72,17 @@ class ParallelOutComponent(BaseComponent):
         msg = _translate("U3 Register to write byte to")
         self.params['register'] = Param(register, valType='str',
                                         inputType="choice", allowedVals=['EIO', 'FIO'],
-                                        categ="Device", hint=msg, label=_translate("U3 register"))
+                                        categ='Hardware', hint=msg, label=_localized['register'])
 
         self.params['startData'] = Param(
             startData, valType='code', inputType="single", allowedTypes=[], categ='Data',
             hint=_translate("Data to be sent at 'start'"),
-            label=_translate("Start data"))
+            label=_localized['startData'])
 
         self.params['stopData'] = Param(
             stopData, valType='code', inputType="single", allowedTypes=[], categ='Data',
             hint=_translate("Data to be sent at 'end'"),
-            label=_translate("Stop data"))
+            label=_localized['stopData'])
 
         msg = _translate("If the parallel port data relates to visual "
                          "stimuli then sync its pulse to the screen refresh")
@@ -83,7 +91,7 @@ class ParallelOutComponent(BaseComponent):
             allowedVals=[True, False],
             updates='constant', allowedUpdates=[],
             hint=msg,
-            label=_translate("Sync to screen"))
+            label=_localized['syncScreen'])
 
     def writeInitCode(self, buff):
         if self.params['address'].val == 'LabJack U3':
@@ -110,31 +118,32 @@ class ParallelOutComponent(BaseComponent):
 
         buff.writeIndented("# *%s* updates\n" % (self.params['name']))
         # writes an if statement to determine whether to draw etc
-        indented = self.writeStartTestCode(buff)
-        if indented:
-            buff.writeIndented("%(name)s.status = STARTED\n" % self.params)
+        self.writeStartTestCode(buff)
+        buff.writeIndented("%(name)s.status = STARTED\n" % self.params)
 
-            if self.params['address'].val == 'LabJack U3':
-                if not self.params['syncScreen'].val:
-                    code = "%(name)s.setData(int(%(startData)s), address=%(register)s)\n" % self.params
-                else:
-                    code = ("win.callOnFlip(%(name)s.setData, int(%(startData)s), address=%(register)s)\n" %
-                            self.params)
+        if self.params['address'].val == 'LabJack U3':
+            if not self.params['syncScreen'].val:
+                code = "%(name)s.setData(int(%(startData)s), address=%(register)s)\n" % self.params
             else:
-                if not self.params['syncScreen'].val:
-                    code = "%(name)s.setData(int(%(startData)s))\n" % self.params
-                else:
-                    code = ("win.callOnFlip(%(name)s.setData, int(%(startData)s))\n" %
-                            self.params)
+                code = ("win.callOnFlip(%(name)s.setData, int(%(startData)s), address=%(register)s)\n" %
+                        self.params)
+        else:
+            if not self.params['syncScreen'].val:
+                code = "%(name)s.setData(int(%(startData)s))\n" % self.params
+            else:
+                code = ("win.callOnFlip(%(name)s.setData, int(%(startData)s))\n" %
+                        self.params)
 
-            buff.writeIndented(code)
+        buff.writeIndented(code)
 
         # to get out of the if statement
-        buff.setIndentLevel(-indented, relative=True)
-
+        buff.setIndentLevel(-1, relative=True)
         # test for stop (only if there was some setting for duration or stop)
-        indented = self.writeStopTestCode(buff)
-        if indented:
+        if self.params['stopVal'].val not in ['', None, -1, 'None']:
+            # writes an if statement to determine whether to draw etc
+            self.writeStopTestCode(buff)
+            buff.writeIndented("%(name)s.status = FINISHED\n" % self.params)
+
             if self.params['address'].val == 'LabJack U3':
                 if not self.params['syncScreen'].val:
                     code = "%(name)s.setData(int(%(stopData)s), address=%(register)s)\n" % self.params
@@ -150,8 +159,8 @@ class ParallelOutComponent(BaseComponent):
 
             buff.writeIndented(code)
 
-        # to get out of the if statement
-        buff.setIndentLevel(-indented, relative=True)
+            # to get out of the if statement
+            buff.setIndentLevel(-2, relative=True)
 
         # dedent
 # buff.setIndentLevel(-dedentAtEnd, relative=True)#'if' statement of the

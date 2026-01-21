@@ -27,13 +27,6 @@ _translate(
 _translate(
     "Your stimulus {type} time of {time} seconds cannot be accurately presented for {time} on a {Hz}Hz monitor.")
 
-# Alert 3210
-_translate("Speaker {deviceName} is set to \"Exclusive low latency\" mode. As resampling is enabled, this mode has little benefit over \"Shared low latency\" mode, with some drawbacks.")
-
-# Alert 3610
-_translate(
-    "Multiple Components in the same Routine are validated by {validator}, please ensure that the timing of these Components do not overlap.")
-
 # Alert 4051
 _translate(
     "Experiment was built in a future version of PsychoPy ({version}), we recommend either updating PsychoPy or changing the \"Use Version\" setting in Experiment Settings to this version.")
@@ -53,13 +46,6 @@ _translate(
 # Alert 4120
 _translate(
     "Component {component} has stop time set as a duration, but doesn't have a start time")
-
-# Alert 4125
-_translate(
-    "Microphone component `{name}` given blank stop time, using max duration allowed by buffer size ({stopVal}s).")
-
-# Alert 4130
-_translate("Static Component `{name}` given infinite stop time")
 
 # Alert 4205
 _translate(
@@ -141,17 +127,6 @@ _translate(
 _translate(
     "Chosen transcriber '{engine}' requires an API key, please supply one in Preferences.")
 
-# Alert 4705
-_translate(
-    "Column name '{param}' in conditions file already exists as a variable in this experiment ({category}).")
-
-# Alert 4710
-_translate("Column name '{param}' is likely to cause name clashes. {msg}.")
-
-# Alert 4810
-_translate(
-    "Could not find any config for device {deviceName}, please setup this device up in the Device Manager dialog (from Builder).\"")
-
 # Alert 5055
 _translate(
     "Device parameter of microphone component \"{name}\" will not be used online.")
@@ -159,10 +134,6 @@ _translate(
 # Alert 6105
 _translate(
     "The file you are attempting to run does not seem to exist, the full path supplied to Runner was {path}")
-
-# Alert 7105
-_translate(
-    "Component {name} comes from the plugin {plugin}, which is either not installed or not activated.")
 
 # Alert 8105
 _translate(

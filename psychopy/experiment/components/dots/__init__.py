@@ -2,12 +2,28 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2025 Open Science Tools Ltd.
-# Distributed under the terms of the MIT License.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Distributed under the terms of the GNU General Public License (GPL).
 
 from os import path
 from pathlib import Path
 from psychopy.experiment.components import BaseVisualComponent, Param, getInitVals, _translate
+from psychopy.localization import _localized as __localized
+_localized = __localized.copy()
+
+# only use _localized values for label values, nothing functional:
+_localized.update({'nDots': _translate('Number of dots'),
+                   'dir': _translate('Direction'),
+                   'speed': _translate('Speed'),
+                   'coherence': _translate('Coherence'),
+                   'dotSize': _translate('Dot size'),
+                   'dotLife': _translate('Dot life-time'),
+                   'signalDots': _translate('Signal dots'),
+                   'noiseDots': _translate('Noise dots'),
+                   'fieldShape': _translate('Field shape'),
+                   'fieldSize': _translate('Field size'),
+                   'fieldPos': _translate('Field position'),
+                   'refreshDots': _translate('Dot refresh rule')})
 
 
 class DotsComponent(BaseVisualComponent):
@@ -16,7 +32,6 @@ class DotsComponent(BaseVisualComponent):
     categories = ['Stimuli']
     targets = ['PsychoPy']
     iconFile = Path(__file__).parent / 'dots.png'
-    iconSVG = Path(__file__).parent / 'DotsComponent.svg'
     tooltip = _translate('Dots: Random Dot Kinematogram')
 
     def __init__(self, exp, parentName, name='dots',
@@ -55,7 +70,7 @@ class DotsComponent(BaseVisualComponent):
             nDots, valType='int', inputType="spin", categ='Dots',
             updates='constant',
             hint=msg,
-            label=_translate("Number of dots"))
+            label=_localized['nDots'])
 
         msg = _translate("Direction of motion for the signal dots (degrees)")
         self.params['dir'] = Param(
@@ -63,7 +78,7 @@ class DotsComponent(BaseVisualComponent):
             updates='constant',
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,
-            label=_translate("Direction"))
+            label=_localized['dir'])
 
         msg = _translate("Speed of the dots (displacement per frame in the"
                          " specified units)")
@@ -72,7 +87,7 @@ class DotsComponent(BaseVisualComponent):
             updates='constant',
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,
-            label=_translate("Speed"))
+            label=_localized['speed'])
 
         msg = _translate("Coherence of the dots (fraction moving in the "
                          "signal direction on any one frame)")
@@ -81,7 +96,7 @@ class DotsComponent(BaseVisualComponent):
             updates='constant',
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,
-            label=_translate("Coherence"))
+            label=_localized['coherence'])
 
         msg = _translate("Size of the dots IN PIXELS regardless of "
                          "the set units")
@@ -90,28 +105,28 @@ class DotsComponent(BaseVisualComponent):
             updates='constant',
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,
-            label=_translate("Dot size"))
+            label=_localized['dotSize'])
 
         msg = _translate("Number of frames before each dot is killed and "
                          "randomly assigned a new position")
         self.params['dotLife'] = Param(
             dotLife, valType='num', inputType="spin", categ='Dots',
             hint=msg,
-            label=_translate("Dot life-time"))
+            label=_localized['dotLife'])
 
         msg = _translate("On each frame are the signals dots remaining "
                          "the same or changing? See Scase et al.")
         self.params['signalDots'] = Param(
             signalDots, valType='str', inputType="choice", allowedVals=['same', 'different'], categ='Dots',
             hint=msg,
-            label=_translate("Signal dots"))
+            label=_localized['signalDots'])
             
         msg = _translate("When should the whole sample of dots be refreshed")
         self.params['refreshDots'] = Param(
             refreshDots, valType='str', inputType="choice", allowedVals=['none', 'repeat'], categ='Dots',
             allowedUpdates=[],
             hint=msg, direct=False,
-            label=_translate("Dot refresh rule"))
+            label=_localized['refreshDots'])
             
 
         msg = _translate("What governs the behaviour of the noise dots? "
@@ -120,14 +135,14 @@ class DotsComponent(BaseVisualComponent):
             noiseDots, valType='str', inputType="choice", categ='Dots',
             allowedVals=['direction', 'position', 'walk'],
             hint=msg,
-            label=_translate("Noise dots"))
+            label=_localized['noiseDots'])
 
         self.params['fieldShape'] = Param(
             fieldShape, valType='str', inputType="choice", allowedVals=['circle', 'square'], categ='Layout',
             updates='constant',
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=_translate("What is the shape of the field?"),
-            label=_translate("Field shape"))
+            label=_localized['fieldShape'])
 
         msg = _translate("What is the size of the field "
                          "(in the specified units)?")
@@ -136,7 +151,7 @@ class DotsComponent(BaseVisualComponent):
             updates='constant',
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,
-            label=_translate("Field size"))
+            label=_localized['fieldSize'])
 
         msg = _translate(
             "Where is the field centred (in the specified units)?")
@@ -145,7 +160,7 @@ class DotsComponent(BaseVisualComponent):
             updates='constant',
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,
-            label=_translate("Field position"))
+            label=_localized['fieldPos'])
 
         self.params['anchor'] = Param(
             fieldAnchor, valType='str', inputType="choice", categ='Layout',
@@ -161,11 +176,11 @@ class DotsComponent(BaseVisualComponent):
                          ],
             updates='constant',
             hint=_translate("Which point on the field should be anchored to its exact position?"),
-            label=_translate("Field anchor"))
+            label=_translate('Field Anchor'))
 
         # Reword colour parameters
-        self.params['color'].label = _translate("Dot color")
-        self.params['colorSpace'].label = _translate("Dot color space")
+        self.params['color'].label = _translate("Dot Color")
+        self.params['colorSpace'].label = _translate("Dot Color Space")
 
         del self.params['size']  # should be fieldSize
         del self.params['pos']  # should be fieldPos

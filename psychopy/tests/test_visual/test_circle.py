@@ -1,20 +1,18 @@
 from pathlib import Path
 
 import pytest
-import copy
 from psychopy import visual
-from .test_basevisual import _TestColorMixin, _TestUnitsMixin, _TestSerializationMixin
-from psychopy.tests.test_experiment.test_component_compile_python import _TestBoilerplateMixin
+from .test_basevisual import _TestColorMixin, _TestUnitsMixin
 from .. import utils
 
 
-class TestCircle(_TestColorMixin, _TestUnitsMixin, _TestBoilerplateMixin, _TestSerializationMixin):
+class TestCircle(_TestColorMixin, _TestUnitsMixin):
 
     @classmethod
     def setup_class(self):
 
         self.win = visual.Window([128,128], pos=[50,50], allowGUI=False, autoLog=False)
-        self.obj = visual.Circle(self.win, units="pix", pos=(0, 0), size=(128, 128), lineWidth=3)
+        self.obj = visual.Circle(self.win, units="pix", pos=(0, 0), size=(128, 128), lineWidth=10)
 
         # Pixel which is the border color
         self.borderPoint = (64, 0)
@@ -24,12 +22,6 @@ class TestCircle(_TestColorMixin, _TestUnitsMixin, _TestBoilerplateMixin, _TestS
         self.fillUsed = True
         # Shape has no foreground color
         self.foreUsed = False
-
-    def resetObj(self):
-        """Reset the stimulus to its initial state.
-        """
-        self.obj = visual.Circle(
-            self.win, units="pix", pos=(0, 0), size=(128, 128), lineWidth=3)
 
     def test_radius(self):
         # Define some use cases
@@ -71,4 +63,3 @@ class TestCircle(_TestColorMixin, _TestUnitsMixin, _TestBoilerplateMixin, _TestS
             self.obj.draw()
             # self.win.getMovieFrame(buffer='back').save(Path(utils.TESTS_DATA_PATH) / filename)
             # utils.compareScreenshot(Path(utils.TESTS_DATA_PATH) / filename, self.win, crit=20)
-          

@@ -8,13 +8,10 @@ from psychopy.alerts import alert
 
 positions = ['THREE_POINTS', 'FIVE_POINTS', 'NINE_POINTS', "THIRTEEN_POINTS", "SEVENTEEN_POINTS"]
 
-
 class EyetrackerValidationRoutine(BaseStandaloneRoutine):
     categories = ['Eyetracking']
     targets = ["PsychoPy"]
-    version = "2021.2.0"
     iconFile = Path(__file__).parent / "eyetracker_valid.png"
-    iconSVG = Path(__file__).parent / 'EyetrackerValidationRoutine.svg'
     tooltip = _translate("Validation routine for eyetrackers")
     beta = True
 
@@ -31,7 +28,6 @@ class EyetrackerValidationRoutine(BaseStandaloneRoutine):
                  ):
         # Initialise base routine
         BaseStandaloneRoutine.__init__(self, exp, name=name, disabled=disabled)
-        self.url = "https://psychopy.org/builder/components/eyetracker_validation.html"
 
         self.exp.requirePsychopyLibs(['iohub', 'hardware'])
 
@@ -62,8 +58,8 @@ class EyetrackerValidationRoutine(BaseStandaloneRoutine):
         self.params['targetLayout'] = Param(targetLayout,
                                             valType='str', inputType="choice", categ='Basic',
                                             allowedVals=positions + ["CUSTOM..."],
-                                            hint=_translate("How many targets do you want to be presented for calibration? Points will be displayed in a grid."),
-                                            label=_translate("Target layout"))
+                                            hint=_translate("Pre-defined target layouts"),
+                                            label=_translate("Target Layout"))
 
         self.depends.append(
             {"dependsOn": "targetLayout",  # must be param name
@@ -78,22 +74,22 @@ class EyetrackerValidationRoutine(BaseStandaloneRoutine):
                                                valType='list', inputType="single", categ='Basic',
                                                hint=_translate(
                                                    "List of positions (x, y) at which the target can appear"),
-                                               label=_translate("Target positions"))
+                                               label=_translate("Target Positions"))
 
         self.params['randomisePos'] = Param(randomisePos,
                                             valType='bool', inputType="bool", categ='Basic',
                                             hint=_translate("Should the order of target positions be randomised?"),
-                                            label=_translate("Randomise target positions"))
+                                            label=_translate("Randomise Target Positions"))
 
         self.params['cursorFillColor'] = Param(cursorFillColor,
                                                valType="color", inputType="color", categ="Basic",
                                                hint=_translate("Fill color of the gaze cursor"),
-                                               label=_translate("Gaze cursor color"))
+                                               label=_translate("Gaze Cursor Color"))
 
         self.params['textColor'] = Param(textColor,
                                                valType="color", inputType="color", categ="Basic",
                                                hint=_translate("Color of text used in validation procedure."),
-                                               label=_translate("Text color"))
+                                               label=_translate("Text Color"))
 
         # Target Params
         self.order += [
@@ -112,56 +108,56 @@ class EyetrackerValidationRoutine(BaseStandaloneRoutine):
         self.params['innerFillColor'] = Param(innerFillColor,
                                               valType='color', inputType="color", categ='Target',
                                               hint=_translate("Fill color of the inner part of the target"),
-                                              label=_translate("Inner fill color"))
+                                              label=_translate("Inner Fill Color"))
 
         self.params['innerBorderColor'] = Param(innerBorderColor,
                                                 valType='color', inputType="color", categ='Target',
                                                 hint=_translate("Border color of the inner part of the target"),
-                                                label=_translate("Inner border color"))
+                                                label=_translate("Inner Border Color"))
 
         self.params['fillColor'] = Param(fillColor,
                                          valType='color', inputType="color", categ='Target',
                                          hint=_translate("Fill color of the outer part of the target"),
-                                         label=_translate("Outer fill color"))
+                                         label=_translate("Outer Fill Color"))
 
         self.params['borderColor'] = Param(borderColor,
                                            valType='color', inputType="color", categ='Target',
                                            hint=_translate("Border color of the outer part of the target"),
-                                           label=_translate("Outer border color"))
+                                           label=_translate("Outer Border Color"))
 
         self.params['colorSpace'] = Param(colorSpace,
                                           valType='str', inputType="choice", categ='Target',
-                                          allowedVals=['named', 'hex', 'rgb', 'dkl', 'lms', 'hsv'],
+                                          allowedVals=['rgb', 'dkl', 'lms', 'hsv'],
                                           hint=_translate(
                                               "In what format (color space) have you specified the colors? (rgb, dkl, lms, hsv)"),
-                                          label=_translate("Color space"))
+                                          label=_translate("Color Space"))
 
         self.params['borderWidth'] = Param(borderWidth,
                                            valType='num', inputType="single", categ='Target',
                                            hint=_translate("Width of the line around the outer part of the target"),
-                                           label=_translate("Outer border width"))
+                                           label=_translate("Outer Border Width"))
 
         self.params['innerBorderWidth'] = Param(innerBorderWidth,
                                                 valType='num', inputType="single", categ='Target',
                                                 hint=_translate(
                                                     "Width of the line around the inner part of the target"),
-                                                label=_translate("Inner border width"))
+                                                label=_translate("Inner Border Width"))
 
         self.params['outerRadius'] = Param(outerRadius,
                                            valType='num', inputType="single", categ='Target',
                                            hint=_translate("Size (radius) of the outer part of the target"),
-                                           label=_translate("Outer radius"))
+                                           label=_translate("Outer Radius"))
 
         self.params['innerRadius'] = Param(innerRadius,
                                            valType='num', inputType="single", categ='Target',
                                            hint=_translate("Size (radius) of the inner part of the target"),
-                                           label=_translate("Inner radius"))
+                                           label=_translate("Inner Radius"))
 
         self.params['units'] = Param(units,
                                      valType='str', inputType="choice", categ='Target',
                                      allowedVals=['from exp settings'], direct=False,
                                      hint=_translate("Units of dimensions for this stimulus"),
-                                     label=_translate("Spatial units"))
+                                     label=_translate("Spatial Units"))
 
         # Animation Params
         self.order += [
@@ -179,7 +175,7 @@ class EyetrackerValidationRoutine(BaseStandaloneRoutine):
                                             allowedVals=["space key", "time"],
                                             hint=_translate("Should the target move to the next position after a "
                                                             "keypress or after an amount of time?"),
-                                            label=_translate("Progress mode"))
+                                            label=_translate("Progress Mode"))
 
         self.depends.append(
             {"dependsOn": "progressMode",  # must be param name
@@ -194,7 +190,7 @@ class EyetrackerValidationRoutine(BaseStandaloneRoutine):
                                             valType='num', inputType="single", categ='Animation',
                                             hint=_translate(
                                                 "Time limit (s) after which progress to next position"),
-                                            label=_translate("Target duration"))
+                                            label=_translate("Target Duration"))
 
         self.depends.append(
             {"dependsOn": "progressMode",  # must be param name
@@ -209,17 +205,17 @@ class EyetrackerValidationRoutine(BaseStandaloneRoutine):
                                            valType='num', inputType="single", categ='Animation',
                                            hint=_translate(
                                                "Duration of the target expand/contract animation"),
-                                           label=_translate("Expand / contract duration"))
+                                           label=_translate("Expand / Contract Duration"))
 
         self.params['expandScale'] = Param(expandScale,
                                            valType='num', inputType="single", categ='Animation',
                                            hint=_translate("How many times bigger than its size the target grows"),
-                                           label=_translate("Expand scale"))
+                                           label=_translate("Expand Scale"))
 
         self.params['movementAnimation'] = Param(movementAnimation,
                                            valType='bool', inputType="bool", categ='Animation',
                                            hint=_translate("Enable / disable animations as target stim changes position"),
-                                           label=_translate("Animate position changes"))
+                                           label=_translate("Animate Position Changes"))
 
         self.depends.append(
             {"dependsOn": "movementAnimation",  # must be param name
@@ -234,7 +230,7 @@ class EyetrackerValidationRoutine(BaseStandaloneRoutine):
                                            valType='num', inputType="single", categ='Animation',
                                            hint=_translate(
                                                "Duration of the animation during position changes."),
-                                           label=_translate("Movement duration"))
+                                           label=_translate("Movement Duration"))
 
         self.depends.append(
             {"dependsOn": "movementAnimation",  # must be param name
@@ -249,7 +245,7 @@ class EyetrackerValidationRoutine(BaseStandaloneRoutine):
                                            valType='num', inputType="single", categ='Animation',
                                            hint=_translate(
                                                "Duration of the delay between positions."),
-                                           label=_translate("Target delay"))
+                                           label=_translate("Target Delay"))
 
         # Data params
         self.order += [
@@ -261,13 +257,13 @@ class EyetrackerValidationRoutine(BaseStandaloneRoutine):
             valType='bool', inputType="bool", categ='Data',
             hint=_translate(
                 "Save results as an image"),
-            label=_translate("Save as image"))
+            label=_translate("Save As Image"))
 
         self.params['showResults'] = Param(showResults,
             valType='bool', inputType="bool", categ='Data',
             hint=_translate(
                 "Show a screen with results after completion?"),
-            label=_translate("Show results screen"))
+            label=_translate("Show Results Screen"))
 
     def writeMainCode(self, buff):
         # Alert user if eyetracking isn't setup

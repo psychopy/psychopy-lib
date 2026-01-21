@@ -1,14 +1,15 @@
 """Test PsychoPy sound.py using pygame backend; will fail if have already used pyo
 """
 
-from psychopy import prefs, core, plugins
-prefs.hardware['audioLib'] = ['ptb', 'sounddevice']
+from psychopy import prefs, core
+prefs.hardware['audioLib'] = ['pygame']
 
 import pytest
 import shutil
 from tempfile import mkdtemp
 from psychopy import sound #, microphone
 
+#import pyo
 import numpy
 
 # py.test --cov-report term-missing --cov sound.py tests/test_sound/test_sound_pygame.py
@@ -16,11 +17,15 @@ import numpy
 from psychopy.tests.utils import TESTS_PATH, TESTS_DATA_PATH
 
 @pytest.mark.needs_sound
-class TestSoundPlay:
+class TestPygame:
     @classmethod
     def setup_class(self):
-        self.contextName='ptb'
-        self.tmp = mkdtemp(prefix='psychopy-tests-sound-play')
+        self.contextName='pyo'
+        try:
+            assert sound.Sound == sound.SoundPygame
+        except Exception:
+            pytest.xfail('need to be using pygame')
+        self.tmp = mkdtemp(prefix='psychopy-tests-sound')
 
     @classmethod
     def teardown_class(self):

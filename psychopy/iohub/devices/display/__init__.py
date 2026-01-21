@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # Part of the PsychoPy library
 # Copyright (C) 2012-2020 iSolver Software Solutions (C) 2021 Open Science Tools Ltd.
-# Distributed under the terms of the MIT License.
+# Distributed under the terms of the GNU General Public License (GPL).
 
 import sys
 from .. import Device, Computer
@@ -51,12 +51,6 @@ class Display(Device):
 
         if Display._computer_display_runtime_info_list is None:
             Display._computer_display_runtime_info_list = Display._createAllRuntimeInfoDicts()
-
-        if self.getIndex() >= self.getDisplayCount():
-            # Requested Display index is invalid. Use Display / Screen index 0.
-            print2err("WARNING: Requested display index does not exist. Using display index 0.")
-            self.device_number = 0
-
         self._addRuntimeInfoToDisplayConfig()
 
     def getDeviceNumber(self):
@@ -228,7 +222,7 @@ class Display(Device):
 
     def getBounds(self):
         """Get the Display's pixel bounds; representing the left,top,right,and
-        bottom edge of the display screen in native pixel units.
+        bottom edge of the the display screen in native pixel units.
 
         .. note:: (left, top, right, bottom) bounds will 'not' always be (0, 0, pixel_width, pixel_height). If a multiple display setup is being used, (left, top, right, bottom) indicates the actual absolute pixel bounds assigned to that monitor by the OS. It can be assumed that right = left + display_pixel_width and bottom =  top + display_pixel_height
 
@@ -565,7 +559,7 @@ class Display(Device):
             phys_width,
             phys_height):
         '''
-        For the screen index the  full screen psychopy window is created
+        For the the screen index the  full screen psychopy window is created
         over, this function maps from psychopy coord space (pix, norm, deg,
         all with center = 0,0) to system pix position.
 
@@ -581,7 +575,7 @@ class Display(Device):
         else:
             print2err(' *** iohub error: Unknown Display / Monitor coordinate type: {0}'.format(coord_type))
             return
-
+        
         self._pix2coord = None
 
         # For now, use psychopy unit conversions so that drawing positions match

@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2025 Open Science Tools Ltd.
-# Distributed under the terms of the MIT License.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Distributed under the terms of the GNU General Public License (GPL).
 
 """Functions and classes related to array handling
 """
@@ -19,53 +19,6 @@ __all__ = ["createXYs",
 
 import numpy
 import ctypes
-
-
-class IndexDict(dict):
-    """
-    A dict which allows for keys to be accessed by index as well as by key. Can be initialised 
-    from a dict, or from a set of keyword arguments.
-
-    Example
-    -------
-    ```
-    data = IndexDict({
-        'someKey': "abc",
-        'someOtherKey': "def",
-        'anotherOne': "ghi",
-        1: "jkl",
-    })
-    # using a numeric index will return the value for the key at that position
-    print(data[0])  # prints: abc
-    # ...unless that number is already a key
-    print(data[1])  # prints: jkl
-    ```
-    """
-    def __init__(self, arr=None, **kwargs):
-        # initialise dict
-        dict.__init__(self)
-        # if given no dict, use a blank one
-        if arr is None:
-            arr = {}
-        # if given a dict, update kwargs with it
-        kwargs.update(arr)
-        # set every key
-        for key, value in kwargs.items():
-            dict.__setitem__(self, key, value)
-    
-    def __getitem__(self, key):
-        # if key is a valid numeric index not present as a normal key, get matching key
-        if isinstance(key, int) and key < len(self) and key not in self:
-            return list(self.values())[key]
-        # index like normal
-        return dict.__getitem__(self, key)
-    
-    def __setitem__(self, key, value):
-        # if key is a valid numeric index not present as a normal key, get matching key
-        if isinstance(key, int) and key < len(self) and key not in self:
-            key = list(self.keys())[key]
-        # set like normal
-        return dict.__setitem__(self, key, value)
 
 
 def createXYs(x, y=None):
@@ -222,7 +175,7 @@ def val2array(value, withNone=True, withScalar=True, length=2):
             raise ValueError('Invalid parameter. None is not accepted as '
                              'value.')
     value = numpy.array(value, float)
-    if numpy.prod(value.shape) == 1:
+    if numpy.product(value.shape) == 1:
         if withScalar:
             # e.g. 5 becomes array([5.0, 5.0, 5.0]) for length=3
             return numpy.repeat(value, length)
@@ -502,96 +455,6 @@ def createLumPattern(patternType, res, texParams=None, maskParams=None):
         raise ValueError("invalid keyword or value for parameter `patternType`")
 
     return intensity
-
-
-class ExpandingList(list):
-    """
-    Almost identical to a regular list, but if a value is set out of range, the list expands (and 
-    fills with None) to accommodate. Also returns None when an out of range value is requested.
-    """
-    def __setitem__(self, key, value):
-        try:
-            # try to set as normal
-            return list.__setitem__(self, key, value)
-        except IndexError as err:
-            # if index isn't an integer, something else has gone on
-            if not isinstance(key, int):
-                raise err
-            # if index is an out of range negative, behave as normal
-            if key < 0:
-                raise err
-            # if index out of range, expand list to fit...
-            for _ in range(key + 1 - len(self)):
-                self.append(None)
-            # ..then try again
-            return list.__setitem__(self, key, value)
-    
-    def __getitem__(self, key):
-        try:
-            # try to get as normal
-            return list.__getitem__(self, key)
-        except IndexError as err:
-            # if index isn't an integer, something else has gone on
-            if not isinstance(key, int):
-                raise err
-            # if index is an out of range negative, behave as normal
-            if key < 0:
-                raise err
-            # if it's just out of range, return None
-            return None
-
-
-class AliasDict(dict):
-    """
-    Similar to a dict, but with the option to alias certain keys such that they always have the same value.
-    """
-    def __getitem__(self, k):
-        # if key is aliased, use its alias
-        if k in self.aliases:
-            k = self.aliases[k]
-        # get as normal
-        return dict.__getitem__(self, k)
-
-    def __setitem__(self, k, v):
-        # if key is aliased, set its alias
-        if k in self.aliases:
-            k = self.aliases[k]
-        # set as normal
-        return dict.__setitem__(self, k, v)
-    set = __setitem__
-
-    def __contains__(self, item):
-        # return True to "in" queries if item is in aliases
-        return dict.__contains__(self, item) or item in self.aliases
-
-    @property
-    def aliases(self):
-        """
-        Dict mapping name aliases to the key they are an alias for
-        """
-        # if not set yet, set as blank dict
-        if not hasattr(self, "_aliases"):
-            self._aliases = {}
-
-        return self._aliases
-
-    @aliases.setter
-    def aliases(self, value: dict):
-        self._aliases = value
-
-    def alias(self, key, alias):
-        """
-        Add an alias for a key in this dict. Setting/getting one key will set/get the other.
-
-        Parameters
-        ----------
-        key : str
-            Key to alias
-        alias : str
-            Name to alias key with
-        """
-        # assign alias
-        self.aliases[alias] = key
 
 
 if __name__ == "__main__":

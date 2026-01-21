@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2025 Open Science Tools Ltd.
-# Distributed under the terms of the MIT License.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Distributed under the terms of the GNU General Public License (GPL).
 
 import ast
 import sys
@@ -12,28 +12,9 @@ import re
 try:
     from metapensiero.pj.api import translates
 except ImportError:
-    translates = None # metapensiero not installed
+    pass  # metapensiero not installed
 
 import astunparse
-
-
-namesJS = {
-    'sin': 'Math.sin',
-    'cos': 'Math.cos',
-    'tan': 'Math.tan',
-    'pi': 'Math.PI',
-    'rand': 'Math.random',
-    'random': 'Math.random',
-    'sqrt': 'Math.sqrt',
-    'abs': 'Math.abs',
-    'floor': 'Math.floor',
-    'ceil': 'Math.ceil',
-    'randint': 'util.randint',
-    'range': 'util.range',
-    'randchoice': 'util.randchoice',
-    'round': 'util.round',  # better than Math.round, supports n DPs arg
-    'sum': 'util.sum',
-}
 
 
 class psychoJSTransformer(ast.NodeTransformer):
@@ -41,8 +22,6 @@ class psychoJSTransformer(ast.NodeTransformer):
     """
 
     def visit_Name(self, node):
-        if node.id in namesJS:
-            node.id = namesJS[node.id]
         # status = STOPPED --> status = PsychoJS.Status.STOPPED
         if node.id in ['STARTED', 'FINISHED', 'STOPPED'] and isinstance(node.ctx, ast.Load):
             return ast.copy_location(
@@ -118,7 +97,7 @@ class pythonTransformer(ast.NodeTransformer):
 
     # operation from the math python module or builtin operations that are available
     # in util/Util.js:
-    utilOperations = ['sum', 'average', 'randint', 'range', 'sort', 'shuffle', 'randchoice', 'pad', 'Clock']
+    utilOperations = ['sum', 'average', 'randint', 'range', 'sort', 'shuffle', 'randchoice']
 
     def visit_BinOp(self, node):
 
@@ -200,7 +179,7 @@ class pythonTransformer(ast.NodeTransformer):
             precisionCall = ast.Call(
                 func=ast.Attribute(
                     value=conversionFunc,
-                    attr='toFixed',
+                    attr='toPrecision',
                     ctx=ast.Load()
                 ),
                 args=[ast.Constant(value=precision, kind=None)],
@@ -215,7 +194,7 @@ class pythonTransformer(ast.NodeTransformer):
             )
 
             # return the node:
-            node.value = self.visit_Call(widthCall)
+            node.value = widthCall
             node.conversion = -1
             node.format_spec = None
 
@@ -234,7 +213,7 @@ class pythonTransformer(ast.NodeTransformer):
 
         # substitutable transformation, e.g. Vector.append(5) --> Vector.push(5):
         if isinstance(node.func, ast.Attribute):  # and isinstance(node.func.value, ast.Name):
-            substitutedNode = self.substitutionTransform(node.func, node.args, node.keywords)
+            substitutedNode = self.substitutionTransform(node.func, node.args)
             if substitutedNode:
                 return substitutedNode
 
@@ -247,10 +226,6 @@ class pythonTransformer(ast.NodeTransformer):
                 mathNode = self.mathTransform(attribute, node.args)
                 if mathNode:
                     return mathNode
-            elif prefix == 'core':
-                utilNode = self.utilTransform(attribute, node.args)
-                if utilNode:
-                    return utilNode
 
         # operations without prefix:
         if isinstance(node.func, ast.Name):
@@ -274,52 +249,56 @@ class pythonTransformer(ast.NodeTransformer):
         # return the node by default:
         return node
 
-    def substitutionTransform(self, func, args, keywords):
-        # Substitutions where only the function name changes (see below)
-        functionSubsJS = {
-            'lower': 'toLowerCase',
-            'append': 'push',
-            'upper': 'toUpperCase',
-            'extend': 'concat',
-        }
-        # Substitions that become util functions
-        utilSubsJS = [
-            'index',
-            'count'
-        ]
 
-        # Substitutions where only the function name changes
-        # Examples:
-        #   a = 'HELLO'
-        #   a.lower() --> a.toLowerCase()
-        #
-        #   a = [1,2,3]
-        #   a.append(4) --> a.push(4)
-        #
-        #   a = 'hello
-        #   a.upper() --> a.toUpperCase()
-        #
-        # a = [1,2,3]
-        # a.extend([4, 5, 6]) --> a.concat([4, 5, 6])
-        if func.attr in functionSubsJS:
-            func.attr = functionSubsJS[func.attr]
+    def substitutionTransform(self, func, args):
+
+        # a = 'HELLO'
+        # a.lower() --> a.toLowerCase()
+        if func.attr == 'lower':
+            func.attr = 'toLowerCase'
             return ast.Call(
                 func=func,
                 args=args,
                 keywords=[]
             )
 
-        # Substitutions where the function is changed to a util.function and the original value becomes an argument
+        # a = [1,2,3]
+        # a.append(4) --> a.push(4)
+        # value=Call(func=Attribute(value=Name(id='a', ctx=Load()), attr='append', ctx=Load()), args=[Num(n=4)], keywords=[])
+        if func.attr == 'append':
+            func.attr = 'push'
+            return ast.Call(
+                func=func,
+                args=args,
+                keywords=[]
+            )
+
+        # a = 'hello
+        # a.upper() --> a.toUpperCase()
+        # value=Call(func=Attribute(value=Name(id='a', ctx=Load()), attr='append', ctx=Load()), args=[Num(n=4)], keywords=[])
+        if func.attr == 'upper':
+            func.attr = 'toUpperCase'
+            return ast.Call(
+                func=func,
+                args=args,
+                keywords=[]
+            )
+
+        # a = [1,2,3]
+        # a.extend([4, 5, 6]) --> a.concat([4, 5, 6])
+        if func.attr == 'extend':
+            func.attr = 'concat'
+            return ast.Call(
+                func=func,
+                args=args,
+                keywords=[]
+            )
+
         # a = [1,2,3]
         # a.index(2) --> util.index(a,2)
         # value=Call(func=Attribute(value=Name(id='a', ctx=Load()), attr='index', ctx=Load()), args=[Num(n=2)], keywords=[])
         # value=Call(func=Attribute(value=Name(id='util', ctx=Load()), attr='index', ctx=Load()), args=[Name(id='a', ctx=Load()), Num(n=2)], keywords=[])
-        #
-        # a = [1,2,3]
-        # a.count(2) --> util.count(a,2)
-        # value=Call(func=Attribute(value=Name(id='a', ctx=Load()), attr='count', ctx=Load()), args=[Num(n=2)], keywords=[])
-        # value=Call(func=Attribute(value=Name(id='util', ctx=Load()), attr='count', ctx=Load()), args=[Name(id='a', ctx=Load()), Num(n=2)], keywords=[])
-        elif func.attr in utilSubsJS:
+        elif func.attr == 'index':
             value = func.value
             func.value = ast.Name(id='util', ctx=ast.Load())
             args = [value, args]
@@ -329,79 +308,20 @@ class pythonTransformer(ast.NodeTransformer):
                 keywords=[]
             )
 
-        # Substitutions where more than one of the function, value, and arguments change
         # a = [1,2,3]
-        # a.pop(2) -> a.splice(2, 1);
-        # a.pop() -> a.splice(-1, 1);
-        # The second argument of splice is the number of elements to delete; pass 1 for functionality equivalent to pop.
-        # The default first argument for pop is -1 (remove the last item).
-        elif func.attr == 'pop':
-            func.attr = 'splice'
-            # if no args, construct an index that's `<name>.length-1`
-            if not args:
-                args = ast.BinOp(
-                    ast.Attribute(value=func.value, attr="length"), 
-                    ast.Sub(),
-                    ast.Constant(1, kind="int")
-                )
-            # add 1 as a second argument so the last item is deleted
-            args = [args, [ast.Constant(value=1, kind=None)]]
-
+        # a.count(2) --> util.count(a,2)
+        # value=Call(func=Attribute(value=Name(id='a', ctx=Load()), attr='count', ctx=Load()), args=[Num(n=2)], keywords=[])
+        # value=Call(func=Attribute(value=Name(id='util', ctx=Load()), attr='count', ctx=Load()), args=[Name(id='a', ctx=Load()), Num(n=2)], keywords=[])
+        elif func.attr == 'count':
+            value = func.value
+            func.value = ast.Name(id='util', ctx=ast.Load())
+            args = [value, args]
             return ast.Call(
                 func=func,
                 args=args,
                 keywords=[]
             )
 
-        # a = [1, 2, 3, 4]
-        # a.insert(0, 5) -> a.splice(0, 0, 5);
-        # Note that .insert only inserts a single element, so there should always be exactly two input args).
-        elif func.attr == 'insert':
-            func.attr = 'splice'
-            args = [args[0], [ast.Constant(value=0, kind=None)], args[1]]
-
-            return ast.Call(
-                func=func,
-                args=args,
-                keywords=[]
-            )
-
-        # a = ['This', 'is', 'a', 'test']
-        # ' '.join(a) -> a.join(" ");
-        # In this case func.value and args need to be switched.
-        elif func.attr == 'join':
-            new_args = [ast.Constant(value=func.value.value, kind=None)]
-            func.value = args[0]
-            
-            return ast.Call(
-                func=func,
-                args=new_args,
-                keywords=[]
-            )
-
-        # a = "This is a test"
-        # a.split() -> a.split(" ")
-        # Note that this function translates correctly if there's an input arg; only the default requires modification.
-        elif func.attr == 'split' and not args:
-            args = [ast.Constant(value=" ", kind=None)]
-            return ast.Call(
-                func=func,
-                args=args,
-                keywords=[]
-            )
-
-        # a = [3, 7, 9, 0, 1, 5]
-        # a.sort(reverse=True) -> a.reverse()
-        # This one only needs adjustment if the reverse=True keyword argument is included.
-        elif func.attr == 'sort' and keywords and keywords[0].arg == 'reverse' and keywords[0].value.value:
-            func.attr = 'reverse'
-            return ast.Call(
-                func=func,
-                args=[],
-                keywords=[]
-            )
-
-    # Substitutions where the value on which the function is performed (not the function itself) changes
         elif isinstance(func.value, ast.Name):
             # webbrowser.open('https://pavlovia.org') --> window.open('https://pavlovia.org')
             if func.value.id == 'webbrowser':
@@ -452,7 +372,7 @@ class pythonTransformer(ast.NodeTransformer):
 
 class pythonAddonVisitor(ast.NodeVisitor):
     # operations that require an addon:
-    addonOperations = ['list']
+    addonOperations = ['list', 'pad']
 
     def __init__(self):
         self.addons = []
@@ -485,12 +405,11 @@ def transformNode(astNode):
     return pythonBuiltinTransformedNode, visitor.addons
 
 
-def transformPsychoJsCode(psychoJsCode, addons, namespace=[]):
+def transformPsychoJsCode(psychoJsCode, addons):
     """Transform the input PsychoJS code.
 
     Args:
         psychoJsCode (str): the input PsychoJS JavaScript code
-        namespace (list): list of varnames which are already defined
 
     Returns:
         (str) the transformed code
@@ -513,41 +432,44 @@ def transformPsychoJsCode(psychoJsCode, addons, namespace=[]):
 
         """
 
-    for index, thisLine in enumerate(psychoJsCode.splitlines()):
-        include = True
-        # remove the initial variable declarations, unless it is for _pj:
-        if index == 0 and thisLine.find('var _pj;') == 0:
-            transformedPsychoJSCode = 'var _pj;\n'
-            continue
-        # Remove var defs if variable is defined earlier in experiment
-        if thisLine.startswith("var "):
-            # Get var names
-            varNames = thisLine[4:-1].split(", ")
-            validVarNames = []
-            for varName in varNames:
-                if namespace is not None and varName not in namespace:
-                    # If var name not is already in namespace, keep it in
-                    validVarNames.append(varName)
-            # If there are no var names left, remove statement altogether
-            if not len(validVarNames):
-                include = False
-            # Recombine line
-            thisLine = f"var {', '.join(validVarNames)};"
+    if 'pad' in addons:
+        transformedPsychoJSCode += r"""
+        // add-on: pad(n: number, width: number): string
+        function pad(n, width) {
+            width = width || 2;
+            integerPart = Number.parseInt(n);
+            decimalPart = (n+'').match(/\.[0-9]*/);
+            if (!decimalPart)
+                decimalPart = '';
+            return (integerPart+'').padStart(width,'0') + decimalPart;
+        }
 
-        # Append line
-        if include:
-            transformedPsychoJSCode += thisLine
-            transformedPsychoJSCode += '\n'
+        """
+
+    lines = psychoJsCode.splitlines()
+
+    # remove the initial variable declarations, unless it is for _pj:
+    if lines[0].find('var _pj;') == 0:
+        transformedPsychoJSCode = 'var _pj;\n'
+        startIndex = 1
+    else:
+        startIndex = 0
+
+    if lines[startIndex].find('var ') == 0:
+        startIndex += 1
+
+    for index in range(startIndex, len(lines)):
+        transformedPsychoJSCode += lines[index]
+        transformedPsychoJSCode += '\n'
 
     return transformedPsychoJSCode
 
 
-def translatePythonToJavaScript(psychoPyCode, namespace=[]):
+def translatePythonToJavaScript(psychoPyCode):
     """Translate PsychoPy python code into PsychoJS JavaScript code.
 
     Args:
         psychoPyCode (str): the input PsychoPy python code
-        namespace (list, None): list of varnames which are already defined
 
     Returns:
         str: the PsychoJS JavaScript code
@@ -589,7 +511,7 @@ def translatePythonToJavaScript(psychoPyCode, namespace=[]):
 
     # transform the JavaScript code:
     try:
-        transformedPsychoJsCode = transformPsychoJsCode(psychoJsCode, addons, namespace=namespace)
+        transformedPsychoJsCode = transformPsychoJsCode(psychoJsCode, addons)
     except Exception as error:
         raise Exception('unable to transform the PsychoJS JavaScript code: ' + str(error))
 

@@ -7,8 +7,7 @@ from pathlib import Path
 import pytest
 from pandas import DataFrame
 
-from psychopy.tests.test_visual.test_basevisual import _TestColorMixin, _TestSerializationMixin
-from psychopy.tests.test_experiment.test_component_compile_python import _TestBoilerplateMixin
+from psychopy.tests.test_visual.test_basevisual import _TestColorMixin
 from psychopy.visual.window import Window
 from psychopy.visual.form import Form
 from psychopy.visual.textbox2.textbox2 import TextBox2
@@ -19,7 +18,7 @@ from tempfile import mkdtemp
 import numpy as np
 
 
-class Test_Form(_TestColorMixin, _TestBoilerplateMixin, _TestSerializationMixin):
+class Test_Form(_TestColorMixin):
     """Test suite for Form component"""
 
     def setup_class(self):
@@ -129,7 +128,7 @@ class Test_Form(_TestColorMixin, _TestBoilerplateMixin, _TestSerializationMixin)
                     'itemWidth': 0.3,
                     'responseColor': 'darkred',
                     'responseWidth': 0.7,
-                    'font': 'Noto Sans',
+                    'font': 'Open Sans',
                 },
                 {
                     'index': 0,
@@ -141,7 +140,7 @@ class Test_Form(_TestColorMixin, _TestBoilerplateMixin, _TestSerializationMixin)
                     'itemWidth': 0.3,
                     'responseColor': 'darkslateblue',
                     'responseWidth': 0.7,
-                    'font': 'Noto Sans',
+                    'font': 'Open Sans',
                 },
             ],
             'bigItem': [  # Item is bigger than resp
@@ -155,7 +154,7 @@ class Test_Form(_TestColorMixin, _TestBoilerplateMixin, _TestSerializationMixin)
                     'itemWidth': 0.7,
                     'responseColor': 'darkred',
                     'responseWidth': 0.3,
-                    'font': 'Noto Sans',
+                    'font': 'Open Sans',
                 },
                 {
                     'index': 0,
@@ -167,7 +166,7 @@ class Test_Form(_TestColorMixin, _TestBoilerplateMixin, _TestSerializationMixin)
                     'itemWidth': 0.7,
                     'responseColor': 'darkslateblue',
                     'responseWidth': 0.3,
-                    'font': 'Noto Sans',
+                    'font': 'Open Sans',
                 },
             ],
         }
@@ -183,7 +182,7 @@ class Test_Form(_TestColorMixin, _TestBoilerplateMixin, _TestSerializationMixin)
                     'itemWidth': 0.4,
                     'responseColor': 'darkred',
                     'responseWidth': 0.8,
-                    'font': 'Noto Sans',
+                    'font': 'Open Sans',
                 },
                 {
                     'index': 0,
@@ -195,7 +194,7 @@ class Test_Form(_TestColorMixin, _TestBoilerplateMixin, _TestSerializationMixin)
                     'itemWidth': 0.4,
                     'responseColor': 'darkslateblue',
                     'responseWidth': 0.8,
-                    'font': 'Noto Sans',
+                    'font': 'Open Sans',
                 },
             ],
             'bigItemOverflow': [  # Item is bigger than resp, both together flow over form edge
@@ -209,7 +208,7 @@ class Test_Form(_TestColorMixin, _TestBoilerplateMixin, _TestSerializationMixin)
                     'itemWidth': 0.8,
                     'responseColor': 'darkred',
                     'responseWidth': 0.4,
-                    'font': 'Noto Sans',
+                    'font': 'Open Sans',
                 },
                 {
                     'index': 0,
@@ -221,7 +220,7 @@ class Test_Form(_TestColorMixin, _TestBoilerplateMixin, _TestSerializationMixin)
                     'itemWidth': 0.8,
                     'responseColor': 'darkslateblue',
                     'responseWidth': 0.4,
-                    'font': 'Noto Sans',
+                    'font': 'Open Sans',
                 },
             ],
         }
@@ -262,7 +261,7 @@ class Test_Form(_TestColorMixin, _TestBoilerplateMixin, _TestSerializationMixin)
                 'itemWidth': 0.7,
                 'responseColor': 'darkred',
                 'responseWidth': 0.3,
-                'font': 'Noto Sans',
+                'font': 'Open Sans',
             })
         # Create form
         survey = Form(self.win, units="height", size=(1, 1), fillColor="white", items=items)
@@ -281,7 +280,7 @@ class Test_Form(_TestColorMixin, _TestBoilerplateMixin, _TestSerializationMixin)
             'itemWidth': 0.7,
             'responseColor': 'darkred',
             'responseWidth': 0.3,
-            'font': 'Noto Sans',
+            'font': 'Open Sans',
         }]
         # Typical points on slider to test
         exemplars = [
@@ -360,7 +359,7 @@ class Test_Form(_TestColorMixin, _TestBoilerplateMixin, _TestSerializationMixin)
 
     def test_font(self):
         exemplars = [
-            {"file": "form_font_demographics.xlsx", "font": "Noto Sans",
+            {"file": "form_font_demographics.xlsx", "font": "Open Sans",
              "screenshot": "form_font_demographics.png"},
         ]
         tykes = [

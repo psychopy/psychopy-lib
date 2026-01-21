@@ -1,16 +1,17 @@
 from psychopy import visual, monitors
 import numpy
 
-from psychopy.tests import skip_under_vm
+from psychopy.tests import skip_under_vm, _vmTesting
+import pytest
 
 
 @skip_under_vm(reason="Cannot test gamma in a virtual machine")
 def test_low_gamma():
     """setting gamma low (dark screen)"""
-    win = visual.Window([600,600], gamma=0.5, autoLog=False)  # should make the entire screen bright
+    win = visual.Window([600,600], gamma=0.5, autoLog=False)#should make the entire screen bright
     for n in range(5):
         win.flip()
-    assert win.useNativeGamma == False
+    assert win.useNativeGamma==False
     win.close()
 
 
@@ -54,7 +55,7 @@ def test_monitorGetGamma():
     mon.setGamma(gammaVal)
     #create window using that monitor
     win = visual.Window([100,100], monitor=mon, autoLog=False)
-    assert numpy.all(win.gamma==gammaVal)
+    assert numpy.alltrue(win.gamma==gammaVal)
     win.close()
 
 
@@ -69,7 +70,7 @@ def test_monitorGetGammaGrid():
     mon = monitors.Monitor('test')
     mon.setGammaGrid(newGrid)
     win = visual.Window([100,100], monitor=mon, autoLog=False)
-    assert numpy.all(win.gamma==numpy.array([2.0, 2.0, 2.0]))
+    assert numpy.alltrue(win.gamma==numpy.array([2.0, 2.0, 2.0]))
     win.close()
 
 
@@ -87,7 +88,7 @@ def test_monitorGetGammaAndGrid():
     mon.setGamma([3,3,3])
     #create window using that monitor
     win = visual.Window([100,100], monitor=mon, autoLog=False)
-    assert numpy.all(win.gamma==numpy.array([2.0, 2.0, 2.0]))
+    assert numpy.alltrue(win.gamma==numpy.array([2.0, 2.0, 2.0]))
     win.close()
 
 

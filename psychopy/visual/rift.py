@@ -13,7 +13,7 @@ Facebook Technologies, LLC and its affiliates. All rights reserved.
 
 # Part of the PsychoPy library
 # Copyright (C) 2018 Jonathan Peirce
-# Distributed under the terms of the MIT License.
+# Distributed under the terms of the GNU General Public License (GPL).
 
 __all__ = ['Rift']
 
@@ -42,10 +42,8 @@ import ctypes
 import numpy as np
 import pyglet.gl as GL
 from psychopy.visual import window
-from psychopy.hardware.exceptions import DeviceNotConnectedError
 from psychopy import platform_specific, logging, core
 from psychopy.tools.attributetools import setAttribute
-from psychopy.localization import _translate
 
 try:
     from PIL import Image
@@ -187,10 +185,7 @@ class LibOVRError(Exception):
 
 class Rift(window.Window):
     """Class provides a display and peripheral interface for the Oculus Rift
-    (see: https://www.oculus.com/) head-mounted display. This is a 
-    lazy-imported class, therefore import using full path 
-    `from psychopy.visual.rift import Rift` when inheriting from it.
-
+    (see: https://www.oculus.com/) head-mounted display.
 
     Requires PsychXR 0.2.4 to be installed. Setting the `winType='glfw'` is
     preferred for VR applications.
@@ -318,12 +313,8 @@ class Rift(window.Window):
                                "exiting.")
 
         if not libovr.isHmdConnected():
-            raise DeviceNotConnectedError(
-                _translate(
-                    "Cannot find any connected HMD, check connections and try again."
-                ),
-                deviceClass=Rift
-            )
+            raise RuntimeError("Cannot find any connected HMD, check " +
+                               "connections and try again.")
 
         # create a VR session, do some initial configuration
         initResult = libovr.initialize()  # removed logging callback
@@ -1013,7 +1004,7 @@ class Rift(window.Window):
         Parameters
         ----------
         absTime : float, optional
-            Absolute time the tracking state refers to. If not specified,
+            Absolute time the the tracking state refers to. If not specified,
             the predicted display time is used.
         latencyMarker : bool, optional
             Set a latency marker upon getting the tracking state. This is used

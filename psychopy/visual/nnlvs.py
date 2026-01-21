@@ -8,7 +8,7 @@ system.
 
 # Part of the PsychoPy library
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019 Open Science Tools Ltd.
-# Distributed under the terms of the MIT License.
+# Distributed under the terms of the GNU General Public License (GPL).
 
 import ctypes
 import numpy as np
@@ -65,10 +65,7 @@ vshdModels = {
 
 class VisualSystemHD(window.Window):
     """Class provides support for NordicNeuralLab's VisualSystemHD(tm) fMRI
-    display hardware. This is a lazy-imported class, therefore import using
-    full path `from psychopy.visual.nnlvs import VisualSystemHD` when
-    inheriting from it.
-
+    display hardware.
 
     Use this class in-place of the `Window` class for use with the VSHD
     hardware. Ensure that the VSHD headset display output is configured in
@@ -421,7 +418,7 @@ class VisualSystemHD(window.Window):
     #     return (self._diopters[eye] / 4.) + 1.
     #
     # def _getScreenFOV(self, eye, direction='horizontal', degrees=True):
-    #     """Compute the FOV of the display."""
+    #     """Compute the FOV of the the display."""
     #     if direction not in ('horizontal', 'vertical'):
     #         raise ValueError("Invalid `direction` specified, must be "
     #                          "'horizontal' or 'vertical'.")
@@ -735,12 +732,11 @@ class VisualSystemHD(window.Window):
         offset = 0 if eye == 'left' else frameW
         self.viewport = self.scissor = (offset, 0, frameW, frameH)
 
-        if self.USE_LEGACY_GL:
-            GL.glMatrixMode(GL.GL_PROJECTION)
-            GL.glLoadIdentity()
-            GL.glOrtho(-1, 1, -1, 1, -1, 1)
-            GL.glMatrixMode(GL.GL_MODELVIEW)
-            GL.glLoadIdentity()
+        GL.glMatrixMode(GL.GL_PROJECTION)
+        GL.glLoadIdentity()
+        GL.glOrtho(-1, 1, -1, 1, -1, 1)
+        GL.glMatrixMode(GL.GL_MODELVIEW)
+        GL.glLoadIdentity()
 
         # anti-aliasing the edges of the polygon
         GL.glEnable(GL.GL_MULTISAMPLE)
@@ -796,9 +792,7 @@ class VisualSystemHD(window.Window):
         # frameBuffer
         GL.glActiveTexture(GL.GL_TEXTURE0)
         GL.glEnable(GL.GL_TEXTURE_2D)
-        if self.USE_LEGACY_GL:
-            GL.glColor3f(1.0, 1.0, 1.0)  # glColor multiplies with texture
-
+        GL.glColor3f(1.0, 1.0, 1.0)  # glColor multiplies with texture
         GL.glColorMask(True, True, True, True)
 
         # blit the textures to the back buffer

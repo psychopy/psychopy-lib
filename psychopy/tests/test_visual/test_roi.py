@@ -1,16 +1,12 @@
 import numpy as np
-import pytest
 
-from psychopy.tests import utils
-
-from .test_basevisual import _TestUnitsMixin, _TestSerializationMixin
-from psychopy.tests.test_experiment.test_component_compile_python import _TestBoilerplateMixin
+from .test_basevisual import _TestUnitsMixin
 from psychopy import visual, core
 
 
-class TestROI(_TestUnitsMixin, _TestBoilerplateMixin, _TestSerializationMixin):
+class TestROI(_TestUnitsMixin):
 
-    def setup_method(self):
+    def setup(self):
         self.win = visual.Window([128,128], pos=[50,50], units="pix", allowGUI=False, autoLog=False)
         self.obj = visual.ROI(
             self.win, name="testROI", device=None,
@@ -60,9 +56,6 @@ class TestROI(_TestUnitsMixin, _TestBoilerplateMixin, _TestSerializationMixin):
         assert not self.obj.isLookedIn, f"ROI returning True for isLookedIn when not looked at."
 
     def test_look_at_away(self):
-        # skip speed tests under vm
-        if utils.RUNNING_IN_VM:
-            pytest.skip()
         # Define some look times to simulate
         looks = np.array([
             [0.1, 0.2],
@@ -96,10 +89,10 @@ class TestROI(_TestUnitsMixin, _TestBoilerplateMixin, _TestSerializationMixin):
 
         # Check that times saved correctly
         assert all(
-            np.isclose(self.obj.timesOn, looks[:, 0], 0.05)
+            np.isclose(self.obj.timesOn, looks[:, 0], 0.01)
         )
         assert all(
-            np.isclose(self.obj.timesOff, looks[:, 1], 0.05)
+            np.isclose(self.obj.timesOff, looks[:, 1], 0.01)
         )
         # Check that convenience functios return correct values
         assert self.obj.numLooks == looks.shape[0]

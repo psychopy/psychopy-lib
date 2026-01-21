@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 
 #  Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2025 Open Science Tools Ltd.
-# Distributed under the terms of the MIT License.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Distributed under the terms of the GNU General Public License (GPL).
 
 """
 Graphical user interface elements for experiments.
@@ -25,8 +25,8 @@ else:
 # then setup prefs for
 haveQt = False  # until we confirm otherwise
 if wxApp is None:  # i.e. don't try this if wx is already running
-    # set order for attempts on PyQt5/PyQt6
-    importOrder = ['PyQt6', 'PyQt5']
+    # set order for attempts on PyQt4/PyQt5
+    importOrder = ['PyQt5', 'PyQt4']
     # then check each in turn
     for libname in importOrder:
         try:

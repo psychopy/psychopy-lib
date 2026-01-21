@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 # Part of the PsychoPy library
 # Copyright (C) 2012-2020 iSolver Software Solutions (C) 2021 Open Science Tools Ltd.
-# Distributed under the terms of the MIT License.
+# Distributed under the terms of the GNU General Public License (GPL).
 from psychopy.iohub.errors import print2err, printExceptionDetailsToStdErr
 from psychopy.iohub.constants import EyeTrackerConstants, EventConstants
 from psychopy.iohub.devices import Computer, Device
 from psychopy.iohub.devices.eyetracker import EyeTrackerDevice
-from psychopy.iohub.devices.eyetracker.hw.mouse.calibration import MouseGazeCalibrationProcedure
+from psychopy.iohub.devices.eyetracker.hw.mouse.mousegazeCalibrationGraphics import MouseGazePsychopyCalibrationGraphics
 import math
 ET_UNDEFINED = EyeTrackerConstants.UNDEFINED
 getTime = Computer.getTime
@@ -404,14 +404,12 @@ class EyeTracker(EyeTrackerDevice):
         """
         runSetupProcedure displays a mock calibration procedure. No calibration is actually done.
         """
-        calibration = MouseGazeCalibrationProcedure(self, calibration_args)
+        calibration = MouseGazePsychopyCalibrationGraphics(self, calibration_args)
         cal_run = calibration.runCalibration()
         calibration.window.close()
 
         calibration._unregisterEventMonitors()
         calibration.clearAllEventBuffers()
-        del calibration.window
-        del calibration
 
         if cal_run:
             return {"RESULT": "CALIBRATION_OK"}

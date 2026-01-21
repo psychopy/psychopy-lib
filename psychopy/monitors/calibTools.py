@@ -5,11 +5,11 @@
 """
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2025 Open Science Tools Ltd.
-# Distributed under the terms of the MIT License.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Distributed under the terms of the GNU General Public License (GPL).
 
 from .calibData import wavelength_5nm, juddVosXYZ1976_5nm, cones_SmithPokorny
-from psychopy import __version__, logging
+from psychopy import __version__, logging, hardware
 
 try:
     import serial
@@ -142,7 +142,8 @@ class Monitor:
         thisGamma = self.getGamma()
         # run the test just on this
         array = np.array
-        return (thisGamma is None or np.all(array(thisGamma) == array([1, 1, 1])))
+        return (thisGamma is None or
+                np.alltrue(array(thisGamma) == array([1, 1, 1])))
 
 # functions to set params of current calibration
     def setSizePix(self, pixels):
@@ -284,7 +285,8 @@ class Monitor:
         """Returns just the gamma value (not the whole grid)
         """
         gridInCurrent = 'gammaGrid' in self.currentCalib
-        if (gridInCurrent and not np.all(self.getGammaGrid()[1:, 2] == 1)):
+        if (gridInCurrent and
+                not np.alltrue(self.getGammaGrid()[1:, 2] == 1)):
             return self.getGammaGrid()[1:, 2]
         elif 'gamma' in self.currentCalib:
             return self.currentCalib['gamma']
@@ -521,16 +523,6 @@ class Monitor:
         """Equivalent of :func:`~psychopy.monitors.Monitor.save`.
         """
         self.save()
-
-    def getJSON(self):
-        return {
-            'name': self.name,
-            'calibrations': self.calibs
-        }
-    
-    def fromJSON(self, node):
-        self.name = node['name']
-        self.calibs = node['calibrations']
 
     def _saveJSON(self):
         thisFileName = os.path.join(monitorFolder, self.name + ".json")
@@ -1008,10 +1000,7 @@ def getLumSeries(lumLevels=8,
         message.setText('Spacebar for next patch')
 
     # LS100 likes to take at least one bright measurement
-    # assuming the same for the CS100A
     if havePhotom and photometer.type == 'LS100':
-        junk = photometer.getLum()
-    if havePhotom and photometer.type == 'CS100A':
         junk = photometer.getLum()
 
     # what are the test values of luminance
@@ -1126,7 +1115,6 @@ def getRGBspectra(stimSize=0.3, winSize=(800, 600), photometer='COM1'):
         photom = photometer
     else:
         # setup photom
-        from psychopy import hardware
         photom = hardware.Photometer(photometer)
     if photom != None:
         havephotom = 1

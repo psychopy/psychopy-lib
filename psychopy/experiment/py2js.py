@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2025 Open Science Tools Ltd.
-# Distributed under the terms of the MIT License.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Distributed under the terms of the GNU General Public License (GPL).
 
 """Converting code parameters and components from python (PsychoPy)
 to JS (ES6/PsychoJS)
@@ -21,6 +21,28 @@ from io import StringIO
 from psychopy.experiment.py2js_transpiler import translatePythonToJavaScript
 
 
+class NamesJS(dict):
+    def __getitem__(self, name):
+        try:
+            return dict.__getitem__(self, name)
+        except:
+            return "{}".format(name)
+
+
+namesJS = NamesJS()
+namesJS['sin'] = 'Math.sin'
+namesJS['cos'] = 'Math.cos'
+namesJS['tan'] = 'Math.tan'
+namesJS['pi'] = 'Math.PI'
+namesJS['rand'] = 'Math.random'
+namesJS['random'] = 'Math.random'
+namesJS['sqrt'] = 'Math.sqrt'
+namesJS['abs'] = 'Math.abs'
+namesJS['randint'] = 'util.randint'
+namesJS['round'] = 'util.round'  # better than Math.round, supports n DPs arg
+namesJS['sum'] = 'util.sum'
+
+
 class TupleTransformer(ast.NodeTransformer):
     """ An ast subclass that walks the abstract syntax tree and
     allows modification of nodes.
@@ -31,7 +53,6 @@ class TupleTransformer(ast.NodeTransformer):
     """
     def visit_Tuple(self, node):
         return ast.List(node.elts, node.ctx)
-
 
 class Unparser(astunparse.Unparser):
     """astunparser had buried the future_imports option underneath its init()
@@ -68,7 +89,7 @@ def expression2js(expr):
             syntaxTree = ast.parse(str(expr))
         except Exception as err:
             logging.error(err)
-            return str(expr)
+            return
 
     for node in ast.walk(syntaxTree):
         TupleTransformer().visit(node)  # Transform tuples to list
@@ -80,6 +101,7 @@ def expression2js(expr):
         if isinstance(node, ast.Name):
             if node.id == 'undefined':
                 continue
+            node.id = namesJS[node.id]
     jsStr = unparse(syntaxTree).strip()
     if not any(ch in jsStr for ch in ("=",";","\n")):
         try:

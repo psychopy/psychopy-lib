@@ -67,11 +67,11 @@ class TestOpenOutputFile():
 
 
 class TestFromFile():
-    def setup_method(self):
+    def setup(self):
         self.tmp_dir = mkdtemp(prefix='psychopy-tests-%s' %
                                       type(self).__name__)
 
-    def teardown_method(self):
+    def teardown(self):
         shutil.rmtree(self.tmp_dir)
 
     def test_json_with_encoding(self):

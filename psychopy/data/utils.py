@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2025 Open Science Tools Ltd.
-# Distributed under the terms of the MIT License.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Distributed under the terms of the GNU General Public License (GPL).
 
 import os
 import re
@@ -14,15 +14,14 @@ import numpy as np
 import pandas as pd
 
 from collections import OrderedDict
-from packaging.version import Version
+from pkg_resources import parse_version
 
 from psychopy import logging, exceptions
 from psychopy.tools.filetools import pathToString
-from psychopy.localization import _translate
 
 try:
     import openpyxl
-    if Version(openpyxl.__version__) >= Version('2.4.0'):
+    if parse_version(openpyxl.__version__) >= parse_version('2.4.0'):
         # openpyxl moved get_column_letter to utils.cell
         from openpyxl.utils.cell import get_column_letter
     else:
@@ -55,64 +54,44 @@ def isValidVariableName(name):
     """Checks whether a certain string could be used as a valid variable.
 
     Usage::
-        OK, msg, translated = isValidVariableName(name)
+
+        OK, msg = isValidVariableName(name)
 
     >>> isValidVariableName('name')
-    (True, '', '')
+    (True, '')
     >>> isValidVariableName('0name')
-    (False, 'Variables cannot begin with numeric character', 'Variabiles non possunt incipere numerorum mores')
-    >>> isValidVariableName('first.second')
-    (False, 'Variables cannot contain punctuation or spaces', 'Variabiles non habet interpunctionem vel spatia')
+    (False, 'Variables cannot begin with numeric character')
     >>> isValidVariableName('first second')
-    (False, 'Variables cannot contain punctuation or spaces', 'Variabiles non habet interpunctionem vel spatia')
+    (False, 'Variables cannot contain punctuation or spaces')
     >>> isValidVariableName('')
-    (False, "Variables cannot be missing, None, or ''", "Variabiles deesse non possunt, nemo, vel ''")
+    (False, "Variables cannot be missing, None, or ''")
     >>> isValidVariableName(None)
-    (False, "Variables cannot be missing, None, or ''", "Variabiles deesse non possunt, nemo, vel ''")
+    (False, "Variables cannot be missing, None, or ''")
     >>> isValidVariableName(23)
-    (False, "Variables must be string-like", "Variabiles debent esse linea-similis")
+    (False, "Variables must be string-like")
     >>> isValidVariableName('a_b_c')
-    (True, '', '')
+    (True, '')
     """
     if not name:
-        return (
-            False,
-            "Variables cannot be missing, None, or ''",
-            _translate("Variables cannot be missing, None, or ''")
-        )
+        return False, "Variables cannot be missing, None, or ''"
     if not isinstance(name, str):
-        return (
-            False,
-            "Variables must be string-like",
-            _translate("Variables must be string-like")
-        )
+        return False, "Variables must be string-like"
     try:
         name = str(name)  # convert from unicode if possible
     except Exception:
         if type(name) in [str, np.unicode_]:
-            raise exceptions.ConditionsImportError(
-                "name %s (type %s) contains non-ASCII characters (e.g. accents)" % (name, type(name)),
-                translated=_translate("name %s (type %s) contains non-ASCII characters (e.g. accents)") % (name, type(name))
-            )
+            msg = ("name %s (type %s) contains non-ASCII characters"
+                   " (e.g. accents)")
+            raise AttributeError(msg % (name, type(name)))
         else:
-            raise exceptions.ConditionsImportError(
-                "name %s (type %s) could not be converted to a string",
-                translated=_translate("name %s (type %s) could not be converted to a string") % (name, type(name))
-            )
+            msg = "name %s (type %s) could not be converted to a string"
+            raise AttributeError(msg % (name, type(name)))
 
     if name[0].isdigit():
-        return (
-            False,
-            "Variables cannot begin with numeric character",
-            _translate("Variables cannot begin with numeric character")
-        )
+        return False, "Variables cannot begin with numeric character"
     if _nonalphanumeric_re.search(name):
-        return (
-            False,
-            "Variables cannot contain punctuation or spaces",
-            _translate("Variables cannot contain punctuation or spaces")
-        )
-    return True, '', ''
+        return False, "Variables cannot contain punctuation or spaces"
+    return True, ''
 
 
 def _getExcelCellName(col, row):
@@ -181,35 +160,6 @@ def indicesFromString(indsString):
         pass
 
 
-def dictFromString(val):
-    # return as-is if already a dict
-    if isinstance(val, dict):
-        return val
-    # stringify
-    if not isinstance(val, str):
-        val = str(val)
-    # strip spaces
-    val = val.strip()
-    # make sure we have curly braces
-    if not val.startswith("{") and val.endswith("}"):
-        val = f"{{{val}}}"
-    # try to evaluate with ast (works for simple values)
-    try:
-        iterable = ast.literal_eval(val)
-        assert isinstance(iterable, dict)
-        return iterable
-    except (ValueError, SyntaxError, AssertionError):
-        pass  # e.g. "yes, no" won't work. We'll go on and try another way
-    # try manually if ast fails
-    parsed = {}
-    for item in val[1:-1].split(","):
-        if ":" in item:
-            key, val = item.split(":", maxsplit=1)
-            parsed[key.strip()] = val.strip()
-
-    return parsed 
-
-
 def listFromString(val, excludeEmpties=False):
     """Take a string that looks like a list (with commas and/or [] and make
     an actual python list"""
@@ -220,7 +170,8 @@ def listFromString(val, excludeEmpties=False):
     elif type(val) == list:
         return list(val)  # nothing to do
     elif type(val) != str:
-        return [val]
+        raise ValueError("listFromString requires a string as its input not {}"
+                         .format(repr(val)))
     # try to evaluate with ast (works for "'yes,'no'" or "['yes', 'no']")
     try:
         iterable = ast.literal_eval(val)
@@ -278,67 +229,18 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
 
     """
 
-    def _attemptImport(fileName):
+    def _attemptImport(fileName, sep=',', dec='.'):
         """Attempts to import file with specified settings and raises
         ConditionsImportError if fails due to invalid format
 
         :param filename: str
+        :param sep: str indicating the separator for cells (',', ';' etc)
+        :param dec: str indicating the decimal point ('.', '.')
         :return: trialList, fieldNames
         """
         if fileName.endswith(('.csv', '.tsv')):
-            trialsArr = None
-            errs = []
-            # list of possible delimiters
-            delims = (",", ".", ";", "\t")
-            # try a variety of separator / decimal pairs
-            for sep, dec in [
-                # most common in US, EU
-                (',', '.'), 
-                (';', ','),
-                # other possible formats
-                ('\t', '.'), 
-                ('\t', ','), 
-                (';', '.')
-            ]:
-                # try to load
-                try:
-                    thisAttempt = pd.read_csv(
-                        fileName, encoding='utf-8-sig', sep=sep, decimal=dec
-                    )
-                    # read in the headers separately to bypass pandas sanitization
-                    thisAttempt.columns = pd.read_csv(
-                        fileName, encoding='utf-8-sig', sep=sep, decimal=dec, header=None, nrows=1
-                    ).iloc[0, :]
-                    # if there's only one header, check that it doesn't contain delimiters
-                    # (one column with delims probably means it's parsed without error but not
-                    # recognised columns correctly)
-                    if len(thisAttempt.columns) == 1:
-                        for delim in delims:
-                            if delim in thisAttempt.columns[0]:
-                                msg = _translate(
-                                    "Could not load {}. \n"
-                                    "Delimiter in heading: {} in {}."
-                                ).format(fileName, delim, thisAttempt.columns[0])
-                                err = exceptions.ConditionsImportError(msg)
-                                errs.append(err)
-                                raise err
-                    # if it's all good, use received array
-                    trialsArr = thisAttempt
-                except:
-                    continue
-                else:
-                    # if successful, check the variable names
-                    _assertValidVarNames(trialsArr.columns, fileName)
-                    # skip other pairs now we've got it
-                    break
-            # if all options failed, raise last error
-            if errs and trialsArr is None:
-                raise errs[-1]
-            elif trialsArr is None:
-                raise ValueError(
-                    _translate("Could not parse file {}.").format(fileName)
-                )
-            # if we made it herre, we successfully loaded the file
+            trialsArr = pd.read_csv(fileName, encoding='utf-8-sig',
+                                    sep=sep, decimal=dec)
             for col in trialsArr.columns:
                 for row, cell in enumerate(trialsArr[col]):
                     if isinstance(cell, str):
@@ -367,39 +269,26 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
         names are OK, return silently; else raise  with msg
         """
         fileName = pathToString(fileName)
-        # make sure all columns are named
         if not all(fieldNames):
-            raise exceptions.ConditionsImportError(
-                "Conditions file %s: Missing parameter name(s); empty cell(s) in the first row?" % fileName,
-                translated=_translate("Conditions file %s: Missing parameter name(s); empty cell(s) in the first row?") % fileName
-            )
-        # check each name
+            msg = ('Conditions file %s: Missing parameter name(s); '
+                   'empty cell(s) in the first row?')
+            raise exceptions.ConditionsImportError(msg % fileName)
         for name in fieldNames:
-            # is this name duplicated?
-            if sum([otherName == name for otherName in fieldNames]) > 1:
-                raise exceptions.ConditionsImportError(_translate(
-                "Duplicate column name '{}'"
-            ).format(name))
-            # is this name a valid variable name?
-            OK, msg, translated = isValidVariableName(name)
+            OK, msg = isValidVariableName(name)
             if not OK:
                 # tailor message to importConditions
                 msg = msg.replace('Variables', 'Parameters (column headers)')
-                translated = msg.replace('Variables', 'Parameters (column headers)')
                 raise exceptions.ConditionsImportError(
-                    'Bad name: %s%s"%s"' % (name, os.linesep, msg),
-                    translated='Bad name: %s%s"%s"' % (name, os.linesep, translated)
-                )
+                    'Conditions file %s: %s%s"%s"' %
+                    (fileName, msg, os.linesep * 2, name))
 
     if fileName in ['None', 'none', None]:
         if returnFieldNames:
             return [], []
         return []
     if not os.path.isfile(fileName):
-        raise exceptions.ConditionsImportError(
-            "Conditions file not found: %s" % fileName,
-            translated=_translate("Conditions file not found: %s") % fileName
-        )
+        msg = 'Conditions file not found: %s'
+        raise ValueError(msg % os.path.abspath(fileName))
 
     def pandasToDictList(dataframe):
         """Convert a pandas dataframe to a list of dicts.
@@ -429,7 +318,7 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
                     if val.startswith('[') and val.endswith(']'):
                         # val = eval('%s' %unicode(val.decode('utf8')))
                         val = eval(val)
-                elif type(val) == np.bytes_:
+                elif type(val) == np.string_:
                     val = str(val.decode('utf-8-sig'))
                     # if it looks like a list, convert it:
                     if val.startswith('[') and val.endswith(']'):
@@ -443,17 +332,25 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
 
     if (fileName.endswith(('.csv', '.tsv'))
             or (fileName.endswith(('.xlsx', '.xls', '.xlsm')) and haveXlrd)):
-        trialList, fieldNames = _attemptImport(fileName=fileName)
+        if fileName.endswith(('.csv', '.tsv', '.dlm')):  # delimited text file
+            for sep, dec in [ (',', '.'), (';', ','),  # most common in US, EU
+                              ('\t', '.'), ('\t', ','), (';', '.')]:
+                try:
+                    trialList, fieldNames = _attemptImport(fileName=fileName,
+                                                           sep=sep, dec=dec)
+                    break  # seems to have worked
+                except exceptions.ConditionsImportError as e:
+                    continue  # try a different format
+        else:
+            trialList, fieldNames = _attemptImport(fileName=fileName)
 
     elif fileName.endswith(('.xlsx','.xlsm')):  # no xlsread so use openpyxl
         if not haveOpenpyxl:
-            raise exceptions.ConditionsImportError(
-                "openpyxl or xlrd is required for loading excel files, but neither was found.",
-                _translate("openpyxl or xlrd is required for loading excel files, but neither was found.")
-            )
+            raise ImportError('openpyxl or xlrd is required for loading excel '
+                              'files, but neither was found.')
 
         # data_only was added in 1.8
-        if Version(openpyxl.__version__) < Version('1.8'):
+        if parse_version(openpyxl.__version__) < parse_version('1.8'):
             wb = load_workbook(filename=fileName)
         else:
             wb = load_workbook(filename=fileName, data_only=True)
@@ -471,9 +368,9 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
 
         # get parameter names from the first row header
         fieldNames = []
-        rangeCols = []
+        rangeCols = list(range(nCols))
         for colN in range(nCols):
-            if Version(openpyxl.__version__) < Version('2.0'):
+            if parse_version(openpyxl.__version__) < parse_version('2.0'):
                 fieldName = ws.cell(_getExcelCellName(col=colN, row=0)).value
             else:
                 # From 2.0, cells are referenced with 1-indexing: A1 == cell(row=1, column=1)
@@ -481,15 +378,17 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
             if fieldName:
                 # If column is named, add its name to fieldNames
                 fieldNames.append(fieldName)
-                rangeCols.append(colN)
+            else:
+                # Otherwise, ignore the column
+                rangeCols.remove(colN)
         _assertValidVarNames(fieldNames, fileName)
 
         # loop trialTypes
         trialList = []
         for rowN in range(1, nRows):  # skip header first row
             thisTrial = {}
-            for rangeColsIndex, colN in enumerate(rangeCols):
-                if Version(openpyxl.__version__) < Version('2.0'):
+            for colN in rangeCols:
+                if parse_version(openpyxl.__version__) < parse_version('2.0'):
                     val = ws.cell(_getExcelCellName(col=colN, row=0)).value
                 else:
                     # From 2.0, cells are referenced with 1-indexing: A1 == cell(row=1, column=1)
@@ -509,7 +408,7 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
                         val = float(tryVal)
                     except ValueError:
                         pass
-                fieldName = fieldNames[rangeColsIndex]
+                fieldName = fieldNames[colN]
                 thisTrial[fieldName] = val
             trialList.append(thisTrial)
 
@@ -522,10 +421,7 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
         try:
             trialsArr = pickle.loads(buffer)
         except Exception:
-            raise exceptions.ConditionsImportError(
-                'Could not open %s as conditions' % fileName,
-                translated=_translate('Could not open %s as conditions') % fileName
-            )
+            raise IOError('Could not open %s as conditions' % fileName)
         f.close()
         trialList = []
         # In Python3, strings returned by pickle() are unhashable so we have to
@@ -541,10 +437,8 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
                 thisTrial[fieldName] = row[fieldN]
             trialList.append(thisTrial)
     else:
-        raise exceptions.ConditionsImportError(
-            'Your conditions file should be an xlsx, csv, dlm, tsv or pkl file',
-            translated=_translate('Your conditions file should be an xlsx, csv, dlm, tsv or pkl file')
-        )
+        raise IOError('Your conditions file should be an '
+                      'xlsx, csv, dlm, tsv or pkl file')
 
     # if we have a selection then try to parse it
     if isinstance(selection, str) and len(selection) > 0:
@@ -554,10 +448,8 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
                 try:
                     assert n == int(n)
                 except AssertionError:
-                    raise exceptions.ConditionsImportError(
-                        "importConditions() was given some `indices` but could not parse them",
-                        translated=_translate("importConditions() was given some `indices` but could not parse them")
-                    )
+                    raise TypeError("importConditions() was given some "
+                                    "`indices` but could not parse them")
 
     # the selection might now be a slice or a series of indices
     if isinstance(selection, slice):
@@ -755,9 +647,6 @@ def getDateStr(format="%Y-%m-%d_%Hh%M.%S.%f", fractionalSecondDigits=3):
     Parameters
     ----------
     format : str
-        See the documentation for `datetime.datetime.strftime` for more
-        information on format syntax:
-        https://docs.python.org/3/library/datetime.html#strftime-strptime-behavior
         default="%Y-%m-%d_%Hh%M.%S.%f"
     fractionalSecondDigits : int
         An integer value 1-6 indicating the number of digits of fractional
@@ -766,7 +655,7 @@ def getDateStr(format="%Y-%m-%d_%Hh%M.%S.%f", fractionalSecondDigits=3):
         milliseconds you can set fractionalSecondDigits=3
 
     """
-    now = datetime.datetime.now().astimezone()
+    now = datetime.datetime.now()
     microsecs = now.strftime("%f")
     nowStr = now.strftime(format)
     if "%f" in format and (
@@ -784,75 +673,3 @@ def getDateStr(format="%Y-%m-%d_%Hh%M.%S.%f", fractionalSecondDigits=3):
             microsecs, microsecs[:int(fractionalSecondDigits)],
         )
     return nowStr
-
-
-def parsePipeSyntax(key, stripKey=True):
-    """
-    Parse "pipe syntax" within an expInfo key / all keys in an expInfo dict. Pipe syntax is as follows:
-
-    |req = Required input
-    |cfg = Configuration parameter, hidden behind "read more" tag
-    |fix = Fixed parameter, meaning its value can't be changed
-    |hid = Hidden parameter, meaning it's not down by DlgFromDict
-
-    An unescaped * in the key is considered shorthand for |req.
-
-    Parameters
-    ----------
-    key : str
-        A key to parse.
-    stripKey : bool
-        If True, trailing spaces will be removed from processed keys. Trailing spaces are removed from flags regardless.
-
-    Returns
-    -------
-    str
-        `value` with pipe syntax removed
-    list
-        List of flags found
-    """
-    # add |req if an unescaped * is present
-    key = re.sub(r"(?<!\\)\*", "|req", key)
-    # get flags
-    key, *flags = key.split("|")
-    # remove duplicates
-    flags = list(set(flags))
-    # strip key if requested
-    if stripKey:
-        key = key.strip()
-    # strip each flag
-    flags = [flag.strip() for flag in flags]
-
-    return key, flags
-
-
-def parsePipeSyntaxDict(expInfo, stripKey=True):
-    """
-    Calls `parsePipeSyntax` on each key in an expInfo dict and returns two new dicts: One with values against sanitized
-    keys, the other with flags against processed keys.
-
-    Parameters
-    ----------
-    expInfo : dict
-        Dict whose flags to process
-    stripKey : bool
-        If True, trailing spaces will be removed from keys. Trailing spaces are removed from flags regardless.
-
-    Returns
-    -------
-    dict
-        The values from `expInfo` with processed keys, i.e. no pipe syntax
-    dict
-        The flags extraced from processing pipe syntax with processed keys, i.e. no pipe syntax
-    """
-    valuesDict = {}
-    flagsDict = {}
-    for key in expInfo:
-        # parse key for syntax
-        newKey, flags = parsePipeSyntax(key)
-        # store original value under parsed key
-        valuesDict[newKey] = expInfo[key]
-        # store parsed flags under parsed key
-        flagsDict[newKey] = flags
-
-    return valuesDict, flagsDict

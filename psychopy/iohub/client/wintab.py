@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # Part of the PsychoPy library
 # Copyright (C) 2012-2020 iSolver Software Solutions (C) 2021 Open Science Tools Ltd.
-# Distributed under the terms of the MIT License.
+# Distributed under the terms of the GNU General Public License (GPL).
 from collections import deque
 import math
 import numpy as np
@@ -313,7 +313,7 @@ class Wintab(ioHubDeviceView):
 
     @property
     def reporting(self):
-        """Specifies if the device is reporting / recording events.
+        """Specifies if the the device is reporting / recording events.
 
           * True:  events are being reported.
           * False: events are not being reported.

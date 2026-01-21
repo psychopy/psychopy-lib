@@ -2,11 +2,8 @@
 # -*- coding: utf-8 -*-
 
 import os
-from pathlib import Path
 import pytest
 import numpy as np
-
-from psychopy import exceptions
 from psychopy.data import utils
 from os.path import join
 
@@ -45,23 +42,19 @@ class Test_utilsClass:
         assert utils.importConditions(fileName=None) == []
         assert utils.importConditions(fileName=None, returnFieldNames=True) == ([], [])
         # Test value error for non-existent file
-        with pytest.raises(exceptions.ConditionsImportError) as errMsg:
+        with pytest.raises(ValueError) as errMsg:
             utils.importConditions(fileName='raiseErrorfileName')
-        assert 'Conditions file not found:' in str(errMsg.value)
-        assert 'raiseErrorfileName' in str(errMsg.value)
+        assert 'Conditions file not found: %s' % os.path.abspath('raiseErrorfileName') in str(errMsg.value)
 
         conds = utils.importConditions(fileName_pkl)
         assert conds[0] == expected_cond
 
         # trialTypes.pkl saved in list of list format (see trialTypes.docx)
         # test assertion for invalid file type
-        with pytest.raises(exceptions.ConditionsImportError) as errMsg:
+        with pytest.raises(IOError) as errMsg:
             utils.importConditions(fileName_docx)
         assert ('Your conditions file should be an ''xlsx, csv, dlm, tsv or pkl file') == str(errMsg.value)
-        # test that duplicate headers are caught
-        with pytest.raises(exceptions.ConditionsImportError) as err:
-            utils.importConditions(str(Path(fixturesPath) / "duplicateHeaders.csv"))
-        assert "'dupe'" in str(err.value)
+
         # test random selection of conditions
         all_conditions = utils.importConditions(standard_files[0])
         assert len(all_conditions) == 6
@@ -74,20 +67,13 @@ class Test_utilsClass:
         assert len(selected_conditions) == num_selected_conditions
 
     def test_isValidVariableName(self):
-        cases = [
-            {'val': 'Name', 'valid': True, 'msg': ''},
-            {'val': 'a_b_c', 'valid': True, 'msg': ''},
-            {'val': '', 'valid': False, 'msg': "Variables cannot be missing, None, or ''"},
-            {'val': '0Name', 'valid': False, 'msg': 'Variables cannot begin with numeric character'},
-            {'val': 'first second', 'valid': False, 'msg': 'Variables cannot contain punctuation or spaces'},
-            {'val': None, 'valid': False, 'msg': "Variables cannot be missing, None, or ''"},
-            {'val': 26, 'valid': False, 'msg': 'Variables must be string-like'},
-        ]
-
-        for case in cases:
-            valid, msg, translated = utils.isValidVariableName(case['val'])
-            assert valid == case['valid']
-            assert msg == case['msg']
+        assert utils.isValidVariableName('Name') == (True, '')
+        assert utils.isValidVariableName('a_b_c') == (True, '')
+        assert utils.isValidVariableName('') == (False, "Variables cannot be missing, None, or ''")
+        assert utils.isValidVariableName('0Name') == (False, "Variables cannot begin with numeric character")
+        assert utils.isValidVariableName('first second') == (False, "Variables cannot contain punctuation or spaces")
+        assert utils.isValidVariableName(None) == (False, "Variables cannot be missing, None, or ''")
+        assert utils.isValidVariableName(26) == (False, "Variables must be string-like")
 
     def test_GetExcelCellName(self):
         assert utils._getExcelCellName(0,0) == 'A1'

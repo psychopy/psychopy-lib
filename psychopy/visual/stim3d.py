@@ -4,14 +4,13 @@
 """Classes for 3D stimuli."""
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2025 Open Science Tools Ltd.
-# Distributed under the terms of the MIT License.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Distributed under the terms of the GNU General Public License (GPL).
 
 from psychopy import logging
 from psychopy.tools.attributetools import attributeSetter, setAttribute
 from psychopy.visual.basevisual import WindowMixin, ColorMixin
 from psychopy.visual.helpers import setColor
-from psychopy.colors import Color, colorSpaces
 import psychopy.tools.mathtools as mt
 import psychopy.tools.gltools as gt
 import psychopy.tools.arraytools as at
@@ -26,16 +25,9 @@ import numpy as np
 
 import pyglet.gl as GL
 
-# classes moved out of this module
-RigidBodyPose = mt.RigidBodyPose
-BoundingBox = mt.BoundingBox
-
 
 class LightSource:
-    """Class for representing a light source in a scene. This is a 
-    lazy-imported class, therefore import using full path 
-    `from psychopy.visual.stim3d import LightSource` when inheriting from it.
-
+    """Class for representing a light source in a scene.
 
     Only point and directional lighting is supported by this object for now. The
     ambient color of the light source contributes to the scene ambient color
@@ -53,7 +45,6 @@ class LightSource:
                  specularColor=(1., 1., 1.),
                  ambientColor=(0., 0., 0.),
                  colorSpace='rgb',
-                 contrast=1.0,
                  lightType='point',
                  attenuation=(1, 0, 0)):
         """
@@ -74,11 +65,8 @@ class LightSource:
             Specular light color.
         ambientColor : array_like
             Ambient light color.
-        colorSpace : str or None
-            Colorspace for diffuse, specular, and ambient color components.
-        contrast : float
-            Contrast of the lighting color components. This acts as a 'gain'
-            factor which scales color values. Must be between 0.0 and 1.0.
+        colorSpace : str
+            Colorspace for `diffuse`, `specular`, and `ambient` colors.
         attenuation : array_like
             Values for the constant, linear, and quadratic terms of the lighting
             attenuation formula. Default is (1, 0, 0) which results in no
@@ -88,36 +76,25 @@ class LightSource:
         self.win = win
 
         self._pos = np.zeros((4,), np.float32)
-        self._diffuseColor = Color()
-        self._specularColor = Color()
-        self._ambientColor = Color()
-        self._lightType = None  # set later
+        self._diffuseColor = np.zeros((3,), np.float32)
+        self._specularColor = np.zeros((3,), np.float32)
+        self._ambientColor = np.zeros((3,), np.float32)
 
         # internal RGB values post colorspace conversion
         self._diffuseRGB = np.array((0., 0., 0., 1.), np.float32)
         self._specularRGB = np.array((0., 0., 0., 1.), np.float32)
         self._ambientRGB = np.array((0., 0., 0., 1.), np.float32)
 
-        self.contrast = contrast
         self.colorSpace = colorSpace
-
-        # set the colors
         self.diffuseColor = diffuseColor
         self.specularColor = specularColor
         self.ambientColor = ambientColor
 
-        self.lightType = lightType
+        self._lightType = lightType
         self.pos = pos
 
         # attenuation factors
         self._kAttenuation = np.asarray(attenuation, np.float32)
-
-    # --------------------------------------------------------------------------
-    # Lighting
-    #
-    # Properties about the lighting position and type. This affects the shading
-    # of the material.
-    #
 
     @property
     def pos(self):
@@ -129,13 +106,13 @@ class LightSource:
         self._pos = np.zeros((4,), np.float32)
         self._pos[:3] = value
 
-        if self._lightType == 'point':  # if a point source then `w` == 1.0
+        if self._lightType == 'point':
             self._pos[3] = 1.0
 
     @property
     def lightType(self):
         """Type of light source, can be 'point' or 'directional'."""
-        return self._lightType
+        return self._pos[:3]
 
     @lightType.setter
     def lightType(self, value):
@@ -150,6 +127,79 @@ class LightSource:
                 "Unknown `lightType` specified, must be 'directional' or "
                 "'point'.")
 
+
+    @property
+    def diffuseColor(self):
+        """Diffuse color of the material."""
+        return self._diffuseColor
+
+    @diffuseColor.setter
+    def diffuseColor(self, value):
+        self._diffuseColor = np.asarray(value, np.float32)
+        setColor(self, value, colorSpace=self.colorSpace, operation=None,
+                 rgbAttrib='diffuseRGB', colorAttrib='diffuseColor',
+                 colorSpaceAttrib='colorSpace')
+
+    @property
+    def diffuseRGB(self):
+        """Diffuse color of the material."""
+        return self._diffuseRGB[:3]
+
+    @diffuseRGB.setter
+    def diffuseRGB(self, value):
+        # make sure the color we got is 32-bit float
+        self._diffuseRGB = np.zeros((4,), np.float32)
+        self._diffuseRGB[:3] = (value + 1) / 2.0
+        self._diffuseRGB[3] = 1.0
+
+    @property
+    def specularColor(self):
+        """Specular color of the material."""
+        return self._specularColor
+
+    @specularColor.setter
+    def specularColor(self, value):
+        self._specularColor = np.asarray(value, np.float32)
+        setColor(self, value, colorSpace=self.colorSpace, operation=None,
+                 rgbAttrib='specularRGB', colorAttrib='specularColor',
+                 colorSpaceAttrib='colorSpace')
+
+    @property
+    def specularRGB(self):
+        """Diffuse color of the material."""
+        return self._specularRGB[:3]
+
+    @specularRGB.setter
+    def specularRGB(self, value):
+        # make sure the color we got is 32-bit float
+        self._specularRGB = np.zeros((4,), np.float32)
+        self._specularRGB[:3] = (value + 1) / 2.0
+        self._specularRGB[3] = 1.0
+
+    @property
+    def ambientColor(self):
+        """Ambient color of the material."""
+        return self._ambientColor
+
+    @ambientColor.setter
+    def ambientColor(self, value):
+        self._ambientColor = np.asarray(value, np.float32)
+        setColor(self, value, colorSpace=self.colorSpace, operation=None,
+                 rgbAttrib='ambientRGB', colorAttrib='ambientColor',
+                 colorSpaceAttrib='colorSpace')
+
+    @property
+    def ambientRGB(self):
+        """Diffuse color of the material."""
+        return self._ambientRGB[:3]
+
+    @ambientRGB.setter
+    def ambientRGB(self, value):
+        # make sure the color we got is 32-bit float
+        self._ambientRGB = np.zeros((4,), np.float32)
+        self._ambientRGB[:3] = (value + 1) / 2.0
+        self._ambientRGB[3] = 1.0
+
     @property
     def attenuation(self):
         """Values for the constant, linear, and quadratic terms of the lighting
@@ -161,256 +211,9 @@ class LightSource:
     def attenuation(self, value):
         self._kAttenuation = np.asarray(value, np.float32)
 
-    # --------------------------------------------------------------------------
-    # Lighting colors
-    #
-
-    @property
-    def colorSpace(self):
-        """The name of the color space currently being used (`str` or `None`).
-
-        For strings and hex values this is not needed. If `None` the default
-        `colorSpace` for the stimulus is used (defined during initialisation).
-
-        Please note that changing `colorSpace` does not change stimulus
-        parameters. Thus, you usually want to specify `colorSpace` before
-        setting the color.
-
-        """
-        if hasattr(self, '_colorSpace'):
-            return self._colorSpace
-        else:
-            return 'rgba'
-
-    @colorSpace.setter
-    def colorSpace(self, value):
-        if value in colorSpaces:
-            self._colorSpace = value
-        else:
-            logging.error(f"'{value}' is not a valid color space")
-
-    @property
-    def contrast(self):
-        """A value that is simply multiplied by the color (`float`).
-
-        This may be used to adjust the gain of the light source. This is applied
-        to all lighting color components.
-
-        Examples
-        --------
-        Basic usage::
-
-            stim.contrast =  1.0  # unchanged contrast
-            stim.contrast =  0.5  # decrease contrast
-            stim.contrast =  0.0  # uniform, no contrast
-            stim.contrast = -0.5  # slightly inverted
-            stim.contrast = -1.0  # totally inverted
-
-        Setting contrast outside range -1 to 1 is permitted, but may
-        produce strange results if color values exceeds the monitor limits.::
-
-            stim.contrast =  1.2  # increases contrast
-            stim.contrast = -1.2  # inverts with increased contrast
-
-        """
-        return self._diffuseColor.contrast
-
-    @contrast.setter
-    def contrast(self, value):
-        self._diffuseColor.contrast = value
-        self._specularColor.contrast = value
-        self._ambientColor.contrast = value
-
-    @property
-    def diffuseColor(self):
-        """Diffuse color for the light source (`psychopy.color.Color`,
-        `ArrayLike` or None).
-        """
-        return self._diffuseColor.render(self.colorSpace)
-
-    @diffuseColor.setter
-    def diffuseColor(self, value):
-        if isinstance(value, Color):
-            self._diffuseColor = value
-        else:
-            self._diffuseColor = Color(
-                value,
-                self.colorSpace,
-                contrast=self.contrast)
-
-        if not self._diffuseColor:
-            # If given an invalid color, set as transparent and log error
-            self._diffuseColor = Color()
-            logging.error(f"'{value}' is not a valid {self.colorSpace} color")
-
-        # set the RGB values
-        self._diffuseRGB[:3] = self._diffuseColor.rgb1
-        self._diffuseRGB[3] = self._diffuseColor.opacity
-
-    def setDiffuseColor(self, color, colorSpace=None, operation='', log=None):
-        """Set the diffuse color for the light source. Use this function if you
-        wish to supress logging or apply operations on the color component.
-
-        Parameters
-        ----------
-        color : ArrayLike or `~psychopy.colors.Color`
-            Color to set as the diffuse component of the light source.
-        colorSpace : str or None
-            Colorspace to use. This is only used to set the color, the value of
-            `diffuseColor` after setting uses the color space of the object.
-        operation : str
-            Operation string.
-        log : bool or None
-            Enable logging.
-
-        """
-        setColor(
-            obj=self,
-            colorAttrib="diffuseColor",
-            color=color,
-            colorSpace=colorSpace or self.colorSpace,
-            operation=operation,
-            log=log)
-
-    @property
-    def specularColor(self):
-        """Specular color of the light source (`psychopy.color.Color`,
-        `ArrayLike` or None).
-        """
-        return self._specularColor.render(self.colorSpace)
-
-    @specularColor.setter
-    def specularColor(self, value):
-        if isinstance(value, Color):
-            self._specularColor = value
-        else:
-            self._specularColor = Color(
-                value,
-                self.colorSpace,
-                contrast=self.contrast)
-
-        if not self._specularColor:
-            # If given an invalid color, set as transparent and log error
-            self._specularColor = Color()
-            logging.error(f"'{value}' is not a valid {self.colorSpace} color")
-
-        self._specularRGB[:3] = self._specularColor.rgb1
-        self._specularRGB[3] = self._specularColor.opacity
-
-    def setSpecularColor(self, color, colorSpace=None, operation='', log=None):
-        """Set the diffuse color for the light source. Use this function if you
-        wish to supress logging or apply operations on the color component.
-
-        Parameters
-        ----------
-        color : ArrayLike or `~psychopy.colors.Color`
-            Color to set as the specular component of the light source.
-        colorSpace : str or None
-            Colorspace to use. This is only used to set the color, the value of
-            `diffuseColor` after setting uses the color space of the object.
-        operation : str
-            Operation string.
-        log : bool or None
-            Enable logging.
-
-        """
-        setColor(
-            obj=self,
-            colorAttrib="specularColor",
-            color=color,
-            colorSpace=colorSpace or self.colorSpace,
-            operation=operation,
-            log=log)
-
-    @property
-    def ambientColor(self):
-        """Ambient color of the light source (`psychopy.color.Color`,
-        `ArrayLike` or None).
-
-        The ambient color component is used to simulate indirect lighting caused
-        by the light source. For instance, light bouncing off adjacent surfaces
-        or atmospheric scattering if the light source is a sun. This is
-        independent of the global ambient color.
-
-        """
-        return self._ambientColor.render(self.colorSpace)
-
-    @ambientColor.setter
-    def ambientColor(self, value):
-        if isinstance(value, Color):
-            self._ambientColor = value
-        else:
-            self._ambientColor = Color(
-                value,
-                self.colorSpace,
-                contrast=self.contrast)
-
-        if not self._ambientColor:
-            # If given an invalid color, set as transparent and log error
-            self._ambientColor = Color()
-            logging.error(f"'{value}' is not a valid {self.colorSpace} color")
-
-        self._ambientRGB[:3] = self._ambientColor.rgb1
-        self._ambientRGB[3] = self._ambientColor.opacity
-
-    def setAmbientColor(self, color, colorSpace=None, operation='', log=None):
-        """Set the ambient color for the light source.
-
-        Use this function if you wish to supress logging or apply operations on
-        the color component.
-
-        Parameters
-        ----------
-        color : ArrayLike or `~psychopy.colors.Color`
-            Color to set as the ambient component of the light source.
-        colorSpace : str or None
-            Colorspace to use. This is only used to set the color, the value of
-            `ambientColor` after setting uses the color space of the object.
-        operation : str
-            Operation string.
-        log : bool or None
-            Enable logging.
-
-        """
-        setColor(
-            obj=self,
-            colorAttrib="ambientColor",
-            color=color,
-            colorSpace=colorSpace or self.colorSpace,
-            operation=operation,
-            log=log)
-
-    # --------------------------------------------------------------------------
-    # Lighting RGB colors
-    #
-    # These are the color values for the light which will be passed to the
-    # shader. We protect these values since we don't want the user changing the
-    # array type or size.
-    #
-
-    @property
-    def diffuseRGB(self):
-        """Diffuse RGB1 color of the material. This value is passed to OpenGL.
-        """
-        return self._diffuseRGB
-
-    @property
-    def specularRGB(self):
-        """Specular RGB1 color of the material. This value is passed to OpenGL.
-        """
-        return self._specularRGB
-
-    @property
-    def ambientRGB(self):
-        """Ambient RGB1 color of the material. This value is passed to OpenGL.
-        """
-        return self._ambientRGB
-
 
 class SceneSkybox:
-    """Class to render scene skyboxes. This is a 
-    lazy-imported class, therefore import using full path 
-    `from psychopy.visual.stim3d import SceneSkybox` when inheriting from it.
+    """Class to render scene skyboxes.
 
     A skybox provides background imagery to serve as a visual reference for the
     scene. Background images are projected onto faces of a cube centered about
@@ -596,16 +399,12 @@ class SceneSkybox:
 
 class BlinnPhongMaterial:
     """Class representing a material using the Blinn-Phong lighting model.
-    This is a lazy-imported class, therefore import using full path 
-    `from psychopy.visual.stim3d import BlinnPhongMaterial` when inheriting
-    from it.
 
     This class stores material information to modify the appearance of drawn
     primitives with respect to lighting, such as color (diffuse, specular,
     ambient, and emission), shininess, and textures. Simple materials are
     intended to work with features supported by the fixed-function OpenGL
-    pipeline. However, one may use shaders that implement the Blinn-Phong
-    shading model for per-pixel lighting.
+    pipeline.
 
     If shaders are enabled, the colors of objects will appear different than
     without. This is due to the lighting/material colors being computed on a
@@ -635,37 +434,6 @@ class BlinnPhongMaterial:
     in the lighting object. Values `k0=1.0, k1=0.0, and k2=0.0` results in a
     light that does not fall-off with distance.
 
-    Parameters
-    ----------
-    win : `~psychopy.visual.Window` or `None`
-        Window this material is associated with, required for shaders and some
-        color space conversions.
-    diffuseColor : array_like
-        Diffuse material color (r, g, b) with values between -1.0 and 1.0.
-    specularColor : array_like
-        Specular material color (r, g, b) with values between -1.0 and 1.0.
-    ambientColor : array_like
-        Ambient material color (r, g, b) with values between -1.0 and 1.0.
-    emissionColor : array_like
-        Emission material color (r, g, b) with values between -1.0 and 1.0.
-    shininess : float
-        Material shininess, usually ranges from 0.0 to 128.0.
-    colorSpace : str
-        Color space for `diffuseColor`, `specularColor`, `ambientColor`, and
-        `emissionColor`. This is no longer used.
-    opacity : float
-        Opacity of the material. Ranges from 0.0 to 1.0 where 1.0 is fully
-        opaque.
-    contrast : float
-        Contrast of the material colors.
-    diffuseTexture : TexImage2D
-        Optional 2D texture to apply to the material. Color values from the
-        texture are blended with the `diffuseColor` of the material. The target
-        primitives must have texture coordinates to specify how texels are
-        mapped to the surface.
-    face : str
-        Face to apply material to. Values are `front`, `back` or `both`.
-
     Warnings
     --------
     This class is experimental and may result in undefined behavior.
@@ -673,7 +441,7 @@ class BlinnPhongMaterial:
     """
     def __init__(self,
                  win=None,
-                 diffuseColor=(-1., -1., -1.),
+                 diffuseColor=(.5, .5, .5),
                  specularColor=(-1., -1., -1.),
                  ambientColor=(-1., -1., -1.),
                  emissionColor=(-1., -1., -1.),
@@ -683,15 +451,47 @@ class BlinnPhongMaterial:
                  opacity=1.0,
                  contrast=1.0,
                  face='front'):
-
+        """
+        Parameters
+        ----------
+        win : `~psychopy.visual.Window` or `None`
+            Window this material is associated with, required for shaders and
+            some color space conversions.
+        diffuseColor : array_like
+            Diffuse material color (r, g, b, a) with values between 0.0 and 1.0.
+        specularColor : array_like
+            Specular material color (r, g, b, a) with values between 0.0 and
+            1.0.
+        ambientColor : array_like
+            Ambient material color (r, g, b, a) with values between 0.0 and 1.0.
+        emissionColor : array_like
+            Emission material color (r, g, b, a) with values between 0.0 and
+            1.0.
+        shininess : float
+            Material shininess, usually ranges from 0.0 to 128.0.
+        colorSpace : float
+            Color space for `diffuseColor`, `specularColor`, `ambientColor`, and
+            `emissionColor`.
+        diffuseTexture : TexImage2D
+        opacity : float
+            Opacity of the material. Ranges from 0.0 to 1.0 where 1.0 is fully
+            opaque.
+        contrast : float
+            Contrast of the material colors.
+        face : str
+            Face to apply material to. Values are `front`, `back` or `both`.
+        textures : dict, optional
+            Texture maps associated with this material. Textures are specified
+            as a list. The index of textures in the list will be used to set
+            the corresponding texture unit they are bound to.
+        """
         self.win = win
 
-        self._diffuseColor = Color()
-        self._specularColor = Color()
-        self._ambientColor = Color()
-        self._emissionColor = Color()
+        self._diffuseColor = np.zeros((3,), np.float32)
+        self._specularColor = np.zeros((3,), np.float32)
+        self._ambientColor = np.zeros((3,), np.float32)
+        self._emissionColor = np.zeros((3,), np.float32)
         self._shininess = float(shininess)
-        self._face = None  # set later
 
         # internal RGB values post colorspace conversion
         self._diffuseRGB = np.array((0., 0., 0., 1.), np.float32)
@@ -705,381 +505,151 @@ class BlinnPhongMaterial:
         self._ptrAmbient = None
         self._ptrEmission = None
 
-        self.diffuseColor = diffuseColor
-        self.specularColor = specularColor
-        self.ambientColor = ambientColor
-        self.emissionColor = emissionColor
+        # which faces to apply the material
+        if face == 'front':
+            self._face = GL.GL_FRONT
+        elif face == 'back':
+            self._face = GL.GL_BACK
+        elif face == 'both':
+            self._face = GL.GL_FRONT_AND_BACK
+        else:
+            raise ValueError("Invalid `face` specified, must be 'front', "
+                             "'back' or 'both'.")
 
         self.colorSpace = colorSpace
         self.opacity = opacity
         self.contrast = contrast
-        self.face = face
+
+        self.diffuseColor = diffuseColor
+        self.specularColor = specularColor
+        self.ambientColor = ambientColor
+        self.emissionColor = emissionColor
 
         self._diffuseTexture = diffuseTexture
         self._normalTexture = None
 
         self._useTextures = False  # keeps track if textures are being used
 
-    # --------------------------------------------------------------------------
-    # Material colors and other properties
-    #
-    # These properties are used to set the color components of various material
-    # properties.
-    #
-
-    @property
-    def colorSpace(self):
-        """The name of the color space currently being used (`str` or `None`).
-
-        For strings and hex values this is not needed. If `None` the default
-        `colorSpace` for the stimulus is used (defined during initialisation).
-
-        Please note that changing `colorSpace` does not change stimulus
-        parameters. Thus, you usually want to specify `colorSpace` before
-        setting the color.
-
-        """
-        if hasattr(self, '_colorSpace'):
-            return self._colorSpace
-        else:
-            return 'rgba'
-
-    @colorSpace.setter
-    def colorSpace(self, value):
-        if value in colorSpaces:
-            self._colorSpace = value
-        else:
-            logging.error(f"'{value}' is not a valid color space")
-
-    @property
-    def contrast(self):
-        """A value that is simply multiplied by the color (`float`).
-
-        This may be used to adjust the lightness of the material. This is
-        applied to all material color components.
-
-        Examples
-        --------
-        Basic usage::
-
-            stim.contrast =  1.0  # unchanged contrast
-            stim.contrast =  0.5  # decrease contrast
-            stim.contrast =  0.0  # uniform, no contrast
-            stim.contrast = -0.5  # slightly inverted
-            stim.contrast = -1.0  # totally inverted
-
-        Setting contrast outside range -1 to 1 is permitted, but may
-        produce strange results if color values exceeds the monitor limits.::
-
-            stim.contrast =  1.2  # increases contrast
-            stim.contrast = -1.2  # inverts with increased contrast
-
-        """
-        return self._diffuseColor.contrast
-
-    @contrast.setter
-    def contrast(self, value):
-        self._diffuseColor.contrast = value
-        self._specularColor.contrast = value
-        self._ambientColor.contrast = value
-        self._emissionColor.contrast = value
-
-    @property
-    def shininess(self):
-        """Material shininess coefficient (`float`).
-
-        This is used to specify the 'tightness' of the specular highlights.
-        Values usually range between 0 and 128, but the range depends on the
-        specular highlight formula used by the shader.
-
-        """
-        return self._shininess
-
-    @shininess.setter
-    def shininess(self, value):
-        self._shininess = float(value)
-
-    @property
-    def face(self):
-        """Face to apply the material to (`str`). Possible values are one of
-        `'front'`, `'back'` or `'both'`.
-        """
-        return self._face
-
-    @face.setter
-    def face(self, value):
-        # which faces to apply the material
-        if value == 'front':
-            self._face = GL.GL_FRONT
-        elif value == 'back':
-            self._face = GL.GL_BACK
-        elif value == 'both':
-            self._face = GL.GL_FRONT_AND_BACK
-        else:
-            raise ValueError(
-                "Invalid value for `face` specified, must be 'front', 'back' "
-                "or 'both'.")
-
-    @property
-    def diffuseColor(self):
-        """Diffuse color `(r, g, b)` for the material (`psychopy.color.Color`,
-        `ArrayLike` or `None`).
-        """
-        return self._diffuseColor.render(self.colorSpace)
-
-    @diffuseColor.setter
-    def diffuseColor(self, value):
-        if isinstance(value, Color):
-            self._diffuseColor = value
-        else:
-            self._diffuseColor = Color(
-                value,
-                self.colorSpace,
-                contrast=self.contrast)
-
-        if not self._diffuseColor:
-            # If given an invalid color, set as transparent and log error
-            self._diffuseColor = Color()
-            logging.error(f"'{value}' is not a valid {self.colorSpace} color")
-
-        # compute RGB values for the shader
-        self._diffuseRGB[:3] = self._diffuseColor.rgb1
-        self._diffuseRGB[3] = self._diffuseColor.opacity
-
-        # need to create a pointer for the shader
-        self._ptrDiffuse = np.ctypeslib.as_ctypes(self._diffuseRGB)
-
-    def setDiffuseColor(self, color, colorSpace=None, operation='', log=None):
-        """Set the diffuse color for the material.
-
-        Use this method if you wish to supress logging or apply operations on
-        the color component.
-
-        Parameters
-        ----------
-        color : ArrayLike or `~psychopy.colors.Color`
-            Color to set as the diffuse component of the material.
-        colorSpace : str or None
-            Colorspace to use. This is only used to set the color, the value of
-            `diffuseColor` after setting uses the color space of the object.
-        operation : str
-            Operation string.
-        log : bool or None
-            Enable logging.
-
-        """
-        setColor(
-            obj=self,
-            colorAttrib="diffuseColor",
-            color=color,
-            colorSpace=colorSpace or self.colorSpace,
-            operation=operation,
-            log=log)
-
-    @property
-    def specularColor(self):
-        """Specular color `(r, g, b)` of the material (`psychopy.color.Color`,
-        `ArrayLike` or `None`).
-        """
-        return self._specularColor.render(self.colorSpace)
-
-    @specularColor.setter
-    def specularColor(self, value):
-        if isinstance(value, Color):
-            self._specularColor = value
-        else:
-            self._specularColor = Color(
-                value,
-                self.colorSpace,
-                contrast=self.contrast)
-
-        if not self._specularColor:
-            # If given an invalid color, set as transparent and log error
-            self._specularColor = Color()
-            logging.error(f"'{value}' is not a valid {self.colorSpace} color")
-
-        self._specularRGB[:3] = self._specularColor.rgb1
-        self._specularRGB[3] = self._specularColor.opacity
-
-        self._ptrSpecular = np.ctypeslib.as_ctypes(self._specularRGB)
-
-    def setSpecularColor(self, color, colorSpace=None, operation='', log=None):
-        """Set the diffuse color for the material. Use this function if you
-        wish to supress logging or apply operations on the color component.
-
-        Parameters
-        ----------
-        color : ArrayLike or `~psychopy.colors.Color`
-            Color to set as the specular component of the light source.
-        colorSpace : str or None
-            Colorspace to use. This is only used to set the color, the value of
-            `diffuseColor` after setting uses the color space of the object.
-        operation : str
-            Operation string.
-        log : bool or None
-            Enable logging.
-
-        """
-        setColor(
-            obj=self,
-            colorAttrib="specularColor",
-            color=color,
-            colorSpace=colorSpace or self.colorSpace,
-            operation=operation,
-            log=log)
-
-    @property
-    def ambientColor(self):
-        """Ambient color `(r, g, b)` of the material (`psychopy.color.Color`,
-        `ArrayLike` or `None`).
-        """
-        return self._ambientColor.render(self.colorSpace)
-
-    @ambientColor.setter
-    def ambientColor(self, value):
-        if isinstance(value, Color):
-            self._ambientColor = value
-        else:
-            self._ambientColor = Color(
-                value,
-                self.colorSpace,
-                contrast=self.contrast)
-
-        if not self._ambientColor:
-            # If given an invalid color, set as transparent and log error
-            self._ambientColor = Color()
-            logging.error(f"'{value}' is not a valid {self.colorSpace} color")
-
-        self._ambientRGB[:3] = self._ambientColor.rgb1
-        self._ambientRGB[3] = self._ambientColor.opacity
-
-        self._ptrAmbient = np.ctypeslib.as_ctypes(self._ambientRGB)
-
-    def setAmbientColor(self, color, colorSpace=None, operation='', log=None):
-        """Set the ambient color for the material.
-
-        Use this function if you wish to supress logging or apply operations on
-        the color component.
-
-        Parameters
-        ----------
-        color : ArrayLike or `~psychopy.colors.Color`
-            Color to set as the ambient component of the light source.
-        colorSpace : str or None
-            Colorspace to use. This is only used to set the color, the value of
-            `ambientColor` after setting uses the color space of the object.
-        operation : str
-            Operation string.
-        log : bool or None
-            Enable logging.
-
-        """
-        setColor(
-            obj=self,
-            colorAttrib="ambientColor",
-            color=color,
-            colorSpace=colorSpace or self.colorSpace,
-            operation=operation,
-            log=log)
-
-    @property
-    def emissionColor(self):
-        """Emission color `(r, g, b)` of the material (`psychopy.color.Color`,
-        `ArrayLike` or `None`).
-        """
-        return self._emissionColor.render(self.colorSpace)
-
-    @emissionColor.setter
-    def emissionColor(self, value):
-        if isinstance(value, Color):
-            self._emissionColor = value
-        else:
-            self._emissionColor = Color(
-                value,
-                self.colorSpace,
-                contrast=self.contrast)
-
-        if not self._emissionColor:
-            # If given an invalid color, set as transparent and log error
-            self._emissionColor = Color()
-            logging.error(f"'{value}' is not a valid {self.colorSpace} color")
-
-        self._emissionRGB[:3] = self._emissionColor.rgb1
-        self._emissionRGB[3] = self._emissionColor.opacity
-
-        self._ptrEmission = np.ctypeslib.as_ctypes(self._emissionRGB)
-
-    def setEmissionColor(self, color, colorSpace=None, operation='', log=None):
-        """Set the emission color for the material.
-
-        Use this function if you wish to supress logging or apply operations on
-        the color component.
-
-        Parameters
-        ----------
-        color : ArrayLike or `~psychopy.colors.Color`
-            Color to set as the ambient component of the light source.
-        colorSpace : str or None
-            Colorspace to use. This is only used to set the color, the value of
-            `ambientColor` after setting uses the color space of the object.
-        operation : str
-            Operation string.
-        log : bool or None
-            Enable logging.
-
-        """
-        setColor(
-            obj=self,
-            colorAttrib="emissionColor",
-            color=color,
-            colorSpace=colorSpace or self.colorSpace,
-            operation=operation,
-            log=log)
-
-    # --------------------------------------------------------------------------
-    # Material RGB colors
-    #
-    # These are the color values formatted for use in OpenGL.
-    #
-
-    @property
-    def diffuseRGB(self):
-        """RGB values of the diffuse color of the material (`numpy.ndarray`).
-        """
-        return self._diffuseRGB[:3]
-
-    @property
-    def specularRGB(self):
-        """RGB values of the specular color of the material (`numpy.ndarray`).
-        """
-        return self._specularRGB[:3]
-
-    @property
-    def ambientRGB(self):
-        """RGB values of the ambient color of the material (`numpy.ndarray`).
-        """
-        return self._ambientRGB[:3]
-
-    @property
-    def emissionRGB(self):
-        """RGB values of the emission color of the material (`numpy.ndarray`).
-        """
-        return self._emissionRGB[:3]
-
-    # Texture setter -----------------------------------------------------------
-
     @property
     def diffuseTexture(self):
-        """Diffuse texture of the material (`psychopy.tools.gltools.TexImage2D`
-        or `None`).
-        """
+        """Diffuse color of the material."""
         return self._diffuseTexture
 
     @diffuseTexture.setter
     def diffuseTexture(self, value):
         self._diffuseTexture = value
 
-    # --------------------------------------------------------------------------
+    @property
+    def diffuseColor(self):
+        """Diffuse color of the material."""
+        return self._diffuseColor
+
+    @diffuseColor.setter
+    def diffuseColor(self, value):
+        self._diffuseColor = np.asarray(value, np.float32)
+        setColor(self, value, colorSpace=self.colorSpace, operation=None,
+                 rgbAttrib='diffuseRGB', colorAttrib='diffuseColor',
+                 colorSpaceAttrib='colorSpace')
+
+    @property
+    def diffuseRGB(self):
+        """Diffuse color of the material."""
+        return self._diffuseRGB[:3]
+
+    @diffuseRGB.setter
+    def diffuseRGB(self, value):
+        # make sure the color we got is 32-bit float
+        self._diffuseRGB = np.zeros((4,), np.float32)
+        self._diffuseRGB[:3] = (value * self.contrast + 1) / 2.0
+        self._diffuseRGB[3] = self.opacity
+
+        self._ptrDiffuse = np.ctypeslib.as_ctypes(self._diffuseRGB)
+
+    @property
+    def specularColor(self):
+        """Specular color of the material."""
+        return self._specularColor
+
+    @specularColor.setter
+    def specularColor(self, value):
+        self._specularColor = np.asarray(value, np.float32)
+        setColor(self, value, colorSpace=self.colorSpace, operation=None,
+                 rgbAttrib='specularRGB', colorAttrib='specularColor',
+                 colorSpaceAttrib='colorSpace')
+
+    @property
+    def specularRGB(self):
+        """Diffuse color of the material."""
+        return self._specularRGB[:3]
+
+    @specularRGB.setter
+    def specularRGB(self, value):
+        # make sure the color we got is 32-bit float
+        self._specularRGB = np.zeros((4,), np.float32)
+        self._specularRGB[:3] = (value * self.contrast + 1) / 2.0
+        self._specularRGB[3] = self.opacity
+
+        self._ptrSpecular = np.ctypeslib.as_ctypes(self._specularRGB)
+
+    @property
+    def ambientColor(self):
+        """Ambient color of the material."""
+        return self._ambientColor
+
+    @ambientColor.setter
+    def ambientColor(self, value):
+        self._ambientColor = np.asarray(value, np.float32)
+        setColor(self, value, colorSpace=self.colorSpace, operation=None,
+                 rgbAttrib='ambientRGB', colorAttrib='ambientColor',
+                 colorSpaceAttrib='colorSpace')
+
+    @property
+    def ambientRGB(self):
+        """Diffuse color of the material."""
+        return self._ambientRGB[:3]
+
+    @ambientRGB.setter
+    def ambientRGB(self, value):
+        # make sure the color we got is 32-bit float
+        self._ambientRGB = np.zeros((4,), np.float32)
+        self._ambientRGB[:3] = (value * self.contrast + 1) / 2.0
+        self._ambientRGB[3] = self.opacity
+
+        self._ptrAmbient = np.ctypeslib.as_ctypes(self._ambientRGB)
+
+    @property
+    def emissionColor(self):
+        """Emission color of the material."""
+        return self._emissionColor
+
+    @emissionColor.setter
+    def emissionColor(self, value):
+        self._emissionColor = np.asarray(value, np.float32)
+        setColor(self, value, colorSpace=self.colorSpace, operation=None,
+                 rgbAttrib='emissionRGB', colorAttrib='emissionColor',
+                 colorSpaceAttrib='colorSpace')
+
+    @property
+    def emissionRGB(self):
+        """Diffuse color of the material."""
+        return self._emissionRGB[:3]
+
+    @emissionRGB.setter
+    def emissionRGB(self, value):
+        # make sure the color we got is 32-bit float
+        self._emissionRGB = np.zeros((4,), np.float32)
+        self._emissionRGB[:3] = (value * self.contrast + 1) / 2.0
+        self._emissionRGB[3] = self.opacity
+
+        self._ptrEmission = np.ctypeslib.as_ctypes(self._emissionRGB)
+
+    @property
+    def shininess(self):
+        return self._shininess
+
+    @shininess.setter
+    def shininess(self, value):
+        self._shininess = float(value)
 
     def begin(self, useTextures=True):
         """Use this material for successive rendering calls.
@@ -1093,9 +663,8 @@ class BlinnPhongMaterial:
         GL.glDisable(GL.GL_COLOR_MATERIAL)  # disable color tracking
         face = self._face
 
-        # check if lighting is enabled, otherwise don't render lights
-        nLights = len(self.win.lights) if self.win.useLights else 0
-
+        # number of scene lights
+        nLights = len(self.win.lights)
         useTextures = useTextures and self.diffuseTexture is not None
         shaderKey = (nLights, useTextures)
         gt.useProgram(self.win._shaders['stim3d_phong'][shaderKey])
@@ -1164,6 +733,607 @@ class BlinnPhongMaterial:
         GL.glEnable(GL.GL_COLOR_MATERIAL)
 
 
+class RigidBodyPose:
+    """Class for representing rigid body poses.
+
+    This class is an abstract representation of a rigid body pose, where the
+    position of the body in a scene is represented by a vector/coordinate and
+    the orientation with a quaternion. Pose can be manipulated and interacted
+    with using class methods and attributes. Rigid body poses assume a
+    right-handed coordinate system (-Z is forward and +Y is up).
+
+    Poses can be converted to 4x4 transformation matrices with `getModelMatrix`.
+    One can use these matrices when rendering to transform the vertices of a
+    model associated with the pose by passing them to OpenGL. Matrices are
+    cached internally to avoid recomputing them if `pos` and `ori` attributes
+    have not been updated.
+
+    Operators `*` and `~` can be used on `RigidBodyPose` objects to combine and
+    invert poses. For instance, you can multiply (`*`) poses to get a new pose
+    which is the combination of both orientations and translations by::
+
+        newPose = rb1 * rb2
+
+    Likewise, a pose can be inverted by using the `~` operator::
+
+        invPose = ~rb
+
+    Multiplying a pose by its inverse will result in an identity pose with no
+    translation and default orientation where `pos=[0, 0, 0]` and
+    `ori=[0, 0, 0, 1]`::
+
+        identityPose = ~rb * rb
+
+    Warnings
+    --------
+    This class is experimental and may result in undefined behavior.
+
+    """
+    def __init__(self, pos=(0., 0., 0.), ori=(0., 0., 0., 1.)):
+        """
+        Parameters
+        ----------
+        pos : array_like
+            Position vector `[x, y, z]` for the origin of the rigid body.
+        ori : array_like
+            Orientation quaternion `[x, y, z, w]` where `x`, `y`, `z` are
+            imaginary and `w` is real.
+
+        """
+        self._pos = np.ascontiguousarray(pos, dtype=np.float32)
+        self._ori = np.ascontiguousarray(ori, dtype=np.float32)
+
+        self._modelMatrix = mt.posOriToMatrix(
+            self._pos, self._ori, dtype=np.float32)
+
+        # computed only if needed
+        self._normalMatrix = np.zeros((4, 4), dtype=np.float32, order='C')
+        self._invModelMatrix = np.zeros((4, 4), dtype=np.float32, order='C')
+
+        # additional useful vectors
+        self._at = np.zeros((3,), dtype=np.float32, order='C')
+        self._up = np.zeros((3,), dtype=np.float32, order='C')
+
+        # compute matrices only if `pos` and `ori` attributes have been updated
+        self._matrixNeedsUpdate = False
+        self._invMatrixNeedsUpdate = True
+        self._normalMatrixNeedsUpdate = True
+
+        self.pos = pos
+        self.ori = ori
+
+        self._bounds = None
+
+    def __repr__(self):
+        return 'RigidBodyPose({}, {}), %s)'.format(self.pos, self.ori)
+
+    @property
+    def bounds(self):
+        """Bounding box associated with this pose."""
+        return self._bounds
+
+    @bounds.setter
+    def bounds(self, value):
+        self._bounds = value
+
+    @property
+    def pos(self):
+        """Position vector (X, Y, Z)."""
+        return self._pos
+
+    @pos.setter
+    def pos(self, value):
+        self._pos = np.ascontiguousarray(value, dtype=np.float32)
+        self._normalMatrixNeedsUpdate = self._matrixNeedsUpdate = \
+            self._invMatrixNeedsUpdate = True
+
+    @property
+    def ori(self):
+        """Orientation quaternion (X, Y, Z, W)."""
+        return self._ori
+
+    @ori.setter
+    def ori(self, value):
+        self._ori = np.ascontiguousarray(value, dtype=np.float32)
+        self._normalMatrixNeedsUpdate = self._matrixNeedsUpdate = \
+            self._invMatrixNeedsUpdate = True
+
+    @property
+    def posOri(self):
+        """The position (x, y, z) and orientation (x, y, z, w)."""
+        return self._pos, self._ori
+
+    @posOri.setter
+    def posOri(self, value):
+        self._pos = np.ascontiguousarray(value[0], dtype=np.float32)
+        self._ori = np.ascontiguousarray(value[1], dtype=np.float32)
+        self._matrixNeedsUpdate = self._invMatrixNeedsUpdate = \
+            self._normalMatrixNeedsUpdate = True
+
+    @property
+    def at(self):
+        """Vector defining the forward direction (-Z) of this pose."""
+        if self._matrixNeedsUpdate:  # matrix needs update, this need to be too
+            atDir = [0., 0., -1.]
+            self._at = mt.applyQuat(self.ori, atDir, out=self._at)
+
+        return self._at
+
+    @property
+    def up(self):
+        """Vector defining the up direction (+Y) of this pose."""
+        if self._matrixNeedsUpdate:  # matrix needs update, this need to be too
+            upDir = [0., 1., 0.]
+            self._up = mt.applyQuat(self.ori, upDir, out=self._up)
+
+        return self._up
+
+    def __mul__(self, other):
+        """Multiply two poses, combining them to get a new pose."""
+        newOri = mt.multQuat(self._ori, other.ori)
+        return RigidBodyPose(mt.transform(other.pos, newOri, self._pos), newOri)
+
+    def __imul__(self, other):
+        """Inplace multiplication. Transforms this pose by another."""
+        self._ori = mt.multQuat(self._ori, other.ori)
+        self._pos = mt.transform(other.pos, self._ori, self._pos)
+
+    def copy(self):
+        """Get a new `RigidBodyPose` object which copies the position and
+        orientation of this one. Copies are independent and do not reference
+        each others data.
+
+        Returns
+        -------
+        RigidBodyPose
+            Copy of this pose.
+
+        """
+        return RigidBodyPose(self._pos, self._ori)
+
+    def isEqual(self, other):
+        """Check if poses have similar orientation and position.
+
+        Parameters
+        ----------
+        other : `RigidBodyPose`
+            Other pose to compare.
+
+        Returns
+        -------
+        bool
+            Returns `True` is poses are effectively equal.
+
+        """
+        return np.isclose(self._pos, other.pos) and \
+            np.isclose(self._ori, other.ori)
+
+    def setIdentity(self):
+        """Clear rigid body transformations.
+        """
+        self._pos.fill(0.0)
+        self._ori[:3] = 0.0
+        self._ori[3] = 1.0
+        self._matrixNeedsUpdate = self._normalMatrixNeedsUpdate = \
+            self._invMatrixNeedsUpdate = True
+
+    def getOriAxisAngle(self, degrees=True):
+        """Get the axis and angle of rotation for the rigid body. Converts the
+        orientation defined by the `ori` quaternion to and axis-angle
+        representation.
+
+        Parameters
+        ----------
+        degrees : bool, optional
+            Specify ``True`` if `angle` is in degrees, or else it will be
+            treated as radians. Default is ``True``.
+
+        Returns
+        -------
+        tuple
+            Axis [rx, ry, rz] and angle.
+
+        """
+        return mt.quatToAxisAngle(self._ori, degrees)
+
+    def setOriAxisAngle(self, axis, angle, degrees=True):
+        """Set the orientation of the rigid body using an `axis` and
+        `angle`. This sets the quaternion at `ori`.
+
+        Parameters
+        ----------
+        axis : array_like
+            Axis of rotation [rx, ry, rz].
+        angle : float
+            Angle of rotation.
+        degrees : bool, optional
+            Specify ``True`` if `angle` is in degrees, or else it will be
+            treated as radians. Default is ``True``.
+
+        """
+        self.ori = mt.quatFromAxisAngle(axis, angle, degrees)
+
+    def getYawPitchRoll(self, degrees=True):
+        """Get the yaw, pitch and roll angles for this pose relative to the -Z
+        world axis.
+
+        Parameters
+        ----------
+        degrees : bool, optional
+            Specify ``True`` if `angle` is in degrees, or else it will be
+            treated as radians. Default is ``True``.
+
+        """
+        return mt.quatYawPitchRoll(self._ori, degrees)
+
+    @property
+    def modelMatrix(self):
+        """Pose as a 4x4 model matrix (read-only)."""
+        if not self._matrixNeedsUpdate:
+            return self._modelMatrix
+        else:
+            return self.getModelMatrix()
+
+    @property
+    def inverseModelMatrix(self):
+        """Inverse of the pose as a 4x4 model matrix (read-only)."""
+        if not self._invMatrixNeedsUpdate:
+            return self._invModelMatrix
+        else:
+            return self.getModelMatrix(inverse=True)
+
+    @property
+    def normalMatrix(self):
+        """The normal transformation matrix."""
+        if not self._normalMatrixNeedsUpdate:
+            return self._normalMatrix
+        else:
+            return self.getNormalMatrix()
+
+    def getNormalMatrix(self, out=None):
+        """Get the present normal matrix.
+
+        Parameters
+        ----------
+        out : ndarray or None
+            Optional 4x4 array to write values to. Values written are computed
+            using 32-bit float precision regardless of the data type of `out`.
+
+        Returns
+        -------
+        ndarray
+            4x4 normal transformation matrix.
+
+        """
+        if not self._normalMatrixNeedsUpdate:
+            return self._normalMatrix
+
+        self._normalMatrix[:, :] = np.linalg.inv(self.modelMatrix).T
+
+        if out is not None:
+            out[:, :] = self._normalMatrix[:, :]
+
+        self._normalMatrixNeedsUpdate = False
+
+        return self._normalMatrix
+
+    def getModelMatrix(self, inverse=False, out=None):
+        """Get the present rigid body transformation as a 4x4 matrix.
+
+        Matrices are computed only if the `pos` and `ori` attributes have been
+        updated since the last call to `getModelMatrix`. The returned matrix is
+        an `ndarray` and row-major.
+
+        Parameters
+        ----------
+        inverse : bool, optional
+            Return the inverse of the model matrix.
+        out : ndarray or None
+            Optional 4x4 array to write values to. Values written are computed
+            using 32-bit float precision regardless of the data type of `out`.
+
+        Returns
+        -------
+        ndarray
+            4x4 transformation matrix.
+
+        Examples
+        --------
+        Using a rigid body pose to transform something in OpenGL::
+
+            rb = RigidBodyPose((0, 0, -2))  # 2 meters away from origin
+
+            # Use `array2pointer` from `psychopy.tools.arraytools` to convert
+            # array to something OpenGL accepts.
+            mv = array2pointer(rb.modelMatrix)
+
+            # use the matrix to transform the scene
+            glMatrixMode(GL_MODELVIEW)
+            glPushMatrix()
+            glLoadIdentity()
+            glMultTransposeMatrixf(mv)
+
+            # draw the thing here ...
+
+            glPopMatrix()
+
+        """
+        if self._matrixNeedsUpdate:
+            self._modelMatrix = mt.posOriToMatrix(
+                self._pos, self._ori, out=self._modelMatrix)
+
+            self._matrixNeedsUpdate = False
+            self._normalMatrixNeedsUpdate = self._invMatrixNeedsUpdate = True
+
+        # only update and return the inverse matrix if requested
+        if inverse:
+            if self._invMatrixNeedsUpdate:
+                self._invModelMatrix = mt.invertMatrix(
+                    self._modelMatrix, out=self._invModelMatrix)
+                self._invMatrixNeedsUpdate = False
+
+            if out is not None:
+                out[:, :] = self._invModelMatrix[:, :]
+
+            return self._invModelMatrix  # return the inverse
+
+        if out is not None:
+            out[:, :] = self._modelMatrix[:, :]
+
+        return self._modelMatrix
+
+    def getViewMatrix(self, inverse=False):
+        """Convert this pose into a view matrix.
+
+        Creates a view matrix which transforms points into eye space using the
+        current pose as the eye position in the scene. Furthermore, you can use
+        view matrices for rendering shadows if light positions are defined
+        as `RigidBodyPose` objects.
+
+        Parameters
+        ----------
+        inverse : bool
+            Return the inverse of the view matrix. Default is `False`.
+
+        Returns
+        -------
+        ndarray
+            4x4 transformation matrix.
+
+        """
+        axes = np.asarray([[0, 0, -1], [0, 1, 0]], dtype=np.float32)
+
+        rotMatrix = mt.quatToMatrix(self._ori, dtype=np.float32)
+        transformedAxes = mt.applyMatrix(rotMatrix, axes, dtype=np.float32)
+
+        fwdVec = transformedAxes[0, :] + self._pos
+        upVec = transformedAxes[1, :]
+
+        viewMatrix = vt.lookAt(self._pos, fwdVec, upVec, dtype=np.float32)
+
+        if inverse:
+            viewMatrix = mt.invertMatrix(viewMatrix)
+
+        return viewMatrix
+
+    def transform(self, v, out=None):
+        """Transform a vector using this pose.
+
+        Parameters
+        ----------
+        v : array_like
+            Vector to transform [x, y, z].
+        out : ndarray or None, optional
+            Optional array to write values to. Must have the same shape as
+            `v`.
+
+        Returns
+        -------
+        ndarray
+            Transformed points.
+
+        """
+        return mt.transform(self._pos, self._ori, points=v, out=out)
+
+    def transformNormal(self, n):
+        """Rotate a normal vector with respect to this pose.
+
+        Rotates a normal vector `n` using the orientation quaternion at `ori`.
+
+        Parameters
+        ----------
+        n : array_like
+            Normal to rotate (1-D with length 3).
+
+        Returns
+        -------
+        ndarray
+            Rotated normal `n`.
+
+        """
+        pout = np.zeros((3,), dtype=np.float32)
+        pout[:] = n
+        t = np.cross(self._ori[:3], n[:3]) * 2.0
+        u = np.cross(self._ori[:3], t)
+        t *= self._ori[3]
+        pout[:3] += t
+        pout[:3] += u
+
+        return pout
+
+    def __invert__(self):
+        """Operator `~` to invert the pose. Returns a `RigidBodyPose` object."""
+        return RigidBodyPose(
+            -self._pos, mt.invertQuat(self._ori, dtype=np.float32))
+
+    def invert(self):
+        """Invert this pose.
+        """
+        self._ori = mt.invertQuat(self._ori, dtype=np.float32)
+        self._pos *= -1.0
+
+    def inverted(self):
+        """Get a pose which is the inverse of this one.
+
+        Returns
+        -------
+        RigidBodyPose
+            This pose inverted.
+
+        """
+        return RigidBodyPose(
+            -self._pos, mt.invertQuat(self._ori, dtype=np.float32))
+
+    def distanceTo(self, v):
+        """Get the distance to a pose or point in scene units.
+
+        Parameters
+        ----------
+        v : RigidBodyPose or array_like
+            Pose or point [x, y, z] to compute distance to.
+
+        Returns
+        -------
+        float
+            Distance to `v` from this pose's origin.
+
+        """
+        if hasattr(v, 'pos'):  # v is pose-like object
+            targetPos = v.pos
+        else:
+            targetPos = np.asarray(v[:3])
+
+        return np.sqrt(np.sum(np.square(targetPos - self.pos)))
+
+    def interp(self, end, s):
+        """Interpolate between poses.
+
+        Linear interpolation is used on position (Lerp) while the orientation
+        has spherical linear interpolation (Slerp) applied taking the shortest
+        arc on the hypersphere.
+
+        Parameters
+        ----------
+        end : LibOVRPose
+            End pose.
+        s : float
+            Interpolation factor between interval 0.0 and 1.0.
+
+        Returns
+        -------
+        RigidBodyPose
+            Rigid body pose whose position and orientation is at `s` between
+            this pose and `end`.
+
+        """
+        if not (hasattr(end, 'pos') and hasattr(end, 'ori')):
+            raise TypeError("Object for `end` does not have attributes "
+                            "`pos` and `ori`.")
+
+        interpPos = mt.lerp(self._pos, end.pos, s)
+        interpOri = mt.slerp(self._ori, end.ori, s)
+
+        return RigidBodyPose(interpPos, interpOri)
+
+    def alignTo(self, alignTo):
+        """Align this pose to another point or pose.
+
+        This sets the orientation of this pose to one which orients the forward
+        axis towards `alignTo`.
+
+        Parameters
+        ----------
+        alignTo : array_like or LibOVRPose
+            Position vector [x, y, z] or pose to align to.
+
+        """
+        if hasattr(alignTo, 'pos'):  # v is pose-like object
+            targetPos = alignTo.pos
+        else:
+            targetPos = np.asarray(alignTo[:3])
+
+        fwd = np.asarray([0, 0, -1], dtype=np.float32)
+        toTarget = targetPos - self._pos
+        invPos = mt.applyQuat(
+            mt.invertQuat(self._ori, dtype=np.float32),
+            toTarget, dtype=np.float32)
+        invPos = mt.normalize(invPos)
+
+        self.ori = mt.multQuat(
+            self._ori, mt.alignTo(fwd, invPos, dtype=np.float32))
+
+
+class BoundingBox:
+    """Class for representing object bounding boxes.
+
+    A bounding box is a construct which represents a 3D rectangular volume about
+    some pose, defined by its minimum and maximum extents in the reference frame
+    of the pose. The axes of the bounding box are aligned to the axes of the
+    world or the associated pose.
+
+    Bounding boxes are primarily used for visibility testing; to determine if
+    the extents of an object associated with a pose (eg. the vertices of a
+    model) falls completely outside of the viewing frustum. If so, the model can
+    be culled during rendering to avoid wasting CPU/GPU resources on objects not
+    visible to the viewer.
+
+    """
+    def __init__(self, extents=None):
+        self._extents = np.zeros((2, 3), np.float32)
+        self._posCorners = np.zeros((8, 4), np.float32)
+
+        if extents is not None:
+            self._extents[0, :] = extents[0]
+            self._extents[1, :] = extents[1]
+        else:
+            self.clear()
+
+        self._computeCorners()
+
+    def _computeCorners(self):
+        """Compute the corners of the bounding box.
+
+        These values are cached to speed up computations if extents hasn't been
+        updated.
+
+        """
+        for i in range(8):
+            self._posCorners[i, 0] = \
+                self._extents[1, 0] if (i & 1) else self._extents[0, 0]
+            self._posCorners[i, 1] = \
+                self._extents[1, 1] if (i & 2) else self._extents[0, 1]
+            self._posCorners[i, 2] = \
+                self._extents[1, 2] if (i & 4) else self._extents[0, 2]
+            self._posCorners[i, 3] = 1.0
+
+    @property
+    def isValid(self):
+        """`True` if the bounding box is valid."""
+        return np.all(self._extents[0, :] <= self._extents[1, :])
+
+    @property
+    def extents(self):
+        return self._extents
+
+    @extents.setter
+    def extents(self, value):
+        self._extents[0, :] = value[0]
+        self._extents[1, :] = value[1]
+        self._computeCorners()
+
+    def fit(self, verts):
+        """Fit the bounding box to vertices."""
+        np.amin(verts, axis=0, out=self._extents[0])
+        np.amax(verts, axis=0, out=self._extents[1])
+        self._computeCorners()
+
+    def clear(self):
+        """Clear a bounding box, invalidating it."""
+        self._extents[0, :] = np.finfo(np.float32).max
+        self._extents[1, :] = np.finfo(np.float32).min
+        self._computeCorners()
+
+
 class BaseRigidBodyStim(ColorMixin, WindowMixin):
     """Base class for rigid body 3D stimuli.
 
@@ -1204,12 +1374,13 @@ class BaseRigidBodyStim(ColorMixin, WindowMixin):
             imaginary and `w` is real.
 
         """
+        self.autoLog = autoLog
         self.name = name
 
         super(BaseRigidBodyStim, self).__init__()
 
         self.win = win
-        self.autoLog = autoLog
+
         self.colorSpace = colorSpace
         self.contrast = contrast
         self.opacity = opacity
@@ -1497,10 +1668,7 @@ class BaseRigidBodyStim(ColorMixin, WindowMixin):
 
 
 class SphereStim(BaseRigidBodyStim):
-    """Class for drawing a UV sphere. This is a 
-    lazy-imported class, therefore import using full path 
-    `from psychopy.visual.stim3d import SphereStim` when inheriting from it.
-
+    """Class for drawing a UV sphere.
 
     The resolution of the sphere mesh can be controlled by setting `sectors`
     and `stacks` which controls the number of latitudinal and longitudinal
@@ -1635,10 +1803,7 @@ class SphereStim(BaseRigidBodyStim):
 
 
 class BoxStim(BaseRigidBodyStim):
-    """Class for drawing 3D boxes. This is a 
-    lazy-imported class, therefore import using full path 
-    `from psychopy.visual.stim3d import BoxStim` when inheriting from it.
-
+    """Class for drawing 3D boxes.
 
     Draws a rectangular box with dimensions specified by `size` (length, width,
     height) in scene units.
@@ -1745,10 +1910,7 @@ class BoxStim(BaseRigidBodyStim):
 
 
 class PlaneStim(BaseRigidBodyStim):
-    """Class for drawing planes. This is a 
-    lazy-imported class, therefore import using full path 
-    `from psychopy.visual.stim3d import PlaneStim` when inheriting from it.
-
+    """Class for drawing planes.
 
     Draws a plane with dimensions specified by `size` (length, width) in scene
     units.
@@ -1850,9 +2012,6 @@ class PlaneStim(BaseRigidBodyStim):
 
 class ObjMeshStim(BaseRigidBodyStim):
     """Class for loading and presenting 3D stimuli in the Wavefront OBJ format.
-    This is a lazy-imported class, therefore import using full path 
-    `from psychopy.visual.stim3d import ObjMeshStim` when inheriting from it.
-
 
     Calling the `draw` method will render the mesh to the current buffer. The
     render target (FBO or back buffer) must have a depth buffer attached to it

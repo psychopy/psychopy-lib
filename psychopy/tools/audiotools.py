@@ -14,7 +14,6 @@ __all__ = [
     'sawtone',
     'whiteNoise',
     'audioBufferSize',
-    'sampleRateQualityLevels',
     'SAMPLE_RATE_8kHz', 'SAMPLE_RATE_TELCOM_QUALITY',
     'SAMPLE_RATE_16kHz', 'SAMPLE_RATE_VOIP_QUALITY', 'SAMPLE_RATE_VOICE_QUALITY',
     'SAMPLE_RATE_22p05kHz', 'SAMPLE_RATE_AM_RADIO_QUALITY',
@@ -22,14 +21,12 @@ __all__ = [
     'SAMPLE_RATE_44p1kHz', 'SAMPLE_RATE_CD_QUALITY',
     'SAMPLE_RATE_48kHz', 'SAMPLE_RATE_DVD_QUALITY',
     'SAMPLE_RATE_96kHz',
-    'SAMPLE_RATE_192kHz',
-    'AUDIO_SUPPORTED_CODECS',
-    'knownNoteNames', 'stepsFromA'
+    'SAMPLE_RATE_192kHz'
 ]
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2025 Open Science Tools Ltd.
-# Distributed under the terms of the MIT License.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Distributed under the terms of the GNU General Public License (GPL).
 
 import os
 import numpy as np
@@ -42,29 +39,6 @@ from scipy import signal
 #     import pydub
 # except (ImportError, ModuleNotFoundError):
 #     _has_pydub = False
-
-
-# note names mapped to steps from A, used in Sound stimulus and Component
-stepsFromA = {
-    'C': -9,
-    'Csh': -8, 'C#': -8,
-    'Dfl': -8, 'D♭': -8,
-    'D': -7,
-    'Dsh': -6, 'D#': -6,
-    'Efl': -6, 'E♭': -6,
-    'E': -5,
-    'F': -4,
-    'Fsh': -3, 'F#': -3,
-    'Gfl': -3, 'G♭': -3,
-    'G': -2,
-    'Gsh': -1, 'G#': -1,
-    'Afl': -1, 'A♭': -1,
-    'A': +0,
-    'Ash': +1, 'A#': +1,
-    'Bfl': +1, 'B♭': +1,
-    'B': +2,
-    'Bsh': +2, 'B#': +2}
-knownNoteNames = sorted(stepsFromA.keys())
 
 # Constants for common sample rates. Some are aliased to give the programmer an
 # idea to the quality they would expect from each. It is recommended to only use
@@ -81,33 +55,6 @@ SAMPLE_RATE_192kHz = 192000  # high-def
 
 # needed for converting float to int16, not exported by __all__
 MAX_16BITS_SIGNED = 1 << 15
-
-# Quality levels as strings and values. Used internally by the PsychoPy UI for
-# dropdowns and preferences. Persons using PsychoPy as a library would typically
-# use constants `SAMPLE_RATE_*` instead of looking up values in here.
-#
-# For voice recording applications, the recommended sample rate is `Voice`
-# (16kHz) and should appear as the default option in preferences and UI
-# dropdowns.
-#
-sampleRateQualityLevels = {
-    0: (SAMPLE_RATE_8kHz, 'Telephone/Two-way radio (8kHz)'),
-    1: (SAMPLE_RATE_16kHz, 'Voice (16kHz)'),  # <<< recommended for voice
-    2: (SAMPLE_RATE_44p1kHz, 'CD Audio (44.1kHz)'),
-    3: (SAMPLE_RATE_48kHz, 'DVD Audio (48kHz)'),  # <<< usually system default
-    4: (SAMPLE_RATE_96kHz, 'High-Def (96kHz)'),
-    5: (SAMPLE_RATE_192kHz, 'Ultra High-Def (192kHz)')
-}
-sampleRateLabels = {
-    r[1]: r[0] for r in sampleRateQualityLevels.values()
-}
-
-# supported formats for loading and saving audio samples to file
-try:
-    import soundfile as sf
-    AUDIO_SUPPORTED_CODECS = [s.lower() for s in sf.available_formats().keys()]
-except ImportError:
-    AUDIO_SUPPORTED_CODECS = []
 
 
 def array2wav(filename, samples, freq=48000):
@@ -334,27 +281,6 @@ def audioBufferSize(duration=1.0, freq=SAMPLE_RATE_48kHz):
     sizef32 = 32  # duh
 
     return int(duration * freq * sizef32)
-
-
-def audioMaxDuration(bufferSize=1536000, freq=SAMPLE_RATE_48kHz):
-    """
-    Work out the max duration of audio able to be recorded given the buffer size (kb) and frequency (Hz).
-
-    Parameters
-    ----------
-    bufferSize : int, float
-        Size of the buffer in bytes
-        freq : int
-        Sampling frequency in Hz.
-
-    Returns
-    -------
-    float
-        Estimated max duration
-    """
-    sizef32 = 32  # duh
-
-    return bufferSize / (sizef32 * freq)
 
 
 if __name__ == "__main__":

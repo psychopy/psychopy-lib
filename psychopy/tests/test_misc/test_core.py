@@ -25,12 +25,11 @@ import pytest
 
 import psychopy
 import psychopy.logging as logging
-from psychopy.tests.utils import RUNNING_IN_VM
 from psychopy.visual import Window
 from psychopy.core import (getTime, MonotonicClock, Clock, CountdownTimer, wait,
                            StaticPeriod, shellCall)
 from psychopy.clock import monotonicClock
-from psychopy.tools import systemtools
+from psychopy.tests import _vmTesting
 
 
 def test_EmptyFunction():
@@ -347,10 +346,6 @@ def test_LoggingDefaultClock():
 
 @pytest.mark.staticperiod
 def test_StaticPeriod():
-    # this test is speed sensitive, so skip under VM
-    if RUNNING_IN_VM:
-        pytest.skip()
-
     static = StaticPeriod()
     static.start(0.1)
     wait(0.05)
@@ -380,7 +375,7 @@ def test_StaticPeriod():
     timer.reset(period_duration )
     static.complete()
 
-    if systemtools.isVM_CI():
+    if _vmTesting:
         tolerance = 0.01  # without a proper screen timing might not eb sub-ms
     else:
         tolerance = 0.001

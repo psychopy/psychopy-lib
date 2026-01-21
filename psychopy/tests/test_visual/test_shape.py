@@ -1,11 +1,9 @@
 import pytest
 from psychopy import visual
-from .test_basevisual import _TestColorMixin, _TestUnitsMixin, _TestSerializationMixin
-from psychopy.tests.test_experiment.test_component_compile_python import _TestBoilerplateMixin
+from .test_basevisual import _TestColorMixin, _TestUnitsMixin
 
 
-
-class TestShape(_TestColorMixin, _TestUnitsMixin, _TestBoilerplateMixin, _TestSerializationMixin):
+class TestShape(_TestColorMixin, _TestUnitsMixin):
 
     @classmethod
     def setup_class(self):

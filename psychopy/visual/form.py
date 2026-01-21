@@ -3,19 +3,16 @@
 
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2025 Open Science Tools Ltd.
-# Distributed under the terms of the MIT License.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Distributed under the terms of the GNU General Public License (GPL).
 import copy
 import psychopy
-from psychopy.localization import _translate
-from psychopy.tools.attributetools import undefined
 from .text import TextStim
 from .rect import Rect
 from psychopy.data.utils import importConditions, listFromString
 from psychopy.visual.basevisual import (BaseVisualStim,
                                         ContainerMixin,
                                         ColorMixin)
-from psychopy.tools import stimulustools as stt
 from psychopy import logging, layout
 from random import shuffle
 from pathlib import Path
@@ -103,7 +100,24 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         Randomize order of Form elements
     """
 
-    knownStyles = stt.formStyles
+    knownStyles = {
+        'light': {
+            'fillColor': [0.89, 0.89, 0.89],
+            'borderColor': None,
+            'itemColor': 'black',
+            'responseColor': 'black',
+            'markerColor': [0.89, -0.35, -0.28],
+            'font': "Open Sans",
+        },
+        'dark': {
+            'fillColor': [-0.19, -0.19, -0.14],
+            'borderColor': None,
+            'itemColor': 'white',
+            'responseColor': 'white',
+            'markerColor': [0.89, -0.35, -0.28],
+            'font': "Open Sans",
+        },
+    }
 
     def __init__(self,
                  win,
@@ -124,10 +138,9 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                  units='height',
                  randomize=False,
                  autoLog=True,
-                 depth=0,
                  # legacy
-                 color=undefined,
-                 foreColor=undefined
+                 color=None,
+                 foreColor=None
                  ):
 
         super(Form, self).__init__(win, units, autoLog=False)
@@ -141,7 +154,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         self.itemPadding = itemPadding
         self.scrollSpeed = self.setScrollSpeed(self.items, 4)
         self.units = units
-        self.depth = depth
+        self.depth = 0
 
         # Appearance
         self.colorSpace = colorSpace
@@ -150,12 +163,12 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         self.itemColor = itemColor
         self.responseColor = responseColor
         self.markerColor = markerColor
-        if color is not undefined:
+        if color:
             self.foreColor = color
-        if foreColor is not undefined:
+        if foreColor:
             self.foreColor = color
 
-        self.font = font or "Noto Sans"
+        self.font = font or "Open Sans"
 
         self.textHeight = textHeight
         self._baseYpositions = []
@@ -231,41 +244,27 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                                      .format(hdr, self.name, fieldNames))
 
 
-        def _checkType(thisType):
-            """
-            Check that the "type" field of an item is known to PsychoPy.
+        def _checkTypes(types, itemText):
+            """A nested function for testing the number of options given
 
-            Parameters
-            ----------
-            thisType : str
-                Type name to check - 
-            
-            Returns
-            -------
-            str
-                If `thisType` is a close match (e.g. "Choice" rather than "choice"), it will be 
-                replaced by the correct value. Otherwise will simply return `thisType`.
-            
-            Raises
-            ------
-            ValueError
-                If type is not an exact or close match for any known types.
+            Raises ValueError if n Options not > 1
             """
-            # sanitize the names of expected types
-            sanitizedTypes = [t.lower() for t in _knownRespTypes]
-            # sanitize thisType
-            thisTypeSanit = thisType.lower().strip()
-            # compare to list of types
-            if thisTypeSanit in sanitizedTypes:
-                # if sanitized match, substitute in the expected name
-                return list(_knownRespTypes)[sanitizedTypes.index(thisTypeSanit)]
-            else:
-                # otherwise, raise an error
-                raise ValueError(
-                    _translate(
-                        "Incorrect item type '{}' in Form '{}', allowed types are: {}"
-                    ).format(thisType, self.name, ", ".join(_knownRespTypes))
-                )
+            itemDiff = set([types]) - set(_knownRespTypes)
+
+            for incorrItemType in itemDiff:
+                if incorrItemType == _REQUIRED:
+                    if self._itemsFile:
+                        itemsFileStr =  ("in items file '{}'"
+                                         .format(self._itemsFile))
+                    else:
+                        itemsFileStr = ""
+                    msg = ("Item {}{} is missing a required "
+                           "value for its response type. Permitted types are "
+                           "{}.".format(itemText, itemsFileStr,
+                                        _knownRespTypes))
+                if self.autoLog:
+                    logging.error(msg)
+                raise ValueError(msg)
 
         def _addDefaultItems(items):
             """
@@ -335,8 +334,9 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                 item['tickLabels'] = listFromString(item['tickLabels'])
             if 'options' in item and item['options']:
                 item['options'] = listFromString(item['options'])
-            # validate item type
-            item['type'] = _checkType(item['type'])
+
+        # Check types
+        [_checkTypes(item['type'], item['itemText']) for item in items]
         # Check N options > 1
         # Randomise items if requested
         if self.randomize:
@@ -701,7 +701,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
             The aperture setting viewable area for forms
         """
         aperture = psychopy.visual.Aperture(win=self.win,
-                                            name=f"{self.name}_aperture",
+                                            name='aperture',
                                             units=self.units,
                                             shape='square',
                                             size=self.size,
@@ -875,7 +875,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         # draw the box and scrollbar
         self._drawExternalDecorations()
         # enable aperture
-        self.aperture._reset()
+        self.aperture.enable()
         # draw the box and scrollbar
         self._drawDecorations()
         # Draw question and response objects

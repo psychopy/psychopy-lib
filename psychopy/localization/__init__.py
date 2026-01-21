@@ -9,14 +9,20 @@ translation _translate():
 """
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2025 Open Science Tools Ltd.
-# Distributed under the terms of the MIT License.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
+# Distributed under the terms of the GNU General Public License (GPL).
 
 try:
     from ._localization import (
-        _translate, setLocaleWX, locname, available)
+        _translate, setLocaleWX, locname, available
+    )
 except ModuleNotFoundError:
     # if wx doesn't exist we can't translate but most other parts
     # of the _localization lib will not be relevant
     def _translate(val):
         return val
+    
+    class __localized(dict):
+        def __getitem__(self, key):
+            return key
+    _localized = __localized()

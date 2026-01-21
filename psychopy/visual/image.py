@@ -4,8 +4,11 @@
 """Display an image on `psycopy.visual.Window`"""
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2025 Open Science Tools Ltd.
-# Distributed under the terms of the MIT License.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Distributed under the terms of the GNU General Public License (GPL).
+
+
+
 
 # Ensure setting pyglet.options['debug_gl'] to False is done prior to any
 # other calls to pyglet or pyglet submodules, otherwise it may not get picked
@@ -20,22 +23,18 @@ import ctypes
 GL = pyglet.gl
 
 import numpy
-from fractions import Fraction
 
 import psychopy  # so we can get the __path__
-from psychopy import logging, colors, layout
-from psychopy.tools import gltools as gt
+from psychopy import logging, colors
 
 from psychopy.tools.attributetools import attributeSetter, setAttribute
-from psychopy.visual.basevisual import (
-    BaseVisualStim, DraggingMixin, ContainerMixin, ColorMixin, TextureMixin
-)
+from psychopy.tools.arraytools import val2array
+from psychopy.visual.basevisual import BaseVisualStim
+from psychopy.visual.basevisual import (ContainerMixin, ColorMixin,
+                                        TextureMixin)
 
-USE_LEGACY_GL = pyglet.version < '2.0'
 
-
-class ImageStim(BaseVisualStim, DraggingMixin, ContainerMixin, ColorMixin,
-                TextureMixin):
+class ImageStim(BaseVisualStim, ContainerMixin, ColorMixin, TextureMixin):
     """Display an image on a :class:`psychopy.visual.Window`
     """
 
@@ -54,7 +53,6 @@ class ImageStim(BaseVisualStim, DraggingMixin, ContainerMixin, ColorMixin,
                  opacity=None,
                  depth=0,
                  interpolate=False,
-                 draggable=False,
                  flipHoriz=False,
                  flipVert=False,
                  texRes=128,
@@ -69,7 +67,6 @@ class ImageStim(BaseVisualStim, DraggingMixin, ContainerMixin, ColorMixin,
 
         super(ImageStim, self).__init__(win, units=units, name=name,
                                         autoLog=False)  # set at end of init
-        self.draggable = draggable
         # use shaders if available by default, this is a good thing
         self.__dict__['useShaders'] = win._haveShaders
 
@@ -78,8 +75,6 @@ class ImageStim(BaseVisualStim, DraggingMixin, ContainerMixin, ColorMixin,
         GL.glGenTextures(1, ctypes.byref(self._texID))
         self._maskID = GL.GLuint()
         GL.glGenTextures(1, ctypes.byref(self._maskID))
-        self._pixbuffID = GL.GLuint()
-        GL.glGenBuffers(1, ctypes.byref(self._pixbuffID))
         self.__dict__['maskParams'] = maskParams
         self.__dict__['mask'] = mask
         # Not pretty (redefined later) but it works!
@@ -110,33 +105,16 @@ class ImageStim(BaseVisualStim, DraggingMixin, ContainerMixin, ColorMixin,
         # Set the image and mask-
         self.setImage(image, log=False)
         self.texRes = texRes  # rebuilds the mask
-        self.size = size
 
-        if self.win.USE_LEGACY_GL:
-            # generate a displaylist ID
-            self._listID = GL.glGenLists(1)
-            self._updateList()  # ie refresh display list
-        else:
-            # normalized texture coordinates
-            self._texCoords = numpy.array(
-                [[1, 0], [0, 0], [0, 1], [1, 1]], dtype=float)
-            self._maskCoords = self._texCoords.copy()
+        # generate a displaylist ID
+        self._listID = GL.glGenLists(1)
+        self._updateList()  # ie refresh display list
 
         # set autoLog now that params have been initialised
         wantLog = autoLog is None and self.win.autoLog
         self.__dict__['autoLog'] = autoLog or wantLog
         if self.autoLog:
             logging.exp("Created %s = %s" % (self.name, str(self)))
-
-    def __del__(self):
-        """Remove textures from graphics card to prevent crash
-        """
-        try:
-            #if hasattr(self, '_listID'):
-                # GL.glDeleteLists(self._listID, 1)
-            self.clearTextures()
-        except (ImportError, ModuleNotFoundError, TypeError):
-            pass  # has probably been garbage-collected already
 
     def _updateListShaders(self):
         """
@@ -211,9 +189,27 @@ class ImageStim(BaseVisualStim, DraggingMixin, ContainerMixin, ColorMixin,
 
         GL.glEndList()
 
-    def _drawLegacyGL(self, win):
-        """Legacy draw routine.
+    def __del__(self):
+        """Remove textures from graphics card to prevent crash
         """
+        try:
+            if hasattr(self, '_listID'):
+                GL.glDeleteLists(self._listID, 1)
+            self.clearTextures()
+        except (ImportError, ModuleNotFoundError, TypeError):
+            pass  # has probably been garbage-collected already
+
+    def draw(self, win=None):
+        """Draw.
+        """
+        if (type(self.image) != numpy.ndarray and \
+                        self.image in (None, "None", "none")):
+            return
+
+        if win is None:
+            win = self.win
+        self._selectWindow(win)
+
         GL.glPushMatrix()  # push before the list, pop after
         win.setScale('pix')
         GL.glColor4f(*self._foreColor.render('rgba1'))
@@ -227,167 +223,79 @@ class ImageStim(BaseVisualStim, DraggingMixin, ContainerMixin, ColorMixin,
         # return the view to previous state
         GL.glPopMatrix()
 
-    def draw(self, win=None):
-        """Draw the stimulus on the window.
-
-        Parameters
-        ----------
-        win : `~psychopy.visual.Window`, optional
-            The window to draw the stimulus on. If None, the stimulus will be
-            drawn on the window that was passed to the constructor.
-
-        """
-        # check the type of image we're dealing with
-        if (type(self.image) != numpy.ndarray and
-                self.image in (None, "None", "none")):
-            return
-
-        # make the context for the window current
-        if win is None:
-            win = self.win
-        self._selectWindow(win)
-
-        # If our image is a movie stim object, pull pixel data from the most
-        # recent frame and write it to the memory
-        if hasattr(self.image, 'colorTexture'):
-            if hasattr(self.image, 'update'):
-                self.image.update()
-            self._texID = self.image.colorTexture
-
-        if win.USE_LEGACY_GL:
-            self._drawLegacyGL(win)
-            return
-
-        win.setOrthographicView()
-        win.setScale('pix')
-
-        # GL.glColor4f(*self._foreColor.render('rgba1'))
-
-        if self._needTextureUpdate:
-            self.setImage(value=self._imName, log=False)
-
-        if self.isLumImage:  # select the appropriate shader
-            # for a luminance image do recoloring
-            _prog = self.win._progSignedTexMask
-        else:
-            # for an rgb image there is no recoloring
-            _prog = self.win._progImageStim
-
-        gt.useProgram(_prog)
-
-        # bind textures
-        GL.glEnable(GL.GL_TEXTURE_2D)
-        GL.glActiveTexture(GL.GL_TEXTURE1)  # mask
-        GL.glBindTexture(GL.GL_TEXTURE_2D, self._maskID)
-        GL.glActiveTexture(GL.GL_TEXTURE0)  # color/lum image
-        GL.glBindTexture(GL.GL_TEXTURE_2D, self._texID)
-
-        # set the shader uniforms
-        gt.setUniformSampler2D(_prog, b'uTexture', 0)  # is texture unit 0
-        gt.setUniformSampler2D(_prog, b'uMask', 1)  # mask is texture unit 1
-        gt.setUniformValue(_prog, b'uColor', self._foreColor.render('rgba1'))
-        gt.setUniformMatrix(
-            _prog, 
-            b'uProjectionMatrix', 
-            win._projectionMatrix,
-            transpose=True)
-        gt.setUniformMatrix(
-            _prog, 
-            b'uModelViewMatrix', 
-            win._viewMatrix,
-            transpose=True)
-
-        # draw the image
-        gt.drawClientArrays({
-            'gl_Vertex': self.verticesPix,
-            'gl_MultiTexCoord0': self._texCoords,
-            'gl_MultiTexCoord1': self._maskCoords}, 
-            'GL_QUADS')
-        
-        gt.useProgram(None)
-
-        # unbind the textures
-        GL.glActiveTexture(GL.GL_TEXTURE1)
-        GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
-        GL.glActiveTexture(GL.GL_TEXTURE0)
-        GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
-        GL.glDisable(GL.GL_TEXTURE_2D)
+    # overload ColorMixin methods so that they refresh the image after being called
+    @property
+    def foreColor(self):
+        # Call setter of parent mixin
+        return ColorMixin.foreColor.fget(self)
+    @foreColor.setter
+    def foreColor(self, value):
+        # Call setter of parent mixin
+        ColorMixin.foreColor.fset(self, value)
+        # Reset the image and mask-
+        self.setImage(self._imName, log=False)
+        self.texRes = self.__dict__['texRes']  # rebuilds the mask
+    @property
+    def contrast(self):
+        # Call setter of parent mixin
+        return ColorMixin.contrast.fget(self)
+    @contrast.setter
+    def contrast(self, value):
+        # Call setter of parent mixin
+        ColorMixin.contrast.fset(self, value)
+        # Reset the image and mask-
+        self.setImage(self._imName, log=False)
+        self.texRes = self.__dict__['texRes']  # rebuilds the mask
+    @property
+    def opacity(self):
+        # Call setter of parent mixin
+        return BaseVisualStim.opacity.fget(self)
+    @opacity.setter
+    def opacity(self, value):
+        # Call setter of parent mixin
+        BaseVisualStim.opacity.fset(self, value)
+        # Reset the image and mask-
+        self.setImage(self._imName, log=False)
+        self.texRes = self.__dict__['texRes']  # rebuilds the mask
 
     @attributeSetter
     def image(self, value):
         """The image file to be presented (most formats supported).
-
-        This can be a path-like object to an image file, or a numpy array of
-        shape [H, W, C] where C are channels. The third dim will usually have
-        length 1 (defining an intensity-only image), 3 (defining an RGB image)
-        or 4 (defining an RGBA image).
-
-        If passing a numpy array to the image attribute, the size attribute of
-        ImageStim must be set explicitly.
+	   
+	This can be a path-like object to an image file, or a numpy
+	array of shape [H, W, C] where C are channels. The third dim
+	will usually have length 1 (defining an intensity-only image), 3
+	(defining an RGB image) or 4 (defining an RGBA image).
+	
+	If passing a numpy array to the image attribute,
+	the size attribute of ImageStim must be set explicitly.
         """
         self.__dict__['image'] = self._imName = value
-
-        # handle a matplotlib object as image
-        if hasattr(value, 'canvas'):  # matplotlib figure
-            if hasattr(value.canvas, 'draw'):
-                value.canvas.draw()  # make sure the figure is drawn
-            figDPI = value.get_dpi()
-            figWidth = value.get_figwidth() * figDPI
-            figHeight = value.get_figheight() * figDPI
-            self._origSize = (int(figWidth), int(figHeight))
-            ncol, nrow = value.canvas.get_width_height()
-            value = numpy.flip(numpy.frombuffer(
-                value.canvas.tostring_argb(), dtype="uint8").reshape(
-                    int(nrow), int(ncol), 4), axis=0)
-            # value = value[..., [1, 2, 3, 0]]  # swizzle alpha channel
-            # discard alpha channel, keep RGB
-            value = value[..., 1:]
-            # convert to float32
-            value = numpy.ascontiguousarray(
-                value, dtype=numpy.float32) / 127.5 - 1
-            # pixFormat = GL.GL_RGBA
-        elif isinstance(value, colors.Color):
+        # If given a color array, get it in rgb1
+        if isinstance(value, colors.Color):
             value = value.render('rgb1')
-        else:
-            pass
 
-        # determine data type
         wasLumImage = self.isLumImage
-        if hasattr(value, 'colorTexture'):
-            # reference to object that provides texture data
-            value = value.colorTexture
-            datatype = GL.GL_UNSIGNED_BYTE
-            self.isLumImage = hasattr(value, 'isLumImage') and value.isLumImage
-            self.flipVert = True
+        if type(value) != numpy.ndarray and value == "color":
+            datatype = GL.GL_FLOAT
         else:
-            # If given a color array, get it in rgb1
-            if isinstance(value, colors.Color):
-                value = value.render('rgb1')
-
-            if type(value) != numpy.ndarray and value == "color":
-                datatype = GL.GL_FLOAT
-            else:
-                datatype = GL.GL_UNSIGNED_BYTE
-
-            if type(value) != numpy.ndarray and value in (None, "None", "none"):
-                self.isLumImage = True
-            else:
-                self.isLumImage = self._createTexture(
-                    value, id=self._texID,
-                    stim=self,
-                    pixFormat=GL.GL_RGB,
-                    dataType=datatype,
-                    maskParams=self.maskParams,
-                    forcePOW2=False,
-                    wrapping=False)
-
-        # update size
-        self.size = self._requestedSize
-
+            datatype = GL.GL_UNSIGNED_BYTE
+        if type(value) != numpy.ndarray and value in (None, "None", "none"):
+            self.isLumImage = True
+        else:
+            self.isLumImage = self._createTexture(value, id=self._texID,
+                                                  stim=self,
+                                                  pixFormat=GL.GL_RGB,
+                                                  dataType=datatype,
+                                                  maskParams=self.maskParams,
+                                                  forcePOW2=False,
+                                                  wrapping=False)
+        # if user requested size=None then update the size for new stim here
+        if hasattr(self, '_requestedSize') and self._requestedSize is None:
+            self.size = Size(numpy.array(self._origSize), units='pix', win=self.win)  # set size to default
         # if we switched to/from lum image then need to update shader rule
         if wasLumImage != self.isLumImage:
             self._needUpdate = True
-
         self._needTextureUpdate = False
 
     def setImage(self, value, log=None):
@@ -395,47 +303,6 @@ class ImageStim(BaseVisualStim, DraggingMixin, ContainerMixin, ColorMixin,
         but use this method if you need to suppress the log message.
         """
         setAttribute(self, 'image', value, log)
-
-    @property
-    def aspectRatio(self):
-        """
-        Aspect ratio of original image, before taking into account the `.size` attribute of this object.
-
-        returns :
-            Aspect ratio as a (w, h) tuple, simplified using the smallest common denominator (e.g. 1080x720 pixels
-            becomes (3, 2))
-        """
-        # Return None if we don't have a texture yet
-        if (not hasattr(self, "_origSize")) or self._origSize is None:
-            return
-        # Work out aspect ratio (w/h)
-        frac = Fraction(*self._origSize)
-        return frac.numerator, frac.denominator
-
-    @property
-    def size(self):
-        return BaseVisualStim.size.fget(self)
-
-    @size.setter
-    def size(self, value):
-        # store requested size
-        self._requestedSize = value
-        isNone = numpy.asarray(value) == None
-        if (self.aspectRatio is not None) and (isNone.any()) and (not isNone.all()):
-            # If only one value is None, replace it with a value which maintains aspect ratio
-            pix = layout.Size(value, units=self.units, win=self.win).pix
-            # Replace None value with scaled pix value
-            i = isNone.argmax()
-            ni = isNone.argmin()
-            pix[i] = pix[ni] * self.aspectRatio[i] / self.aspectRatio[ni]
-            # Recreate layout object from pix
-            value = layout.Size(pix, units="pix", win=self.win)
-        elif (self.aspectRatio is not None) and (isNone.all()):
-            # If both values are None, use pixel size
-            value = layout.Size(self._origSize, units="pix", win=self.win)
-
-        # Do base setting
-        BaseVisualStim.size.fset(self, value)
 
     @attributeSetter
     def mask(self, value):

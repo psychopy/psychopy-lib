@@ -5,36 +5,22 @@ import sys
 import glob
 from itertools import chain
 from psychopy import logging
-from .manager import DeviceManager, deviceManager
-from .base import BaseDevice, BaseResponse, BaseResponseDevice
+from . import eyetracker
 
 try:
     from collections.abc import Iterable
 except ImportError:
     from collections import Iterable
 
-__all__ = [
-    'forp',
-    'cedrus',
-    'minolta',
-    'gammasci',
-    'pr',
-    'crs',
-    'iolab',
-    'eyetracker',
-    'deviceManager',
-    'listener'
-]
+__all__ = ['forp', 'cedrus', 'minolta', 'pr', 'crs', 'iolab', 'eyetracker']
 
 
 def getSerialPorts():
     """Finds the names of all (virtual) serial ports present on the system
 
-    Returns
-    -------
-    list
-        Iterable with all the serial ports.
+    :returns:
 
+    Returns an iterable with all the serial ports.
     """
     if sys.platform == "darwin":
         ports = [
@@ -77,42 +63,39 @@ def getSerialPorts():
 def getAllPhotometers():
     """Gets all available photometers.
 
-    The returned photometers may vary depending on which drivers are installed.
-    Standalone PsychoPy ships with libraries for all supported photometers.
+    The returned photometers may vary depending on which drivers are
+    installed. Standalone PsychoPy ships with libraries for all supported
+    photometers.
 
-    Returns
-    -------
-    list
-        A list of all photometer classes.
-
+    :returns:
+    A list of all photometer classes
     """
-    from .photometer import getAllPhotometerClasses
+    from . import minolta, pr
+    from . import crs
 
-    # need values returned as a list for now
-    return getAllPhotometerClasses()
+    photometers = [pr.PR650, pr.PR655, minolta.LS100]
+    if hasattr(crs, "ColorCAL"):
+        photometers.append(crs.ColorCAL)
+
+    return photometers
 
 
 def getPhotometerByName(name):
     """Gets a Photometer class by name.
+    You can use either short names like pr650 or a long name like
+    CRS ColorCAL.
 
-    You can use either short names like 'pr650' or a long name like 'CRS
-    ColorCAL'.
+    :parameters:
+        name : The name of the device
 
-    Parameters
-    ----------
-    name : str
-        The name of the device.
-
-    Returns
-    -------
-    object
-        Returns the photometer matching the passed in device name or `None` if
-        we were unable to find it.
+    :returns:
+    Returns the photometer matching the passed in device
+    name or none if we were unable to find it.
 
     """
-    for thisName, photom in getAllPhotometers().items():
+    for photom in getAllPhotometers():
         # longName is used from the GUI and driverFor is for coders
-        if name.lower() == thisName:
+        if name.lower() in photom.driverFor or name == photom.longName:
             return photom
 
 
@@ -124,29 +107,28 @@ def findPhotometer(ports=None, device=None):
     the device. If it responds with one of the expected values then it
     is assumed to be the appropriate device.
 
-    Parameters
-    ----------
-    ports : list
-        A list of ports to search. Each port can be a string (e.g. 'COM1',
-        '/dev/tty.Keyspan1.1') or a number (for win32 comports only). If `None`
-        is provided then PsychoPy will sweep COM0-10 on Win32 and search known
-        likely port names on MacOS and Linux.
-    device : str
-        String giving expected device (e.g. 'PR650', 'PR655', 'CS100A', 'LS100',
-        'LS110', 'S470'). If this is not given then an attempt will be made to
-        find a device of any type, but this often fails.
+    :parameters:
 
-    Returns
-    -------
-    object or None
-        An object representing the first photometer found, `None` if the ports
-        didn't yield a valid response. `None` if there were not even any valid
-        ports (suggesting a driver not being installed.)
+        ports : a list of ports to search
+            Each port can be a string (e.g. 'COM1', ''/dev/tty.Keyspan1.1')
+            or a number (for win32 comports only). If none are provided
+            then PsychoPy will sweep COM0-10 on win32 and search known
+            likely port names on macOS and Linux.
 
-    Examples
-    --------
-    Sweeps ports 0 to 10 searching for a PR655::
+        device : string giving expected device (e.g. 'PR650', 'PR655',
+            'LS100', 'LS110'). If this is not given then an attempt will be made
+            to find a device of any type, but this often fails
 
+    :returns:
+
+        * An object representing the first photometer found
+        * None if the ports didn't yield a valid response
+        * None if there were not even any valid ports (suggesting a driver
+          not being installed)
+
+    e.g.::
+
+        # sweeps ports 0 to 10 searching for a PR655
         photom = findPhotometer(device='PR655')
         print(photom.getLum())
         if hasattr(photom, 'getSpectrum'):
@@ -154,25 +136,58 @@ def findPhotometer(ports=None, device=None):
             print(photom.getSpectrum())
 
     """
-    from .photometer import getAllPhotometerClasses
-    # try each port
-    if isinstance(ports, str) or ports is None:
-        ports = [ports]
-    for port in ports:
-        # get all available devices
-        for cls, profiles in DeviceManager.getAvailableDevices(
-            list(getAllPhotometerClasses().values())
-        ).items():
-            # iterate through each
-            for profile in profiles:
-                # if port matches, or device matches and no port given, initialise from this profile
-                if (
-                    port is None and device == cls.__name__
-                ) or (
-                    port and "port" in profile and profile['port'] in port
-                ):
-                    return DeviceManager.addDevice(**profile)
+    if isinstance(device, str):
+        photometers = [getPhotometerByName(device)]
+    elif isinstance(device, Iterable):
+        # if we find a string assume it is a name, otherwise treat it like a
+        # photometer
+        photometers = [getPhotometerByName(d)
+                       if isinstance(d, str) else d
+                       for d in device]
+    else:
+        photometers = getAllPhotometers()
 
+    # determine candidate ports
+    if ports is None:
+        ports = getSerialPorts()
+    elif type(ports) in (int, float, str):
+        ports = [ports]  # so that we can iterate
 
-if __name__ == "__main__":
-    pass
+    # go through each port in turn
+    photom = None
+    logging.info('scanning serial ports...')
+    logging.flush()
+    for thisPort in ports:
+        logging.info('...{}'.format(thisPort))
+        logging.flush()
+        for Photometer in photometers:
+            # Looks like we got an invalid photometer, carry on
+            if Photometer is None:
+                continue
+            try:
+                photom = Photometer(port=thisPort)
+            except Exception as ex:
+                msg = "Couldn't initialize photometer {0}: {1}"
+                logging.error(msg.format(Photometer.__name__, ex))
+                # We threw an exception so we should just skip ahead
+                continue
+            if photom.OK:
+                logging.info(' ...found a %s\n' % (photom.type))
+                logging.flush()
+                # we're now sure that this is the correct device and that
+                # it's configured now increase the number of attempts made
+                # to communicate for temperamental devices!
+                if hasattr(photom, 'setMaxAttempts'):
+                    photom.setMaxAttempts(10)
+                # we found one so stop looking
+                return photom
+            else:
+                if photom.com and photom.com.isOpen:
+                    logging.info('closing port')
+                    photom.com.close()
+
+        # If we got here we didn't find one
+        logging.info('...nope!\n\t')
+        logging.flush()
+
+    return None

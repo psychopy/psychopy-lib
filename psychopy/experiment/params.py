@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2025 Open Science Tools Ltd.
-# Distributed under the terms of the MIT License.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Distributed under the terms of the GNU General Public License (GPL).
 
 """Experiment classes:
     Experiment, Flow, Routine, Param, Loop*, *Handlers, and NameSpace
@@ -15,14 +15,12 @@ The code that writes out a *_lastrun.py experiment file is (in order):
         which will call the .writeBody() methods from each component
     settings.SettingsComponent.writeEndCode()
 """
-import functools
-import json
 from xml.etree.ElementTree import Element
 
 import re
 from pathlib import Path
 
-from psychopy import data, logging
+from psychopy import logging
 from . import utils
 from . import py2js
 
@@ -52,43 +50,11 @@ inputDefaults = {
     'color': 'color',
 }
 
-
-# these are parameters which once existed but are no longer needed, so inclusion in this list will 
-# silence any "future version" warnings
+# These are parameters which once existed but are no longer needed, so inclusion in this list will silence any "future
+# version" warnings
 legacyParams = [
-    # settings params from the early days of PsychoJS
-    "JS libs", "OSF Project ID"
-    # in 2021.1, we standardised colorSpace to be object-wide rather than param-specific
-    "lineColorSpace", "borderColorSpace", "fillColorSpace", "foreColorSpace", 
-    # in 2024.2.0, we removed some superfluous params from the pupil labs backend
-    "plCompanionRecordingEnabled", "plPupilCaptureRecordingEnabled",
-    # from 2025.1, latency priority is handled by SpeakerDevice
-    "Audio latency priority",
+    'lineColorSpace', 'borderColorSpace', 'fillColorSpace', 'foreColorSpace',  # 2021.1, we standardised colorSpace to be object-wide rather than param-specific
 ]
-
-class SerializationError(Exception):
-    pass
-
-
-def serializeCallable(func, param):
-    # if iterable, call for each item
-    if isinstance(func, (list, tuple)):
-        return [serializeCallable(item, param) for item in func]
-    # if not callable, return as is
-    if not callable(func):
-        return func
-    # prepend this to the stringified output
-    preface = "python:///"
-    # get import path
-    path = f"{func.__module__}:{func.__qualname__}"
-    # if method is a local, we have a problem...
-    if "<locals>" in path:
-        logging.error(
-            f"Param {param.label} contains a local method: {path}"
-        )
-
-    return preface + path
-
 
 class Param():
     r"""Defines parameters for Experiment Components
@@ -149,73 +115,38 @@ class Param():
     def __init__(self, val, valType, inputType=None, allowedVals=None, allowedTypes=None,
                  hint="", label="", updates=None, allowedUpdates=None,
                  allowedLabels=None, direct=True,
-                 canBePath=True, ctrlParams=None,
+                 canBePath=True,
                  categ="Basic"):
         """
-
-        Parameters
-        ----------
-        val : any
-            The value for this parameter
-        valType : str
-            The type of this parameter, one of:
-            - str: A string, will be compiled with " around it
-            - extendedStr: A long string, will be compiled with " around it and linebreaks will
-              be preserved
-            - code: Some code, will be compiled verbatim or translated to JS (no ")
-            - extendedCode: A block of code, will be compiled verbatim or translated to JS and
-              linebreaks will be preserved
-            - file: A file path, will be compiled like str but will replace unescaped \\ with /
-            - list: A list of values, will be compiled like code but if there's no [] or () then
-              these are added
-            Note that, if value begins with a $, it will always be treated as code regardless of
-            valType
-        inputType : str
-            The type of control to make for this parameter in Builder, one of:
-            - single: A single-line text control
-            - multi: A multi-line text control
-            - color: A single-line text control with a button to open the color picker
-            - survey: A single-line text control with a button to open Pavlovia surveys list
-            - file: A single-line text control with a button to open a file browser
-            - fileList: Several file controls with buttons to add/remove
-            - table: A file control with an additional button to open in Excel
-            - choice: A single-choice control (dropdown)
-            - multiChoice: A multi-choice control (tickboxes)
-            - richChoice: A single-choice control (dropdown) with rich text for each option
-            - bool: A single checkbox control
-            - dict: Several key:value pair controls with buttons to add/remove fields
-        allowedVals : list[str]
-            Possible vals for this param (e.g. units param can only be 'norm','pix',...),
-            these are used in the compiled code
-        allowedLabels : list[str] or None
-            Labels corresponding to each value in allowedVals, these are displayed in Builder but
-            not used in the compiled code. Leave as None to simply copy allowedVals.
-        hint : str
-            Tooltip to display when param is hovered over
-        label : str
-            Label to display next to param
-        updates : str
-            How often does this parameter update, usually one of:
-            - constant: Value is set just the once
-            - set every repeat: Value is set at the start of each Routine
-            - set every frame: Value is set each frame
-        allowedUpdates : list[str]
-            List of values to show in the choice control for updates.
-        direct : bool
-            Are we expecting the value of this param to directly appear in the compiled code?
-            Mostly used by the test suite to check that params which should be used are used.
-        canBePath : bool
-            Is it possible for this parameter to be a path? Setting to False will disable
-            filepath sanitization (e.g. for textbox you may not want to replace \\ with /)
-        ctrlParams : dict
-            Extra information to pass to the control, such as the Excel template file to use in a
-            `table` control.
-        categ : str
-            Category (tab) under which this param appears in Builder.
-
-        Deprecated params
-        -----------------
-        allowedTypes
+        @param val: the value for this parameter
+        @type val: any
+        @param valType: the type of this parameter ('num', 'str', 'code')
+        @type valType: string
+        @param allowedVals: possible vals for this param
+            (e.g. units param can only be 'norm','pix',...)
+        @type allowedVals: any
+        @param allowedTypes: if other types are allowed then this is
+            the possible types this parameter can have
+            (e.g. rgb can be 'red' or [1,0,1])
+        @type allowedTypes: list
+        @param hint: describe this parameter for the user
+        @type hint: string
+        @param updates: how often does this parameter update
+            ('experiment', 'routine', 'set every frame')
+        @type updates: string
+        @param allowedUpdates: conceivable updates for this param
+            [None, 'routine', 'set every frame']
+        @type allowedUpdates: list
+        @param categ: category for this parameter
+            will populate tabs in Component Dlg
+        @type allowedUpdates: string
+        @param canBePath: is it possible for this parameter to be
+            a path? If so, writing as str will check for pathlike
+            characters and sanitise if needed.
+        @type canBePath: bool
+        @param direct: purely used in the test suite, marks whether this
+        param's value is expected to appear in the script
+        @type direct: bool
         """
         super(Param, self).__init__()
         self.label = label
@@ -233,8 +164,6 @@ class Param():
         self.codeWanted = False
         self.canBePath = canBePath
         self.direct = direct
-        self.ctrlParams = ctrlParams or {}
-        self.plugin = None
         if inputType:
             self.inputType = inputType
         elif valType in inputDefaults:
@@ -256,7 +185,7 @@ class Param():
                 return "%i" % self.val  # int and float -> str(int)
             except TypeError:
                 return "%s" % self.val  # try array of float instead?
-        elif self.valType in ['extendedStr', 'str', 'file', 'table', 'device']:
+        elif self.valType in ['extendedStr','str', 'file', 'table']:
             # at least 1 non-escaped '$' anywhere --> code wanted
             # return str if code wanted
             # return repr if str wanted; this neatly handles "it's" and 'He
@@ -326,18 +255,12 @@ class Param():
                 # Otherwise, treat as string
                 return repr(val)
         elif self.valType == 'list':
-            if self.inputType == "fileList":
-                # treat each item as a string-type param
-                output = []
-                for item in data.utils.listFromString(self.val):
-                    item = str(Param(item, "file"))
-                    output.append(item)
-                return "[{}]".format(",".join(output))
-            else:
-                valid, val = self.dollarSyntax()
-                val = toList(val)
-                return "{}".format(val)
+            valid, val = self.dollarSyntax()
+            val = toList(val)
+            return "{}".format(val)
         elif self.valType == 'fixedList':
+            return "{}".format(self.val)
+        elif self.valType == 'fileList':
             return "{}".format(self.val)
         elif self.valType == 'bool':
             if utils.scriptTarget == "PsychoJS":
@@ -351,8 +274,6 @@ class Param():
                 return self.val.strip('$')
             else:
                 return f"\"{self.val}\""
-        elif self.valType == "dict":
-            return str(self.val)
         else:
             raise TypeError("Can't represent a Param of type %s" %
                             self.valType)
@@ -376,116 +297,14 @@ class Param():
         """Return a bool, so we can do `if thisParam`
         rather than `if thisParam.val`"""
         if self.val in ['True', 'true', 'TRUE', True, 1, 1.0]:
-            # return True for aliases of True
+            # Return True for aliases of True
             return True
         if self.val in ['False', 'false', 'FALSE', False, 0, 0.0]:
-            # return False for aliases of False
+            # Return False for aliases of False
             return False
-        if self.val in ['None', 'none', None, ""]:
-            # return False for aliases of None
-            return False
-        # if not a clear alias, use bool method of value
+        # If not a clear alias, use bool method of value
         return bool(self.val)
-    
-    def copy(self):
-        """
-        Create a copy of this Param object
-        """
-        return Param(
-            val=self.val,
-            valType=self.valType,
-            inputType=self.inputType,
-            allowedVals=self.allowedVals,
-            allowedTypes=self.allowedTypes,
-            hint=self.hint,
-            label=self.label,
-            updates=self.updates,
-            allowedUpdates=self.allowedUpdates,
-            allowedLabels=self.allowedLabels,
-            direct=self.direct,
-            canBePath=self.canBePath,
-            categ=self.categ,
-            ctrlParams=self.ctrlParams
-        )
 
-    def __deepcopy__(self, memo):
-        return self.copy()
-    
-    @classmethod
-    def fromJSON(cls, data):
-        # initialise
-        param = Param(
-            "",
-            "code",
-        )
-        # apply
-        param.applyJSON(data)
-        
-        return param
-    
-    def applyJSON(self, data):
-        if "val" in data:
-            self.val = data['val']
-        if "valType" in data:
-            self.valType = data['valType']
-        if "updates" in data:
-            self.updates = "{}".format(data['updates'])
-        if "plugin" in data:
-            self.plugin = "{}".format(data['plugin'])
-    
-    def getTemplateJSON(self, name=None, depends=None):
-        # return the full JSON spec (used in getJSON for params of a *class*)
-        profile = {
-            'val': self.val,
-            'valType': self.valType,
-            'inputType': self.inputType,
-            'categ': self.categ,
-            'updates': self.updates,
-            'allowedUpdates': self.allowedUpdates,
-            'allowedVals': serializeCallable(self.allowedVals, self),
-            'allowedLabels': serializeCallable(self.allowedLabels, self),
-            'ctrlParams': self.ctrlParams,
-            'label': self.label,
-            'hint': self.hint,
-            'plugin': self.plugin,
-            'depends': {
-                'shown': [],
-                'enabled': []
-            }
-        }
-        # populate depends if given
-        if depends is not None:
-            # populate depends
-            for dep in depends:
-                # ignore irrelevent dependencies
-                if dep['param'] != name:
-                    continue
-                # hide if...
-                if dep['false'] == "hide":
-                    profile['depends']['shown'].append({
-                        'param': dep['dependsOn'],
-                        'condition': dep['condition']
-                    })
-                # disable if...
-                if dep['false'] == "disable":
-                    profile['depends']['enabled'].append({
-                        'param': dep['dependsOn'],
-                        'condition': dep['condition']
-                    })
-        
-        return profile
-    
-    def getJSON(self):
-        # return just the settable parts (used in getJSON for params of an *instance*)
-        return {
-            'val': self.val,
-            'valType': self.valType,
-            'updates': self.updates,
-            'plugin': self.plugin
-        }
-
-        
-    
     @property
     def _xml(self):
         # Make root element
@@ -497,8 +316,6 @@ class Param():
             element.set('valType', self.valType)
         if hasattr(self, 'updates'):
             element.set('updates', "{}".format(self.updates))
-        if hasattr(self, 'plugin') and self.plugin is not None:
-            element.set('plugin', "{}".format(self.plugin))
 
         return element
 
@@ -533,7 +350,7 @@ class Param():
                     return True, val
             else:
                 # If value does not begin with an unescaped $, treat it as a string
-                if not re.findall(r"(?<!\\)\$", str(val)):
+                if not re.findall(r"(?<!\\)\$", val):
                     # Return if all $ are escaped (\$)
                     return True, val
         else:
@@ -543,28 +360,6 @@ class Param():
         return False, val
 
     __nonzero__ = __bool__  # for python2 compatibility
-
-
-class Partial(functools.partial):
-    """
-    Value to supply to `allowedVals` or `allowedLabels` which contains a reference
-    to a method and arguments to use when populating the control.
-
-    Parameters
-    ----------
-    method : method
-        Method to call, should return the values to be used in the relevant control.
-    args : tuple, list
-        Array of positional arguments. To use the value of another parameter, supply
-        a handle to its Param object.
-    kwargs : dict
-        Dict of keyword arguments. To use the value of another parameter, supply
-        a handle to its Param object.
-    """
-    def __init__(self, method, args=(), kwargs=dict()):
-        self.method = method
-        self.args = args
-        self.kwargs = kwargs
 
 
 def getCodeFromParamStr(val, target=None):

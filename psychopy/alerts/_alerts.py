@@ -28,11 +28,6 @@ alertLog : List
 _activeAlertHandlers = []
 
 
-class BaseAlertHandler:
-    def receiveAlert(self, msg):
-        raise NotImplementedError()
-
-
 class AlertCatalog:
     """A class for loading alerts from the alerts catalogue yaml file"""
     def __init__(self):
@@ -123,43 +118,16 @@ class AlertEntry:
         else:
             self.name = None
 
-        # _translate(catalog.alert[code]['msg']) works, but string literals
-        # in _translate() (i.e., 'msg' in this case) cause false detection 
-        # by pybabel.
-        msg = catalog.alert[code]['msg']
         if strFields:
-            self.msg = _translate(msg).format(**strFields)
+            self.msg = _translate(catalog.alert[code]['msg']).format(**strFields)
         else:
-            self.msg = _translate(msg)
+            self.msg = _translate(catalog.alert[code]['msg'])
 
         if trace:
             self.trace = ''.join(traceback.format_exception(
                 trace[0], trace[1], trace[2]))
         else:
             self.trace = None
-    
-    def __str__(self):
-        return (
-            "Alert {code}: {msg}\n"
-            "For more info see https://docs.psychopy.org/alerts/{code}.html"
-        ).format(
-            type=self.type,
-            name=self.name,
-            code=self.code,
-            cat=self.cat,
-            msg=self.msg,
-            trace=self.trace
-        )
-    
-    def getJSON(self):
-        return {
-            'type': self.type,
-            'name': self.name,
-            'code': self.code,
-            'cat': self.cat,
-            'msg': self.msg,
-            'trace': self.trace
-        }
 
 
 def alert(code=None, obj=object, strFields=None, trace=None):
@@ -180,62 +148,35 @@ def alert(code=None, obj=object, strFields=None, trace=None):
 
     msg = AlertEntry(code, obj, strFields, trace)
 
-    if len(_activeAlertHandlers):
-        # if we have any active handlers, send to them
-        for handler in _activeAlertHandlers:
-            # send alert
-            handler.receiveAlert(msg)
-    elif hasattr(sys.stderr, 'receiveAlert'):
-        # if there aren't any, but stdout can receive alerts, send to stdout
+    # format the warning into a string for console and logging targets
+    msgAsStr = ("Alert {code}: {msg}\n"
+                "For more info see https://docs.psychopy.org/alerts/{code}.html"
+                .format(type=msg.type,
+                        name=msg.name,
+                        code=msg.code,
+                        cat=msg.cat,
+                        msg=msg.msg,
+                        trace=msg.trace))
+    # msgAsStr = ("Component Type: {type} | "
+    #             "Component Name: {name} | "
+    #             "Code: {code} | "
+    #             "Category: {cat} | "
+    #             "Message: {msg} | "
+    #             "Traceback: {trace}".format(type=msg.type,
+    #                                         name=msg.name,
+    #                                         code=msg.code,
+    #                                         cat=msg.cat,
+    #                                         msg=msg.msg,
+    #                                         trace=msg.trace))
+
+    # if a psychopy warning instead of a file-like stderr then pass a raw str
+    if hasattr(sys.stderr, 'receiveAlert'):
         sys.stderr.receiveAlert(msg)
     else:
-        # otherwise, just write as a string to stdout
-        sys.stderr.write(str(msg))
-
-
-def isAlertHandler(handler):
-    """
-    Is the given handler an alert handler?
-
-    Parameters
-    ----------
-    handler : ScriptOutputCtrl
-        Handler to query.
-    
-    Returns
-    -------
-    bool
-        True if the given handler is an alert handler.
-    """
-    return handler in _activeAlertHandlers
-
-
-def addAlertHandler(handler):
-    """
-    Add a handler to the list of active alert handlers.
-
-    Parameters
-    ----------
-    handler : ScriptOutputCtrl
-        Handler to add.
-    """
-    if not isAlertHandler(handler):
-        _activeAlertHandlers.append(handler)
-
-
-def removeAlertHandler(handler):
-    """
-    Remove a handler from the list of active alert handlers.
-
-    Parameters
-    ----------
-    handler : ScriptOutputCtrl
-        Handler to remove.
-    """
-    if isAlertHandler(handler):
-        _activeAlertHandlers.pop(
-            _activeAlertHandlers.index(handler)
-        )
+        # For tests detecting output - change when error handler set up
+        sys.stderr.write(msgAsStr)
+        for handler in _activeAlertHandlers:
+            handler.receiveAlert(msg)
 
 
 # Create catalog

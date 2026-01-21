@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # Part of the PsychoPy library
 # Copyright (C) 2012-2020 iSolver Software Solutions (C) 2021 Open Science Tools Ltd.
-# Distributed under the terms of the MIT License.
+# Distributed under the terms of the GNU General Public License (GPL).
 
 import numpy as np
 from collections import deque
@@ -116,7 +116,7 @@ class DeviceEventFilter():
         self.process()
 
     def _removeOutputEvents(self):
-        """Called by the iohub Server when processing device events."""
+        """Called by the the iohub Server when processing device events."""
         oevts = self._output_events
         self._output_events = []
         return oevts

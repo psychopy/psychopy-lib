@@ -13,12 +13,12 @@ class TestStandaloneRoutines:
         cls.expPy = experiment.Experiment()
         cls.expJS = experiment.Experiment()
 
-    def setup_method(self):
+    def setup(self):
         """This setup is done for each test individually
         """
         pass
 
-    def teardown_method(self):
+    def teardown(self):
         pass
 
     def test_writing(self):

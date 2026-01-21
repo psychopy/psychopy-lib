@@ -8,7 +8,7 @@ from psychopy.scripts import psyexpCompile
 
 class TestComponentCompilerJS():
     """A class for testing the JS code compiler for all components"""
-    def setup_method(self):
+    def setup(self):
         self.temp_dir = mkdtemp()
         self.allComp = getAllComponents(fetchIcons=False)
         self.exp = Experiment() # create once, not every test
@@ -16,7 +16,7 @@ class TestComponentCompilerJS():
         if not os.path.isdir(os.path.join(TESTS_DATA_PATH, "correctScript", "js")):
             os.mkdir(os.path.join(TESTS_DATA_PATH, "correctScript", "js"))
 
-    def teardown_method(self):
+    def teardown(self):
         shutil.rmtree(self.temp_dir)
 
     def test_all_components(self):

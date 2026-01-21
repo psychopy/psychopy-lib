@@ -5,8 +5,8 @@
 """
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2025 Open Science Tools Ltd.
-# Distributed under the terms of the MIT License.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Distributed under the terms of the GNU General Public License (GPL).
 
 import os
 
@@ -26,7 +26,7 @@ import psychopy.event
 # (JWP has no idea why!)
 from psychopy.tools.monitorunittools import cm2pix, deg2pix, convertToPix
 from psychopy.tools.attributetools import attributeSetter, setAttribute
-from psychopy.visual.shape import ShapeStim, knownShapes
+from psychopy.visual.shape import BaseShapeStim
 from psychopy.visual.image import ImageStim
 from psychopy.visual.basevisual import MinimalStim, ContainerMixin, WindowMixin
 
@@ -67,7 +67,7 @@ class Aperture(MinimalStim, ContainerMixin):
 
     def __init__(self, win, size=1, pos=(0, 0), anchor=None, ori=0, nVert=120,
                  shape='circle', inverted=False, units=None,
-                 name=None, depth=0, autoLog=None):
+                 name=None, autoLog=None):
         # what local vars are defined (these are the init params) for use by
         # __repr__
         self._initParams = dir()
@@ -76,7 +76,6 @@ class Aperture(MinimalStim, ContainerMixin):
 
         # set self params
         self.autoLog = False  # change after attribs are set
-        self.depth = depth
         self.win = win
         if not win.allowStencil:
             logging.error('Aperture has no effect in a window created '
@@ -92,17 +91,40 @@ class Aperture(MinimalStim, ContainerMixin):
         else:
             self.units = win.units
 
-        vertices = shape
-        if isinstance(shape, str) and os.path.isfile(shape):
-            # see if it points to a file
-            self.__dict__['filename'] = shape
+        # set vertices using shape, or default to a circle with nVerts edges
+        if hasattr(shape, 'lower') and not os.path.isfile(shape):
+            shape = shape.lower()
+        if shape is None or shape == 'circle':
+            # NB: pentagon etc point upwards by setting x,y to be y,x
+            # (sin,cos):
+            vertices = [(0.5 * sin(radians(theta)), 0.5 * cos(radians(theta)))
+                        for theta in numpy.linspace(0, 360, nVert, False)]
+        elif isinstance(shape, int):
+            # if given a number, take it as a number of vertices and behave as if shape=='circle and nVerts==shape
+            vertices = [(0.5 * sin(radians(theta)), 0.5 * cos(radians(theta)))
+                        for theta in numpy.linspace(0, 360, shape, False)]
+        elif shape == 'square':
+            vertices = [[0.5, -0.5], [-0.5, -0.5], [-0.5, 0.5], [0.5, 0.5]]
+        elif shape == 'triangle':
+            vertices = [[0.5, -0.5], [0, 0.5], [-0.5, -0.5]]
+        elif type(shape) in [tuple, list, numpy.ndarray] and len(shape) > 2:
+            vertices = shape
+        elif isinstance(shape, str):
+            # is a string - see if it points to a file
+            if os.path.isfile(shape):
+                self.__dict__['filename'] = shape
+            else:
+                msg = ("Unrecognized shape for aperture. Expected 'circle',"
+                       " 'square', 'triangle', vertices, filename, or None;"
+                       " got %s")
+                logging.error(msg % repr(shape))
 
         if self.__dict__['filename']:
             self._shape = ImageStim(
                 win=self.win, image=self.__dict__['filename'],
                 pos=pos, size=size, autoLog=False, units=self.units)
         else:
-            self._shape = ShapeStim(
+            self._shape = BaseShapeStim(
                 win=self.win, vertices=vertices, fillColor=1, lineColor=None, colorSpace='rgb',
                 interpolate=False, pos=pos, size=size, anchor=anchor, autoLog=False, units=self.units)
             self.vertices = self._shape.vertices
@@ -134,9 +156,7 @@ class Aperture(MinimalStim, ContainerMixin):
             GL.glClearStencil(0)
             GL.glClear(GL.GL_STENCIL_BUFFER_BIT)
 
-            if self.win.USE_LEGACY_GL:
-                GL.glPushMatrix()
-
+            GL.glPushMatrix()
             if self.__dict__['filename'] == False:
                 self.win.setScale('pix')
 
@@ -161,8 +181,7 @@ class Aperture(MinimalStim, ContainerMixin):
                 GL.glStencilFunc(GL.GL_EQUAL, 1, 1)
             GL.glStencilOp(GL.GL_KEEP, GL.GL_KEEP, GL.GL_KEEP)
 
-            if self.win.USE_LEGACY_GL:
-                GL.glPopMatrix()
+            GL.glPopMatrix()
 
     @property
     def size(self):

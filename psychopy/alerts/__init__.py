@@ -1,7 +1,7 @@
 """
 The Alert module
 """
-from ._alerts import alert, isAlertHandler, addAlertHandler, removeAlertHandler, catalog
+from ._alerts import alert, catalog
 
 import yaml
 from pathlib import Path

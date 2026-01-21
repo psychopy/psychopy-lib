@@ -2,7 +2,7 @@
 """Tests for psychopy.tools.arraytools
 """
 
-from psychopy.tools import arraytools as at
+from psychopy.tools.arraytools import *
 import pytest
 import numpy
 
@@ -21,7 +21,7 @@ def test_xys():
     for case in cases:
         # Check equality
         assert numpy.allclose(
-            at.createXYs(x=case['x'], y=case['y']),
+            createXYs(x=case['x'], y=case['y']),
             case['ans']
         )
 
@@ -34,7 +34,7 @@ def test_xys():
     for case in cases:
         # Check equality
         assert numpy.allclose(
-            at.extendArr(case['arr'], case['size']),
+            extendArr(case['arr'], case['size']),
             case['ans']
         )
 
@@ -55,13 +55,12 @@ def test_makeRadialMatrix():
     ]
     for case in cases:
         assert numpy.allclose(
-            numpy.round(at.makeRadialMatrix(case['size']), 8),
+            numpy.round(makeRadialMatrix(case['size']), 8),
             case['ans']
         )
     # also test that matrixSize=0 raises an error
     with pytest.raises(ValueError):
-        at.makeRadialMatrix(0)
-
+        makeRadialMatrix(0)
 
 def test_ratioRange():
     cases = [
@@ -79,7 +78,7 @@ def test_ratioRange():
 
     for case in cases:
         assert numpy.allclose(
-            at.ratioRange(case['start'], nSteps=case['nSteps'], stop=case['stop'], stepRatio=case['stepRatio'], stepdB=case['stepdB'], stepLogUnits=case['stepLogUnits']),
+            ratioRange(case['start'], nSteps=case['nSteps'], stop=case['stop'], stepRatio=case['stepRatio'], stepdB=case['stepdB'], stepLogUnits=case['stepLogUnits']),
             case['ans']
         )
 
@@ -97,176 +96,7 @@ def test_val2array():
     ]
     for case in cases:
         assert numpy.allclose(
-            at.val2array(case['value'], withNone=case['withNone'], withScalar=case['withScalar'], length=case['length']),
+            val2array(case['value'], withNone=case['withNone'], withScalar=case['withScalar'], length=case['length']),
             case['ans'],
             equal_nan=True
         )
-
-
-def test_AliasDict():
-    """
-    Test that the AliasDict class works as expected.
-    """
-    # make alias
-    params = at.AliasDict({'patient': 1})
-    params.alias("patient", alias="participant")
-    # test that aliases are counted in contains method
-    assert 'participant' in params
-    # test that aliases are not included in iteration
-    for key in params:
-        assert key != 'participant'
-    # test that participant and patient return the same value
-    assert params['patient'] == params['participant'] == 1
-    # test that setting the alias sets the original
-    params['participant'] = 2
-    assert params['patient'] == params['participant'] == 2
-    # test that setting the original sets the alias
-    params['patient'] = 3
-    assert params['patient'] == params['participant'] == 3
-    # test that adding an alias to a new object doesn't affect the original
-    params2 = at.AliasDict({"1": 1})
-    params2.alias("1", alias="one")
-    assert "one" not in params.aliases
-    assert "1" not in params.aliases
-
-
-def test_expandingList():
-    cases = [
-        # getting index out of range should return None
-        {'array': [1, 2, 3], 'get': {'index': 4, 'ans': None}},
-        # valid indices should return the same as normal
-        {'array': [1, 2, 3], 'get': {'index': 1, 'ans': 2}},
-        {'array': [1, 2, 3], 'get': {'index': -1, 'ans': 3}},
-        # setting index out of range should fill with None
-        {'array': [1, 2, 3], 'set': {'index': 5, 'value': 4, 'ans': [1, 2, 3, None, None, 4]}},
-        # valid indices should set the same as normal
-        {'array': [1, 2, 3], 'set': {'index': 1, 'value': 4, 'ans': [1, 4, 3]}},
-        {'array': [1, 2, 3], 'set': {'index': -1, 'value': 4, 'ans': [1, 2, 4]}},
-    ]
-    # try each case
-    for case in cases:
-        # make array for this case
-        arr = at.ExpandingList(case['array'])
-        # test getting...
-        if "get" in case:
-            assert arr[case['get']['index']] == case['get']['ans'], (
-                f"Expected value at index {case['get']['index']} of expanding list {arr} to be {case['get']['ans']}, but got {arr[case['get']['index']]}"
-            )
-        # test setting
-        if "set" in case:
-            arr[case['set']['index']] = case['set']['value']
-            assert all([x == y for x, y in zip(arr, case['set']['ans'])]), (
-                f"Expected expanding list {case['array']} to be {case['set']['ans']} after setting index {case['set']['index']} to {case['set']['value']}, but got {arr}"
-            )
-
-
-class TestIndexDict:
-    def setup_method(self):
-        self.recreateData()
-    
-    def recreateData(self):
-        """
-        Recreate the test index dict from scratch, in case it changed over the course of a test.
-        """
-        self.data = at.IndexDict({
-            'someKey': "abc",
-            'someOtherKey': "def",
-            'anotherOne': "ghi",
-            1: "jkl",
-        })
-    
-    def test_isinstance(self):
-        """
-        Check that an IndexDict is an instance of dict
-        """
-        assert isinstance(self.data, dict)
-    
-    def test_length(self):
-        """
-        Check that an IndexDict reports its length as the number of explicit keys, ignoring 
-        positional indices.
-        """
-        assert len(self.data) == 4
-    
-    def test_get_item(self):
-        """
-        Check that items in an IndexDict can be got as expected, explicit keys should always take 
-        precedence over positional indices.
-        """
-        cases = [
-            # positional indices
-            (0, "abc"),
-            (2, "ghi"),
-            (3, "jkl"),
-            # explicit indices
-            ('someKey', "abc"),
-            ('someOtherKey', "def"),
-            ('anotherOne', "ghi"),
-            # conflicting indices (should favour explicit)
-            (1, "jkl"),
-        ]
-        # iterate through cases
-        for key, value in cases:
-            # check that each key returns the correct value
-            assert self.data[key] == value
-    
-    def test_set_item(self):
-        """
-        Check that items in an IndexDict can be set as expected, should set by position only if the 
-        positional index is not already defined as an explicit key.
-        """
-        cases = [
-            # set by positional index (no conflict)
-            {'set': (0, "mno"), 'get': (0, "mno")},
-            {'set': (0, "mno"), 'get': ('someKey', "mno")},
-            # set by explicit key (no conflict)
-            {'set': ('someKey', "mno"), 'get': (0, "mno")},
-            {'set': ('someKey', "mno"), 'get': ('someKey', "mno")},
-            # set by explicit string (when its positional index is also a key)
-            {'set': ('someOtherKey', "pqr"), 'get': ('someOtherKey', "pqr")},
-            {'set': ('someOtherKey', "mno"), 'get': (1, "jkl")},
-            # set by positional index (when it's also a key)
-            {'set': (1, "pqr"), 'get': ('someOtherKey', "def")},
-            {'set': (1, "pqr"), 'get': (1, "pqr")},
-            # set by explicit key not yet in array
-            {'set': ('newKey', "stu"), 'get': ('newKey', "stu")},
-            {'set': ('newKey', "stu"), 'get': (4, "stu")},
-            # set by positional index not yet in array (should treat as explicit key)
-            {'set': (6, "stu"), 'get': (6, "stu")},
-        ]
-        # iterate through cases
-        for case in cases:
-            # recreate data to clear last changes
-            self.recreateData()
-            # get values to set and expected values to return
-            seti, setval = case['set']
-            geti, getval = case['get']
-            # set value
-            self.data[seti] = setval
-            # check value
-            assert self.data[geti] == getval, (
-                f"After setting data[{repr(seti)}] = {repr(setval)} expected to get data["
-                f"{repr(geti)}] == {repr(getval)}, but instead got data[{repr(geti)}] == "
-                f"{repr(self.data[geti])}"
-            )
-    
-    def test_key_error(self):
-        """
-        Check that supplying an invalid key/index to an IndexDict still errors like a normal 
-        dict/list
-        """
-        cases = [
-            # index bigger than array
-            (4, KeyError, "4 should be out of bounds, but got {}"),
-            # key not in array
-            ('lalala', KeyError, "There shouldn't be a value for 'lalala', but got {}"),
-        ]
-        for i, errType, msg in cases:
-            try:
-                val = self.data[i]
-            except errType as err:
-                # if it errors as expected, good!
-                pass
-            else:
-                # if no error, raise an assertion error with message
-                raise AssertionError(msg.format(val))

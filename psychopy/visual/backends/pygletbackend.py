@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2025 Open Science Tools Ltd.
-# Distributed under the terms of the MIT License.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Distributed under the terms of the GNU General Public License (GPL).
 
 """A Backend class defines the core low-level functions required by a Window
 class, such as the ability to create an OpenGL context and flip the window.
@@ -15,17 +15,14 @@ and initialize an instance using the attributes of the Window.
 
 import sys
 import os
-import platform
 import numpy as np
-import threading
-import time
 
 import psychopy
-from psychopy import core, prefs
+from psychopy import core
 from psychopy.hardware import mouse
 from psychopy import logging, event, platform_specific
 from psychopy.tools.attributetools import attributeSetter
-from psychopy.tools import systemtools
+from psychopy.tests import _vmTesting
 from .gamma import setGamma, setGammaRamp, getGammaRamp, getGammaRampSize
 from .. import globalVars
 from ._base import BaseBackend
@@ -47,9 +44,6 @@ if pyglet.version < '1.4':
     _default_display_ = pyglet.window.get_platform().get_default_display()
 else:
     _default_display_ = pyglet.canvas.get_display()
-
-USE_LEGACY_GL = pyglet.version < '2.0'
-
 
 # Cursors available to pyglet. These are used to map string names to symbolic
 # constants used to specify which cursor to use.
@@ -83,20 +77,6 @@ _PYGLET_MOUSE_BUTTONS_ = {
     pyglet_mouse.MIDDLE: mouse.MOUSE_BUTTON_MIDDLE,
     pyglet_mouse.RIGHT: mouse.MOUSE_BUTTON_RIGHT
 }
-
-
-# MacOS specific display link handler
-if sys.platform == 'darwin':
-    import AppKit
-
-    class RefreshEventHandlerMacOS(AppKit.NSObject):
-        """Callback handler for macOS display link refresh events.
-        """
-        frameLock = None
-        def displayRefreshed_(self, displayLink):
-            self.frameLock = False
-
-            return 1
 
 
 class PygletBackend(BaseBackend):
@@ -158,13 +138,11 @@ class PygletBackend(BaseBackend):
             win.stereo = False
 
         if sys.platform == 'darwin' and not win.useRetina and pyglet.version >= "1.3":
-            logging.warn(
+            raise ValueError(
                 "As of PsychoPy 1.85.3 OSX windows should all be set to "
                 "`useRetina=True` (or remove the argument). Pyglet 1.3 appears "
                 "to be forcing us to use retina on any retina-capable screen "
-                "so setting to False has no effect."
-            )
-            win.useRetina = True
+                "so setting to False has no effect.")
 
         # window framebuffer configuration
         bpc = backendConf.get('bpc', (8, 8, 8))
@@ -200,45 +178,33 @@ class PygletBackend(BaseBackend):
                     'integer greater than two. Disabling.')
                 win.multiSample = False
 
-        skip_screen_warn = False
-        if platform.system() == 'Linux':
-            from pyglet.canvas.xlib import NoSuchDisplayException
-            try:
-                display = pyglet.canvas.Display(x_screen=win.screen)
-                # in this case, we'll only get a single x-screen back
-                skip_screen_warn = True
-            except NoSuchDisplayException:
-                # Maybe xinerama? Try again and get the specified screen later
-                display = pyglet.canvas.Display(x_screen=0)
-
-            allScrs = display.get_screens()
+        if pyglet.version < '1.4':
+            allScrs = _default_display_.get_screens()
         else:
             allScrs = _default_display_.get_screens()
 
-        # Screen (from Exp Settings) is 0-indexed,
+        # Screen (from Exp Settings) is 1-indexed,
         # so the second screen is Screen 1
         if len(allScrs) < int(win.screen) + 1:
-            if not skip_screen_warn:
-                logging.warn("Requested an unavailable screen number - "
-                             "using first available.")
+            logging.warn("Requested an unavailable screen number - "
+                         "using first available.")
             thisScreen = allScrs[0]
         else:
             thisScreen = allScrs[win.screen]
             if win.autoLog:
                 logging.info('configured pyglet screen %i' % win.screen)
 
-        # configure the window context
-        config = GL.Config(
-            depth_size=win.depthBits,
-            double_buffer=True,
-            sample_buffers=sample_buffers,
-            samples=aa_samples,
-            stencil_size=win.stencilBits,
-            stereo=win.stereo,
-            vsync=vsync,
-            red_size=win.bpc[0],
-            green_size=win.bpc[1],
-            blue_size=win.bpc[2])
+        # options that the user might want
+        config = GL.Config(depth_size=win.depthBits,
+                           double_buffer=True,
+                           sample_buffers=sample_buffers,
+                           samples=aa_samples,
+                           stencil_size=win.stencilBits,
+                           stereo=win.stereo,
+                           vsync=vsync,
+                           red_size=win.bpc[0],
+                           green_size=win.bpc[1],
+                           blue_size=win.bpc[2])
 
         # check if we can have this configuration
         validConfigs = thisScreen.get_matching_configs(config)
@@ -259,43 +225,29 @@ class PygletBackend(BaseBackend):
             style = None
         else:
             style = 'borderless'
-
-        # create the window
         try:
             self.winHandle = pyglet.window.Window(
-                width=w, height=h,
-                caption="PsychoPy",
-                fullscreen=win._isFullScr,
-                config=config,
-                screen=thisScreen,
-                style=style)
+                    width=w, height=h,
+                    caption="PsychoPy",
+                    fullscreen=win._isFullScr,
+                    config=config,
+                    screen=thisScreen,
+                    style=style)
         except pyglet.gl.ContextException:
             # turn off the shadow window an try again
             pyglet.options['shadow_window'] = False
             self.winHandle = pyglet.window.Window(
-                width=w, height=h,
-                caption="PsychoPy",
-                fullscreen=win._isFullScr,
-                config=config,
-                screen=thisScreen,
-                style=style)
+                    width=w, height=h,
+                    caption="PsychoPy",
+                    fullscreen=self._isFullScr,
+                    config=config,
+                    screen=thisScreen,
+                    style=style)
             logging.warning(
                 "Pyglet shadow_window has been turned off. This is "
                 "only an issue for you if you need multiple "
                 "stimulus windows, in which case update your "
                 "graphics card and/or graphics drivers.")
-        try:
-            icns = [
-                pyglet.image.load(
-                    prefs.paths['assets'] + os.sep + "Psychopy Window Favicon@16w.png"
-                ),
-                pyglet.image.load(
-                    prefs.paths['assets'] + os.sep + "Psychopy Window Favicon@32w.png"
-                ),
-            ]
-            self.winHandle.set_icon(*icns)
-        except BaseException:
-            pass
 
         if sys.platform == 'win32':
             # pyHook window hwnd maps to:
@@ -325,49 +277,6 @@ class PygletBackend(BaseBackend):
             except Exception:
                 # pyglet 1.2 with 64bit python?
                 win._hw_handle = self.winHandle._nswindow.windowNumber()
-            # Here we temporarily set the window to the bottom right corner of the
-            # requested screen so the correct screen is always detected for NSWindow.
-            # The actual location is then set below using the pyglet set_location()
-            # method on the CocoaWindow object that wraps the NSWindow as _nswindow.
-            # This is necessary because NSScreen origin is the bottom left corner of
-            # the unshifted main screen and positive up, while pyglet origin is the top
-            # left corner of the shifted main screen and positive down. If thisScreen is
-            # not the main screen, we need to prevent self.winHandle._nswindow.screen()
-            # from returning None, which can happen when the c binding returns nil if the
-            # window is offscreen as a result of flipped y values of origins beween pyglet
-            # and NSWindow coordinate systems.
-            from pyglet.libs.darwin import cocoapy
-            mainScreen_y_from_NSOrigin = allScrs[0].y + allScrs[0].height
-            thisScreen_y_from_NSOrigin = thisScreen.y + thisScreen.height
-            thisScreen_y = mainScreen_y_from_NSOrigin - thisScreen_y_from_NSOrigin
-            temp_origin = cocoapy.NSPoint(thisScreen.x, thisScreen_y)
-            self.winHandle._nswindow.setFrameOrigin_(temp_origin)
-
-            # bind the NSWindow pointer to the window handle, we use AppKit here
-            # because the ctypes bindings in cocoapy are incomplete
-            winNSObj = AppKit.NSWindow(c_void_p=self.winHandle._nswindow.ptr)
-            
-            # create a display link for the window
-            self.refreshEventHandlerMacOS = RefreshEventHandlerMacOS.alloc().init()
-            displayLinkObj = winNSObj.displayLinkWithTarget_selector_(
-                self.refreshEventHandlerMacOS, 
-                "displayRefreshed:")
-            
-            # configure the preferred frame rate range hint for the display link
-            frameRateMax = int(winNSObj.screen().maximumFramesPerSecond())
-            frameRateMin = int(frameRateMax / 2)
-            displayLinkObj.setPreferredFrameRateRange_(
-                (frameRateMin, 
-                 frameRateMax, 
-                 frameRateMax))
-
-            # add the display link to the run loop, only works with 
-            # `NSRunLoopCommonModes` since we don't run a full app loop here
-            # and will pump our events manually in `swapBuffers()`
-            displayLinkObj.addToRunLoop_forMode_(
-                AppKit.NSRunLoop.currentRunLoop(), 
-                AppKit.NSRunLoopCommonModes)
-            
         elif sys.platform.startswith('linux'):
             win._hw_handle = self.winHandle._window
             self._frameBufferSize = win.clientSize
@@ -409,22 +318,21 @@ class PygletBackend(BaseBackend):
             # (but need to alter x,y handling then)
             self.winHandle.set_mouse_visible(False)
         if not win.pos:
-            # work out the location of the top-left corner to place at the screen center
-            win.pos = [(thisScreen.width - win.clientSize[0]) / 2,
-                       (thisScreen.height - win.clientSize[1]) / 2]
-        if sys.platform == 'darwin':
-            # always need to set the cocoa window location due to origin changes
-            screenHeight_offset = thisScreen.height - allScrs[0].height
-            self.winHandle.set_location(int(win.pos[0] + thisScreen.x),
-                                        int(win.pos[1] + thisScreen.y + screenHeight_offset))
-        elif not win._isFullScr:
+            # work out where the centre should be 
+            if win.useRetina:
+                win.pos = [(thisScreen.width - win.clientSize[0]/2) / 2,
+                           (thisScreen.height - win.clientSize[1]/2) / 2]
+            else:
+                win.pos = [(thisScreen.width - win.clientSize[0]) / 2,
+                           (thisScreen.height - win.clientSize[1]) / 2]
+        if not win._isFullScr:
             # add the necessary amount for second screen
             self.winHandle.set_location(int(win.pos[0] + thisScreen.x),
                                         int(win.pos[1] + thisScreen.y))
 
         try:  # to load an icon for the window
-            iconFile = os.path.join(psychopy.prefs.paths['assets'],
-                                    'window.ico')
+            iconFile = os.path.join(psychopy.prefs.paths['resources'],
+                                    'psychopy.ico')
             icon = pyglet.image.load(filename=iconFile)
             self.winHandle.set_icon(icon)
         except Exception:
@@ -432,17 +340,6 @@ class PygletBackend(BaseBackend):
 
         # store properties of the system
         self._driver = pyglet.gl.gl_info.get_renderer()
-        logging.info("Using renderer '{}' for graphics".format(self._driver))
-
-        # report the OpenGL version
-        glVersion = pyglet.gl.gl_info.get_version()
-        logging.info("OpenGL version supported by driver is {}.{}".format(
-            glVersion[0], glVersion[1]))
-
-        if int(glVersion[0]) < 2:
-            raise RuntimeError(
-                "OpenGL version 2.0 or higher is required! Please update your "
-                "graphics drivers or use a different backend.")
 
     @property
     def frameBufferSize(self):
@@ -452,7 +349,7 @@ class PygletBackend(BaseBackend):
     @property
     def shadersSupported(self):
         # on pyglet shaders are fine so just check GL>2.0
-        return int(pyglet.gl.gl_info.get_version()[0]) >= 2
+        return pyglet.gl.gl_info.get_version() >= '2.0'
 
     def swapBuffers(self, flipThisFrame=True):
         """Performs various hardware events around the window flip and then
@@ -467,9 +364,7 @@ class PygletBackend(BaseBackend):
             self.winHandle.switch_to()
             globalVars.currWindow = self
 
-        # DEPRECATED: this is now done in the Window class
-        if USE_LEGACY_GL:
-            GL.glTranslatef(0.0, 0.0, -5.0)
+        GL.glTranslatef(0.0, 0.0, -5.0)
 
         for dispatcher in self.win._eventDispatchers:
             try:
@@ -484,19 +379,11 @@ class PygletBackend(BaseBackend):
         # movie updating
         if pyglet.version < '1.2':
             pyglet.media.dispatch_events()  # for sounds to be processed
-    
         if flipThisFrame:
             self.winHandle.flip()
-            # For macOS display link sync, this slews the timings of buffer 
-            # flips to match the refresh cycle of the display to ensure content 
-            # is presented at the correct time. This takes a few frames to 
-            # 'settle' so there may be some initial jitter.
-            if hasattr(self, 'refreshEventHandlerMacOS'):
-                # hold until released by callback
-                self.refreshEventHandlerMacOS.frameLock = True  
-                while self.refreshEventHandlerMacOS.frameLock:
-                    # keep pumping events until we get a refresh callback
-                    self.winHandle.dispatch_events()
+
+    def setMouseVisibility(self, visibility):
+        self.winHandle.set_mouse_visible(visibility)
 
     def setCurrent(self):
         """Sets this window to be the current rendering target.
@@ -567,7 +454,7 @@ class PygletBackend(BaseBackend):
     @attributeSetter
     def gamma(self, gamma):
         self.__dict__['gamma'] = gamma
-        if systemtools.isVM_CI():
+        if _vmTesting:
             return
         if self._origGammaRamp is None:  # get the original if we haven't yet
             self._getOrigGammaRamp()
@@ -586,7 +473,7 @@ class PygletBackend(BaseBackend):
         """Gets the gamma ramp or sets it to a new value (an Nx3 or Nx1 array)
         """
         self.__dict__['gammaRamp'] = gammaRamp
-        if systemtools.isVM_CI():
+        if _vmTesting:
             return
         if self._origGammaRamp is None:  # get the original if we haven't yet
             self._getOrigGammaRamp()
@@ -817,42 +704,6 @@ class PygletBackend(BaseBackend):
     # --------------------------------------------------------------------------
     # Mouse event handlers and utilities
     #
-    @property
-    def mouseVisible(self):
-        """Get the visibility of the mouse cursor.
-
-        Returns
-        -------
-        bool
-            `True` if the mouse cursor is visible.
-
-        """
-
-        return self.winHandle._mouse_visible
-
-    @mouseVisible.setter
-    def mouseVisible(self, visibility):
-        """Set the visibility of the mouse cursor.
-
-        Parameters
-        ----------
-        visibility : bool
-            If `True`, the mouse cursor is visible.
-
-        """
-        self.winHandle.set_mouse_visible(visibility)
-
-    def setMouseVisibility(self, visibility):
-        """Set the visibility of the mouse cursor.
-
-        Parameters
-        ----------
-        visibility : bool
-            If `True`, the mouse cursor is visible.
-
-        """
-        self.winHandle.set_mouse_visible(visibility)
-
     def onMouseButton(self, *args, **kwargs):
         """Event handler for any mouse button event (pressed and released).
 
@@ -1012,12 +863,9 @@ def _onResize(width, height):
         back_width, back_height = width, height
 
     GL.glViewport(0, 0, back_width, back_height)
-
-    # DEPRECATED - this is now done with matrices we compute
-    if USE_LEGACY_GL:
-        GL.glMatrixMode(GL.GL_PROJECTION)
-        GL.glLoadIdentity()
-        GL.glOrtho(-1, 1, -1, 1, -1, 1)
-        # GL.gluPerspective(90, 1.0 * width / height, 0.1, 100.0)
-        GL.glMatrixMode(GL.GL_MODELVIEW)
-        GL.glLoadIdentity()
+    GL.glMatrixMode(GL.GL_PROJECTION)
+    GL.glLoadIdentity()
+    GL.glOrtho(-1, 1, -1, 1, -1, 1)
+    # GL.gluPerspective(90, 1.0 * width / height, 0.1, 100.0)
+    GL.glMatrixMode(GL.GL_MODELVIEW)
+    GL.glLoadIdentity()

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # Part of the PsychoPy library
 # Copyright (C) 2012-2020 iSolver Software Solutions (C) 2021 Open Science Tools Ltd.
-# Distributed under the terms of the MIT License.
+# Distributed under the terms of the GNU General Public License (GPL).
 
 import numbers  # numbers.Integral is like (int, long) but supports Py3
 import os
@@ -12,10 +12,10 @@ import numpy
 
 from ..errors import print2err
 
-from packaging.version import Version
+from pkg_resources import parse_version
 import tables
 
-if Version(tables.__version__) < Version('3'):
+if parse_version(tables.__version__) < parse_version('3'):
     from tables import openFile as open_file
 
     walk_groups = "walkGroups"
@@ -460,7 +460,7 @@ class ExperimentDataAccessUtility:
             print(self.hdfFile)
 
     def getExperimentMetaData(self):
-        """Returns the metadata for the experiment the datStore file is
+        """Returns the the metadata for the experiment the datStore file is
         for.
 
         **Docstr TBC.**
@@ -482,7 +482,7 @@ class ExperimentDataAccessUtility:
 
     def getSessionMetaData(self, sessions=None):
         """
-        Returns the metadata associated with the experiment session codes in use.
+        Returns the the metadata associated with the experiment session codes in use.
 
         **Docstr TBC.**
 
