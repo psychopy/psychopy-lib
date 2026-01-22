@@ -23,26 +23,21 @@ from psychopy import __version__ as psychopy_version
 # commandline argument
 #
 
-parser = argparse.ArgumentParser(description='usage: generateTranslationTemplate.py [-h] [-c]')
+parser = argparse.ArgumentParser(description='usage: foo.py [-h] [-c]')
 parser.add_argument('-c', '--commit', action='store_true', help='Commit messages.pot if updated.', required=False)
 
 command_args = parser.parse_args()
 
 #
-# hints.py must be updated to find new hints and alarts
+# hints.py must be updated to find new hints
 #
 
-print('Generate hints.py... ', end='')
 subprocess.call(['python', 'generateHints.py'], cwd='../preferences')
-print('Done.\nGenerate alartmsg.py... ', end='')
-subprocess.call(['python', 'generateAlertmsg.py'], cwd='../alerts/alertsCatalogue')
-print('Done.')
 
 #
 # Extracting messages and generating new template file
 #
 
-print('Generating new template file... ', end='')
 new_pot_filename = 'messages_new.pot'
 current_pot_filename = 'messages.pot'
 
@@ -56,22 +51,18 @@ argv = ['pybabel', '-q', 'extract',
 babel_frontend = babel.messages.frontend.CommandLineInterface()
 babel_frontend.run(argv)
 
-print('Done.')
-
 #
 # Comparing new and current pot file.
 #
 
-print('Maing a list of message IDs in the new template... ', end='')
-
-new_pot_message_ids = []
+new_pot_messages = []
 current_pot_id = []
 untranslated_new = []
 
 with codecs.open(new_pot_filename, 'r', 'utf-8') as fp:
     for message in babel.messages.pofile.read_po(fp):
         if message.id:
-            new_pot_message_ids.append(message.id)
+            new_pot_messages.append(message)
 
 if not os.path.exists(current_pot_filename):
     # if current pot file doesn't exist, copy it from new pot file.
@@ -82,50 +73,33 @@ with codecs.open(current_pot_filename, 'r', 'utf-8') as fp:
         if message.id:
             current_pot_id.append(message.id)
 
-for id in new_pot_message_ids:
-    if id not in current_pot_id:
-        untranslated_new.append(id)
+for message in new_pot_messages:
+    if not message.id in current_pot_id:
+        untranslated_new.append(message)
 
-
-print('Done.')
 
 #
 # Output summary
 #
-
-print('Checking current PO files...')
-
 n_untranslated_locale = []
 
 for root, dirs, files in os.walk('../app/locale/'):
     for file in files:
         if file=='messages.po':
-            po_message_ids = []
+            po_message_id = []
             n_untranslated = 0
             locale_identifier = os.path.basename(os.path.dirname(root))
-            print('{}: '.format(locale_identifier), end='')
-            try:
-                with codecs.open(os.path.join(root, file), 'r', 'utf-8') as fp:
-                    catalog = babel.messages.pofile.read_po(fp)
-                    for message in catalog:
-                        if message.id:
-                            po_message_ids.append(message.id)
-                            # found in the new POT, but not translated
-                            if message.id in new_pot_message_ids and message.string == '':
-                                n_untranslated += 1
-                for id in new_pot_message_ids:
-                    # not found in the current PO (it must be untranslated)
-                    if id not in po_message_ids:
-                        n_untranslated += 1
-                n_untranslated_locale.append((locale_identifier, n_untranslated))
-            except ValueError:
-                # If date strings in PO file is wrong (e.g. empty string),
-                # read_po() raises ValueError.
-                print('Skip.')
-            else:
-                print('Ok.')
+            with codecs.open(os.path.join(root, file), 'r', 'utf-8') as fp:
+                catalog = babel.messages.pofile.read_po(fp)
+                for message in catalog:
+                    if message.id:
+                        po_message_id.append(message.id)
+            for message in new_pot_messages:
+                if not message.id in po_message_id:
+                    n_untranslated += 1
+            n_untranslated_locale.append((locale_identifier, n_untranslated))
 
-n_messages = len(new_pot_message_ids)
+n_messages = len(new_pot_messages)
 summary_message = '\nNumber of messages in *.py files: {}\n'.format(n_messages)
 summary_message += 'New message(s): {}\n\n'.format(len(untranslated_new))
 summary_message += 'Untranslated message(s)\n'
