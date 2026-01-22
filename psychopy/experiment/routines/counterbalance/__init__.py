@@ -12,6 +12,7 @@ class CounterbalanceRoutine(BaseStandaloneRoutine):
     tooltip = _translate(
         "Counterbalance Routine: use the Shelf to choose a value taking into account previous runs of this experiment."
     )
+    beta = True
 
     def __init__(
             self, exp, name='counterbalance',
@@ -91,7 +92,11 @@ class CounterbalanceRoutine(BaseStandaloneRoutine):
             hint=_translate(
                 "Name of a file specifying the parameters for each group (.csv, .xlsx, or .pkl). Browse to select "
                 "a file. Right-click to preview file contents, or create a new file."
-            ))
+            ),
+            ctrlParams={
+                'template': Path(__file__).parent / "counterbalanceItems.xltx"
+            }
+        )
 
         self.params['conditionsVariable'] = Param(
             conditionsVariable, valType='code', inputType="single", categ="Basic",

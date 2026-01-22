@@ -24,6 +24,7 @@ __all__ = [
     'submit'
 ]
 
+import importlib
 import json
 import sys
 import os
@@ -227,6 +228,59 @@ class TranscriptionResult:
     @wordData.setter
     def wordData(self, val):
         self._wordData = val
+
+    def getSpeechInterval(self):
+        """Get the start and stop times for the interval of speech in the audio 
+        clip.
+
+        This feature is only supported by the Whisper transcriber. The start and
+        end times of the speech interval are returned in seconds.
+
+        Returns
+        -------
+        tuple
+            Start and end times of the speech interval in seconds. If the engine
+            does not support this feature, or if the data is missing, 
+            `(None, None)` is returned. In cases where either the start or end
+            time is missing, the value will be `None` for that field.
+
+        """
+        nullData = (None, None)  # default return value if no data
+
+        if self._engine in ('sphinx', 'google'):
+            logging.warning(
+                "Method `getSpeechInterval` is not supported for the "
+                "transcription engine `{}`.".format(self._engine))
+            return nullData
+        elif self._engine == 'whisper':
+            if self.responseData is None:
+                return nullData
+
+            # this value is in the response data which is in JSON format
+            segmentData = self.responseData.get('segments', None)
+
+            if segmentData is None:
+                return nullData
+
+            # integers for keys
+            segmentKeys = list(segmentData.keys())
+
+            if len(segmentKeys) == 0:
+                return nullData
+
+            # sort segment keys to ensure monotonic ordering
+            segmentKeys.sort()
+
+            # get first and last segment
+            firstSegment = segmentData.get(segmentKeys[0], None)
+            lastSegment = segmentData.get(segmentKeys[-1], None)
+
+            # get speech onset/offset times
+            speechOnset = firstSegment.get('start', None)
+            speechOffset = lastSegment.get('end', None)
+
+            # return start and end times
+            return speechOnset, speechOffset
 
     @property
     def success(self):
@@ -774,13 +828,12 @@ def setupTranscriber(engine, config=None):
     Parameters
     ----------
     engine : str
-        Name of the transcriber interface to setup.
+        Name of the transcriber interface to setup, or a path to the backend class (e.g. 
+        `psychopy_whisper.transcribe:WhisperTranscriber`).
     config : dict or None
         Options to configure the speech-to-text engine during initialization.
     
     """
-    engine = engine.lower()  # make lower case
-
     global _activeTranscriber
     if _activeTranscriber is not None:
         oldInterface = _activeTranscriber.engine
@@ -793,9 +846,29 @@ def setupTranscriber(engine, config=None):
             _activeTranscriber.unload()
 
         _activeTranscriber = None
+    # get all named transcribers
+    allTranscribers = getAllTranscriberInterfaces(engineKeys=True)
+    if engine in allTranscribers:
+        # if engine is included by name, get it
+        transcriber = allTranscribers[engine]
+    elif engine.lower() in allTranscribers:
+        # try lowercase
+        transcriber = allTranscribers[engine.lower()]
+    else:
+        # try to import it
+        try:
+            if ":" in engine:
+                group, name = engine.split(":")
+            else:
+                group, name = str.rsplit(".")
+            mod = importlib.import_module(group)
+            transcriber = getattr(mod, name)
+        except ModuleNotFoundError:
+            raise KeyError(
+                f"Could not find transcriber engine from '{engine}'"
+            )
 
     logging.debug(f"Setting up transcriber `{engine}` with options `{config}`.")
-    transcriber = getTranscriberInterface(engine)
     _activeTranscriber = transcriber(config)  # init the transcriber
 
 

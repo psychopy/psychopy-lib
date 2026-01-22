@@ -10,6 +10,7 @@ import time
 import subprocess
 import json
 import signal
+import atexit
 from weakref import proxy
 
 import psutil
@@ -30,6 +31,8 @@ from ..constants import DeviceConstants, EventConstants
 from psychopy import constants
 
 getTime = Computer.getTime
+
+SHUTDOWN_FUNCS = []
 
 _currentSessionInfo = None
 
@@ -249,7 +252,7 @@ class ioHubConnection():
         mouse=hub.devices.mouse
         mouse_position = mouse.getPosition()
 
-        print 'mouse position: ', mouse_position
+        print('mouse position: ', mouse_position)
 
         # Returns something like:
         # >> mouse position:  [-211.0, 371.0]
@@ -264,9 +267,10 @@ class ioHubConnection():
                     ioHubConfig)
 
         if ioHubConnection.ACTIVE_CONNECTION is not None:
-            raise RuntimeError('An existing ioHubConnection is already open.'
-                                 ' Use ioHubConnection.getActiveConnection() '
-                                 'to access it; or use ioHubConnection.quit() '
+            raise RuntimeError('An existing ioHubConnection is already open. Use '
+                                 'iohub.client.ioHubConnection.getActiveConnection() '
+                                 'to access it; or use '
+                                 'iohub.ioHubConnection.getActiveConnection().quit() '
                                  'to close it.')
         Computer.psychopy_process = psutil.Process()
 
@@ -417,13 +421,19 @@ class ioHubConnection():
             None
 
         """
-        if device_label.lower() == 'all':
-            self.allEvents = []
-            self._sendToHubServer(('RPC', 'clearEventBuffer', [True, ]))
-            try:
-                self.getDevice('keyboard')._clearLocalEvents()
-            except:
-                pass
+        if device_label and isinstance(device_label, str):
+            device_label = device_label.lower()
+            if device_label == 'all':
+                self.allEvents = []
+                self._sendToHubServer(('RPC', 'clearEventBuffer', [True, ]))
+                try:
+                    self.getDevice('keyboard')._clearLocalEvents()
+                except:
+                    pass
+            else:
+                d = self.devices.getDevice(device_label)
+                if d:
+                    d.clearEvents()
         elif device_label in [None, '', False]:
             self.allEvents = []
             self._sendToHubServer(('RPC', 'clearEventBuffer', [False, ]))
@@ -432,9 +442,8 @@ class ioHubConnection():
             except:
                 pass
         else:
-            d = self.devices.getDevice(device_label)
-            if d:
-                d.clearEvents()
+            raise ValueError(
+                'Invalid device_label value: {}'.format(device_label))
 
     def sendMessageEvent(self, text, category='', offset=0.0, sec_time=None):
         """
@@ -994,6 +1003,9 @@ class ioHubConnection():
         Computer.iohub_process_id = self._server_process.pid
         Computer.iohub_process = psutil.Process(self._server_process.pid)
 
+        global SHUTDOWN_FUNCS
+        SHUTDOWN_FUNCS.append(self._shutDownServer)
+
         # >>>>> Create open UDP port to ioHub Server
         server_udp_port = self._iohub_server_config.get('udp_port', 9000)
         from ..net import UDPClientConnection
@@ -1085,8 +1097,12 @@ class ioHubConnection():
                 dev_cls_name = dev_cls_name[cls_name_start + 1:]
             else:
                 dev_mod_pth = '{0}{1}'.format(dev_mod_pth, dev_name)
-
-            dev_import_result = import_device(dev_mod_pth, dev_cls_name)
+            # try to import EyeTracker class from given path
+            try:
+                dev_import_result = import_device(dev_mod_pth, dev_cls_name)
+            except ModuleNotFoundError:
+                # if not found, try importing from root (may have entry point)
+                dev_import_result = import_device("psychopy.iohub.devices", dev_cls_name)
             dev_cls, dev_cls_name, evt_cls_list = dev_import_result
 
             DeviceConstants.addClassMapping(dev_cls)
@@ -1114,9 +1130,7 @@ class ioHubConnection():
             if local_class:
                 d = local_class(self, dev_cls_name, dev_config)
             else:
-                full_device_class_name = getFullClassName(dev_cls)[len('psychopy.iohub.devices.'):]
-                full_device_class_name = full_device_class_name.replace('eyetracker.EyeTracker', 'EyeTracker')
-                d = ioHubDeviceView(self, full_device_class_name, dev_cls_name, dev_config)
+                d = ioHubDeviceView(self, dev_mod_pth + "." + dev_cls_name, dev_cls_name, dev_config)
 
             self.devices.addDevice(name, d)
             return d
@@ -1311,7 +1325,9 @@ class ioHubConnection():
                     self.udp_client.sendTo(('STOP_IOHUB_SERVER',))
                     self.udp_client.close()
                 if Computer.iohub_process:
-                    r = Computer.iohub_process.wait(timeout=5)
+                    # This wait() used to have timeout=5, removing it to allow
+                    # sufficient time for all iohub devices to be closed.
+                    r = Computer.iohub_process.wait()
                     print('ioHub Server Process Completed With Code: ', r)
             except TimeoutError:
                 print('Warning: TimeoutExpired, Killing ioHub Server process.')
@@ -1440,6 +1456,17 @@ class ioEvent():
         return 'time: %.3f, type: %s, id: %d' % (self.time,
                                                  self.type,
                                                  self.id)
+
+
+def shutdownActiveConnections():
+    """Shutdown any active ioHub connections that are currently running.
+    """
+    activeConnection = ioHubConnection.getActiveConnection()
+    if activeConnection is not None and hasattr(activeConnection, 'shutdown'):
+        activeConnection.shutdown()
+    
+
+atexit.register(shutdownActiveConnections)
 
 _lazyImports = """
 from psychopy.iohub.client.connect import launchHubServer

@@ -5,7 +5,12 @@ Counterbalance Standalone Routine
 
 **Available from PsychoPy version 2024.1.0**
 
-The counterbalance standalone routine is available to use locally and online.
+The counterbalance standalone routine is available to use locally and online. This component allows you to automatically assign participants to groups based on defined number of groups and how many participants you want per group (slots). You can find the component in the "Custom" section of Builder. Once you add the component, do remember to select "Insert Routine" > name of your counterbalance routine and insert it into your flow!
+
+.. image:: /images/counterbalance-standalone.png
+    :width: 50%
+    :alt: A screenshot of the counterbalance standalone routine once it has been inserted on the PsychoPy Builder flow. The "Basic" tab is open and it has the settings "Name" = counterbalance, "Num.groups" = 2, "Slots per group" = 10, "Num. repeats" = 1, "End experiment on depletion" = True (checkbox). 
+
 
 Parameters
 ~~~~~~~~~~~~

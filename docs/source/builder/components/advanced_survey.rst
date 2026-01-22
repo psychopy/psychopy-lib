@@ -3,7 +3,17 @@
 Pavlovia Survey
 -------------------------------
 
-**This component is only for use with online experiments**. You can now use Pavlovia.org to create feature rich surveys, with a range of response options, which display nicely across a range of devices (i.e. laptops, smart phones, tablets). To create and launch a Pavlovia Survey, you technically do not need the PsychoPy app at all. For more information on how to make and launch Pavlovia Surveys you can `watch our launch event here <https://www.youtube.com/watch?v=1fs8CVKBPGk>`_. However, if you want to integrate a Pavlovia Survey within an experiment (e.g. to show a survey several times in a loop or before/after your task without the need for daisy chaining), you can do so using the Pavlovia Survey component.
+**This component is only for use with online experiments**. 
+
+You can use Pavlovia.org to create feature rich surveys, with a range of response options, which display nicely across a range of devices (i.e. laptops, smart phones, tablets). To create and launch a Pavlovia Survey, you technically do not need the PsychoPy app at all. 
+
+Useful links for creating surveys:
+
+*   `Pavlovia surveys launch video <https://www.youtube.com/watch?v=1fs8CVKBPGk>`_. 
+*   `Pavlovia Surveys information <https://pavlovia.org/docs/surveys/overview>`_.
+*   `YouTube tutorial on how to use the Pavlovia Surveys component <https://www.youtube.com/watch?v=WMLel29z-oY>`_.
+
+The Pavlovia Survey component is used to integrate a Pavlovia Survey into a behavioural task you have created in PsychoPy.
 
 The Pavlovia Survey component is a "Standalone Routine", which means rather than adding a component to an existing Routine, it will create a whole new Routine, which you can then add to your flow.  Once you have selected the component, select Insert Routine and add it to your flow. 
 

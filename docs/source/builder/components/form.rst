@@ -36,7 +36,7 @@ Items : A csv / xlsx file **To get started, we recommend selecting the "Open/Cre
     *itemWidth*
         The question width between 0 : 1
     *type*
-        The type of rating e.g., 'choice', 'rating', 'slider', 'free-text'
+        The type of rating e.g., 'choice', 'rating', 'slider', 'free text'
     *responseWidth*
         The question width between 0 : 1
     *options*

@@ -1,5 +1,3 @@
-[tool.pdm]
-version = { source = "file", path = "psychopy/__init__.py" }
 
 [project]
 name = "psychopy"
@@ -19,86 +17,92 @@ classifiers = [
     "Operating System :: Microsoft :: Windows",
     "Operating System :: POSIX :: Linux",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.10",
     "Topic :: Scientific/Engineering",
     "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
     ]
     
 dependencies = [
-    "arabic-reshaper==2.1.3",
+    "arabic-reshaper==3.0.0",
     "astunparse==1.6.3",
-    "blosc2==2.0.0",
-    "certifi==2021.10.8",
-    "cffi==1.15.0",
-    "charset-normalizer==2.0.7",
-    "contourpy==1.1.1",
-    "cryptography==35.0.0",
-    "cycler==0.11.0",
-    "cython==3.0.10",
-    "elementpath==4.4.0",
-    "et-xmlfile==1.1.0",
-    "fonttools==4.53.0",
-    "freetype-py==2.2.0",
-    "future==0.18.2",
-    "gevent==21.8.0",
-    "greenlet==1.1.2",
-    "idna==3.3",
-    "imageio==2.10.3",
-    "imageio-ffmpeg==0.4.5",
-    "importlib-resources==6.4.0",
-    "jedi==0.18.0",
-    "json-tricks==3.15.5",
-    "kiwisolver==1.3.2",
+    "blosc2==2.7.1",
+    "certifi==2024.12.14",
+    "cffi==1.17.1",
+    "charset-normalizer==3.4.1",
+    "colorama==0.4.6; platform_system == \"Windows\"",
+    "contourpy==1.3.1",
+    "cryptography==44.0.0",
+    "cycler==0.12.1",
+    "decorator==5.1.1",
+    "elementpath==4.7.0",
+    "et-xmlfile==2.0.0",
+    "ffpyplayer==4.5.2",
+    "fonttools==4.55.3",
+    "freetype-py==2.5.1",
+    "future==1.0.0",
+    "gevent==24.11.1",
+    "greenlet==3.1.1",
+    "idna==3.10",
+    "imageio==2.36.1",
+    "imageio-ffmpeg==0.5.1",
+    "jedi==0.19.2",
+    "json-tricks==3.17.3",
+    "kiwisolver==1.4.8",
     "markdown-it-py==3.0.0",
-    "matplotlib==3.4.3",
+    "matplotlib==3.10.0",
     "mdurl==0.1.2",
-    "msgpack==1.0.2",
-    "msgpack-numpy==0.4.7.1",
-    "numexpr==2.7.3",
-    "numpy==1.24.4",
-    "opencv-python==4.9.0.80",
-    "openpyxl==3.1.2",
-    "packaging==21.2",
-    "pandas==2.0.2",
-    "parso==0.8.2",
-    "pillow==10.3.0",
-    "psutil==5.8.0",
-    "psychtoolbox==3.0.19.0",
+    "moviepy==2.1.2",
+    "msgpack==1.1.0",
+    "msgpack-numpy==0.4.8",
+    "ndindex==1.9.2",
+    "numexpr==2.10.2",
+    "numpy==1.26.4",
+    "opencv-python==4.10.0.84",
+    "openpyxl==3.1.5",
+    "packaging==24.2",
+    "pandas==2.3.0",
+    "parso==0.8.4",
+    "pillow==10.4.0",
+    "proglog==0.1.10",
+    "psutil==6.1.1",
+    "psychtoolbox==3.0.19.14",
     "py-cpuinfo==9.0.0",
-    "pycparser==2.21",
-    "pyglet==1.5.21",
+    "pycparser==2.22",
+    "pyglet==1.5.27",
     "pyparallel==0.2.2; platform_system == \"Windows\"",
-    "pyparsing==2.4.7",
+    "pyparsing==3.2.1",
     "pypiwin32==223; platform_system == \"Windows\"",
-    "pyqt6==6.7.0",
-    "pyqt6-qt6==6.7.1",
-    "pyqt6-sip==13.6.0",
+    "pyqt6==6.8.0",
+    "pyqt6-qt6==6.8.1",
+    "pyqt6-sip==13.9.1",
     "pyserial==3.5",
-    "python-bidi==0.4.2",
-    "python-dateutil==2.8.2",
-    "pytz==2021.3",
-    "pywin32==302; platform_system == \"Windows\"",
+    "python-bidi==0.6.3",
+    "python-dateutil==2.9.0.post0",
+    "python-dotenv==1.0.1; platform_system == \"Windows\"",
+    "pytz==2025.2",
+    "pywin32==308; platform_system == \"Windows\"",
     "pywinhook==1.6.2; platform_system == \"Windows\"",
-    "pyyaml==6.0.1",
-    "pyzmq==22.3.0",
+    "pyyaml==6.0.2",
+    "pyzmq==26.2.0",
     "questplus==2023.1",
-    "requests==2.26.0",
-    "scipy==1.10.1",
-    "setuptools==66.1.1",
-    "six==1.16.0",
-    "soundfile==0.12.1",
-    "tables==3.8.0",
-    "tzdata==2024.1",
-    "ujson==4.2.0",
-    "urllib3==1.26.7",
-    "websockets==12.0",
-    "wheel==0.43.0",
-    "xarray==0.20.1",
-    "xmlschema==3.3.1",
-    "zipp==3.19.1",
+    "requests==2.32.3",
+    "scipy==1.15.1",
+    "setuptools==70.3.0",
+    "six==1.17.0",
+    "soundfile==0.13.0",
+    "tables==3.10.1",
+    "tqdm==4.67.1",
+    "typing-extensions==4.12.2",
+    "tzdata==2025.2",
+    "ujson==5.10.0",
+    "urllib3==2.3.0",
+    "websockets==14.1",
+    "wheel==0.45.1",
+    "xarray==2025.1.1",
+    "xmlschema==3.4.3",
     "zope-event==5.0",
-    "zope-interface==6.4.post2",
-    "async-timeout==4.0.3; platform_system == \"Darwin\"",
+    "zope-interface==7.2",
+    "async-timeout==5.0.1; platform_system == \"Darwin\"",
     "ifaddr==0.2.0; platform_system == \"Darwin\"",
     "pyobjc==7.3; platform_system == \"Darwin\"",
     "pyobjc-core==7.3; platform_system == \"Darwin\"",
@@ -224,7 +228,7 @@ dependencies = [
     "pyobjc-framework-virtualization==7.3; platform_system == \"Darwin\"",
     "pyobjc-framework-vision==7.3; platform_system == \"Darwin\"",
     "pyobjc-framework-webkit==7.3; platform_system == \"Darwin\"",
-    "zeroconf==0.132.2; platform_system == \"Darwin\""
+    "zeroconf==0.139.0; platform_system == \"Darwin\""
 ]
 
 [project.optional-dependencies]  # This is optional dependencies
@@ -242,21 +246,19 @@ building = [
     "dmgbuild; platform_system == \"Darwin\"",
 ]
 suggested = [
+    "sounddevice",
     "pylsl>=1.16.1", # lab streaming layer for general connectivity
     "xlwt",  # writing excel files with pandas
     "h5py",  # to read hdf5 files for analysis
-    "google-api-python-client",
-    "pygaze>=1.1.2",
     "tobii_research",
     "badapted>=0.0.3",
-    "egi-pynetstation>=0.0.0rc1",
+    "egi-pynetstation>=1.0.0",
     "pyxid2>=1.0.5",
     "Phidget22",
 ]
 legacy = [
     "pyo>=1.0.3",
     "pyglfw",
-    "moviepy",
     "pygame",
 ]
 
@@ -264,14 +266,13 @@ legacy = [
 Homepage = "https://www.psychopy.org/"
 Download = "https://github.com/psychopy/psychopy/releases/"
 
-[project.gui-scripts]
-psychopy = "psychopy.app.psychopyApp:main"
-
 [build-system]
 requires = [
     "pdm-backend",
     "distro; platform_system == \"Linux\"",
     "tomlkit",
+    "packaging",
+    "six",  # for configobj
     ]
 build-backend = "pdm.backend"
 
@@ -279,6 +280,10 @@ build-backend = "pdm.backend"
 includes = []
 excludes = ["building/"]
 #source-includes = ["tests/"]
+
+[tool.pdm.version]
+source = "call"
+getter = "psychopy.__init__:getVersion"
 
 [tool.distutils.bdist_wheel]
 universal = 1

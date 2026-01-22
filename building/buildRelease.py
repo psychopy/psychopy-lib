@@ -12,7 +12,6 @@
 """
 import os, sys, shutil, subprocess
 from os.path import join
-from createInitFile import createInitFile
 from pathlib import Path
 
 # MAIN is the root of the psychopy repo
@@ -47,8 +46,6 @@ def getSHA(cwd='.'):
 
 
 def buildRelease(versionStr, noCommit=False, interactive=True):
-    #
-    createInitFile(dist='sdist', version=versionStr, sha=getSHA())
     dest = VERSIONS / "psychopy"
     shutil.rmtree(dest)
     ignores = shutil.ignore_patterns("demos", "docs", "tests", "pylink",
@@ -96,12 +93,6 @@ def buildRelease(versionStr, noCommit=False, interactive=True):
     output = subprocess.check_output(["git", "push", "origin", "%s" % versionStr],
                          cwd=VERSIONS)
     print(output)
-
-    # revert the __init__ file to non-ditribution state
-    print('reverting the main master branch: git checkout HEAD psychopy/__init__.py ')
-    print(subprocess.check_output(
-         ["git", "checkout", "HEAD", "psychopy/__init__.py"],
-         cwd=MAIN))
     return True  # success
 
 

@@ -23,7 +23,7 @@ import time
 import sys
 from datetime import datetime
 
-from pkg_resources import parse_version
+from packaging.version import Version
 
 try:
     import pyglet
@@ -332,14 +332,18 @@ class Clock(MonotonicClock):
         self._epochTimeAtLastReset -= t
 
     def add(self, t):
-        """DEPRECATED: use .addTime() instead
+        """
+        DEPRECATED: use .addTime() instead
 
         This function adds time TO THE BASE (t0) which, counterintuitively,
         reduces the apparent time on the clock
         """
-        logging.warning("DEPRECATED: Clock.add() is deprecated in favor of .addTime() due to "
-                        "the counterintuitive design (it added time to the baseline, which "
-                        "reduced the values returned from getTime()")
+        psychopy.logging.log(msg=(
+            "Clock.add() is deprecated in favor of .addTime() due to the counterintuitive design "
+            "(it added time to the baseline, which reduced the values returned from getTime() )"
+            ),
+            level=psychopy.logging.DEPRECATION
+        )
         self._timeAtLastReset += t
         self._epochTimeAtLastReset += t
 
@@ -507,7 +511,7 @@ def _dispatchWindowEvents():
     # let's see if pyglet collected any event in meantime
     try:
         # this takes focus away from command line terminal window:
-        if parse_version(pyglet.version) < parse_version('1.2'):
+        if Version(pyglet.version) < Version('1.2'):
             # events for sounds/video should run independently of wait()
             pyglet.media.dispatch_events()
     except AttributeError:
