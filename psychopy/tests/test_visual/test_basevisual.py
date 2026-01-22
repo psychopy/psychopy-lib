@@ -1,12 +1,38 @@
 import json
-from pathlib import Path
-
 import pytest
-from psychopy import visual, layout, event
-from psychopy import colors
-from psychopy.monitors import Monitor
+import importlib
 from copy import copy
+from pathlib import Path
+from psychopy import visual, layout, event, colors
+from psychopy.tools.stimulustools import serialize, actualize
+from psychopy.monitors import Monitor
 from psychopy.tests import utils
+
+
+class _TestSerializationMixin:
+    """
+    Tests that stimuli can be serialized and recreated from serialized form.
+    """
+    # placeholders for object and window
+    obj = None
+    win = None
+
+    def test_serialization(self):
+        # skip if we don't have an object
+        if self.obj is None or self.win is None:
+            pytest.skip()
+        # start by flipping the window
+        self.win.flip()
+        # serialize object
+        params = serialize(self.obj, includeClass=True)
+        # substitute win
+        params['win'] = self.win
+        # recreate object from params
+        dupe = actualize(params)
+        # check object is same class
+        assert isinstance(dupe, type(self.obj))
+        # delete duplicate
+        del dupe
 
 
 class _TestColorMixin:
@@ -61,6 +87,10 @@ class _TestColorMixin:
         # If this test object has no obj, skip
         if not self.obj:
             return
+        
+        if hasattr(self, 'resetObj'):
+            self.resetObj()  # reset the stimulus object before this test
+        
         # Test each case
         for case in self.colorTykes + self.colorExemplars:
             for space, color in case.items():
@@ -478,7 +508,7 @@ class _TestUnitsMixin:
                     obj.win = win
                     obj.units = objunits
                     # Add a label for the units
-                    label = visual.TextBox2(win, text=f"Window: {winunits}, Slider: {objunits}", font="Open Sans",
+                    label = visual.TextBox2(win, text=f"Window: {winunits}, Slider: {objunits}", font="Noto Sans",
                                             anchor="top-center", alignment="center top", padding=0.05, units="norm",
                                             pos=(0, 1))
                     # Add instructions
@@ -486,7 +516,7 @@ class _TestUnitsMixin:
                                             text=(
                                                 f"Press ENTER if object is functioning as intended, otherwise press "
                                                 f"any other key."
-                                            ), font="Open Sans", anchor="top-center", alignment="center bottom",
+                                            ), font="Noto Sans", anchor="top-center", alignment="center bottom",
                                             padding=0.05, units="norm", pos=(0, -1))
                     # Draw loop until button is pressed
                     keys = []

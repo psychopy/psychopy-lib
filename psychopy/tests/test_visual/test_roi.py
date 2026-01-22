@@ -1,11 +1,14 @@
 import numpy as np
+import pytest
 
-from .test_basevisual import _TestUnitsMixin
+from psychopy.tests import utils
+
+from .test_basevisual import _TestUnitsMixin, _TestSerializationMixin
 from psychopy.tests.test_experiment.test_component_compile_python import _TestBoilerplateMixin
 from psychopy import visual, core
 
 
-class TestROI(_TestUnitsMixin, _TestBoilerplateMixin):
+class TestROI(_TestUnitsMixin, _TestBoilerplateMixin, _TestSerializationMixin):
 
     def setup_method(self):
         self.win = visual.Window([128,128], pos=[50,50], units="pix", allowGUI=False, autoLog=False)
@@ -57,6 +60,9 @@ class TestROI(_TestUnitsMixin, _TestBoilerplateMixin):
         assert not self.obj.isLookedIn, f"ROI returning True for isLookedIn when not looked at."
 
     def test_look_at_away(self):
+        # skip speed tests under vm
+        if utils.RUNNING_IN_VM:
+            pytest.skip()
         # Define some look times to simulate
         looks = np.array([
             [0.1, 0.2],

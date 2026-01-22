@@ -1,4 +1,3 @@
-
 #########################################
 # Editor temporary/working/backup files #
 .#*
@@ -108,9 +107,14 @@ gource_psychopy.mkv
 *.hdf5
 *.7z
 
+# NSIS temp compilation files #
+###############################
+uninstallFiles.nsi
+
 # Documentation generated files #
 #################################
 .coverage
 #nonSphinx
 /venv*/
+/.venv*/
 !psychopy

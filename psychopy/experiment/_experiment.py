@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2024 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2025 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """Experiment classes:
@@ -146,6 +146,9 @@ class Experiment:
         self.requireImport(importName='keyboard',
                            importFrom='psychopy.hardware')
 
+        # what online resources are needed? (PsychoJS only)
+        self.requiredResources = []
+
         _settingsComp = getComponents(fetchIcons=False)['SettingsComponent']
         self.settings = _settingsComp(parentName='', exp=self)
         # this will be the xml.dom.minidom.doc object for saving
@@ -172,6 +175,27 @@ class Experiment:
         else:
             # if neither, it's not the same
             return False
+    
+    def requireOnlineResource(self, url, name=None):
+        """
+        Add a link to an online resource to be loaded at experiment start in PsychoJS.
+
+        Parameters
+        ----------
+        url : str
+            Link to the necessary resource
+        name : str
+            Name with which to refer to the resource later in the experiment. Leave as None to use 
+            the url as its name.
+        """
+        # use url for name if none given
+        if name is None:
+            name = url
+        # add resource
+        self.requiredResources.append({
+            'name': name,
+            'rel': url,
+        })
 
     def requirePsychopyLibs(self, libs=()):
         """Add a list of top-level psychopy libs that the experiment
@@ -720,9 +744,10 @@ class Experiment:
                         # don't warn people if we know it's OK (e.g. for params
                         # that have been removed
                         pass
-                    elif componentNode is not None and componentNode.get("plugin") not in ("None", None):
-                        # don't warn people if comp/routine is from a plugin
-                        pass
+                    elif componentNode is not None and componentNode.get("plugin", False) not in (False, "", "None", None):
+                        # is param unrecognised because it's from a plugin?
+                        params[name].categ = "Plugin"
+                        params[name].plugin = componentNode.get("plugin", False)
                     elif paramNode.get('plugin', False):
                         # load plugin name if param is from a plugin
                         params[name].plugin = paramNode.get('plugin')
@@ -1173,10 +1198,6 @@ class Experiment:
             else:
                 thisFile['rel'] = filePath
                 thisFile['abs'] = os.path.normpath(join(srcRoot, filePath))
-                if "/" in filePath:
-                    thisFile['name'] = filePath.split("/")[-1]
-                else:
-                    thisFile['name'] = filePath
                 if len(thisFile['abs']) <= 256 and os.path.isfile(thisFile['abs']):
                     return thisFile
 
@@ -1333,7 +1354,7 @@ class Experiment:
                 chosenResources.append(thisFile)
 
         # Check for any resources not in experiment path
-        resources = loopResources + compResources + chosenResources
+        resources = loopResources + compResources + chosenResources + self.requiredResources
         resources = [res for res in resources if res is not None]
         for res in resources:
             if res in list(ft.defaultStim):

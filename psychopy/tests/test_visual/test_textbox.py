@@ -3,8 +3,9 @@ from pathlib import Path
 import numpy as np
 
 from psychopy import layout
+from psychopy.alerts import addAlertHandler
 from psychopy.alerts._errorHandler import _BaseErrorHandler
-from psychopy.tests.test_visual.test_basevisual import _TestColorMixin, _TestUnitsMixin
+from psychopy.tests.test_visual.test_basevisual import _TestColorMixin, _TestUnitsMixin, _TestSerializationMixin
 from psychopy.tests.test_experiment.test_component_compile_python import _TestBoilerplateMixin
 from psychopy.visual import Window
 from psychopy.visual import TextBox2
@@ -17,10 +18,11 @@ from psychopy.tests import utils
 
 
 @pytest.mark.textbox
-class Test_textbox(_TestColorMixin, _TestUnitsMixin, _TestBoilerplateMixin):
+class Test_textbox(_TestColorMixin, _TestUnitsMixin, _TestBoilerplateMixin, _TestSerializationMixin):
     def setup_method(self):
         self.win = Window((128, 128), pos=(50, 50), monitor="testMonitor", allowGUI=False, autoLog=False)
         self.error = _BaseErrorHandler()
+        addAlertHandler(self.error)
         self.textbox = TextBox2(self.win,
                                 "A PsychoPy zealot knows a smidge of wx, but JavaScript is the question.",
                                 placeholder="Placeholder text",
@@ -331,7 +333,7 @@ class Test_textbox(_TestColorMixin, _TestUnitsMixin, _TestBoilerplateMixin):
             # },  # https://discourse.psychopy.org/t/textbox2-crashes-when-korean-input-exceed-certain-length/22717/6
             {
                 "text": "i need a word which will go off the page, antidisestablishmentarianism is a very long word",
-                "font": "Open Sans",
+                "font": "Noto Sans",
                 "screenshot": "textbox_typing_longWord.png"
             },  # Check that lines wrap correctly when there's a very long word, rather than as described in https://github.com/psychopy/psychopy/issues/3892
         ]
@@ -468,10 +470,6 @@ class Test_textbox(_TestColorMixin, _TestUnitsMixin, _TestBoilerplateMixin):
             utils.compareScreenshot(filename, self.win, crit=8)
 
         self.obj.speechPoint = None
-            
-    def test_alerts(self):
-        noFontTextbox = TextBox2(self.win, "", font="Raleway Dots", bold=True)
-        assert (self.error.alerts[0].code == 4325)
 
     def test_letter_spacing(self):
         cases = (0.6, 0.8, 1, None, 1.2, 1.4, 1.6, 1.8, 2.0)
@@ -493,7 +491,7 @@ def test_font_manager():
         # Create a font manager
         mgr = FontManager()
         # Check that it finds fonts which should be pre-packaged with PsychoPy in the resources folder
-        assert bool(mgr.getFontNamesSimilar("Open Sans"))
+        assert bool(mgr.getFontNamesSimilar("Noto Sans"))
         # Check that it doesn't find fonts which aren't installed as default
         assert not bool(mgr.getFontNamesSimilar("Dancing Script"))
         # Check that it can install fonts from Google
