@@ -1,3 +1,6 @@
+import subprocess
+from pathlib import Path
+
 import wx
 
 from psychopy import prefs
@@ -72,12 +75,14 @@ class EnvironmentManagerDlg(wx.Dialog):
         """
         cmd = [sys.executable, "-m", "pip", "index", "versions", packageName,
                '--no-input', '--no-color']
+        env = os.environ.copy()
         # run command in subprocess
         output = sp.Popen(
             cmd,
             stdout=sp.PIPE,
             stderr=sp.PIPE,
             shell=False,
+            env=env,
             universal_newlines=True)
         stdout, stderr = output.communicate()  # blocks until process exits
         nullVersion = {'All': [], 'Installed': '', 'Latest': ''}
@@ -163,6 +168,7 @@ class EnvironmentManagerDlg(wx.Dialog):
 
         # interpreter path
         pyExec = sys.executable
+        env = os.environ.copy()
 
         # build the shell command to run the script
         command = [pyExec, '-m', 'pip', 'uninstall', packageName, '--yes']
@@ -178,7 +184,7 @@ class EnvironmentManagerDlg(wx.Dialog):
             errorCallback=self.output.writeStdErr,
             terminateCallback=self.output.writeTerminus
         )
-        self.pipProcess.start()
+        self.pipProcess.start(env=env)
 
     def installPackage(self, packageName, version=None, extra=None):
         """Install a package.
@@ -219,25 +225,31 @@ class EnvironmentManagerDlg(wx.Dialog):
 
         # interpreter path
         pyExec = sys.executable
+        # environment
+        env = os.environ.copy()
+        # if given a pyproject.toml file, do editable install of parent folder
+        if str(packageName).endswith("pyproject.toml"):
+            if sys.platform != "darwin":
+                # on systems which allow it, do an editable install
+                packageName = f'-e "{os.path.dirname(packageName)}"'
+            else:
+                # on Mac, build a wheel
+                subprocess.call(
+                    [pyExec, '-m', 'build'],
+                    cwd=Path(packageName).parent,
+                    env=env
+                )
+                # get wheel path
+                packageName = [
+                    whl for whl in Path(packageName).parent.glob("**/*.whl")][0]
 
-        # determine installation path for bundle, create it if needed
-        bundlePath = plugins.getBundleInstallTarget(packageName)
-        if not os.path.exists(bundlePath):
-            self.output.writeStdOut(
-                "Creating bundle path `{}` for package `{}`.".format(
-                    bundlePath, packageName))
-            os.mkdir(bundlePath)  # make the directory
-        else:
-            self.output.writeStdOut(
-                "Using existing bundle path `{}` for package `{}`.".format(
-                    bundlePath, packageName))
-
-        # add the bundle to path, refresh makes it discoverable after install
-        if bundlePath not in sys.path:
-            sys.path.insert(0, bundlePath)
-
+        # On MacOS, we need to install to target instead of user since py2app
+        # doesn't support user installs correctly, this is a workaround for that
+        env = os.environ.copy()
         # build the shell command to run the script
-        command = [pyExec, '-m', 'pip', 'install', packageName, '--target', bundlePath]
+        command = [pyExec, '-m', 'pip', 'install', str(packageName), 
+                    '--user', '--prefer-binary']
+            
         # write command to output panel
         self.output.writeCmd(" ".join(command))
         # append own name to extra
@@ -257,7 +269,7 @@ class EnvironmentManagerDlg(wx.Dialog):
             terminateCallback=self.onInstallExit,
             extra=extra
         )
-        self.pipProcess.start()
+        self.pipProcess.start(env=env)
 
     def installPlugin(self, pluginInfo, version=None):
         """Install a package.
