@@ -9,6 +9,7 @@
 
 import wx
 import wx.xrc
+from psychopy.localization import _translate
 
 ###########################################################################
 ## Class ColorPickerDialog
@@ -17,7 +18,7 @@ import wx.xrc
 class ColorPickerDialog ( wx.Dialog ):
 
 	def __init__( self, parent ):
-		wx.Dialog.__init__ ( self, parent, id = wx.ID_ANY, title = u"Color Picker", pos = wx.DefaultPosition, size = wx.Size( 640,480 ), style = wx.DEFAULT_DIALOG_STYLE )
+		wx.Dialog.__init__ ( self, parent, id = wx.ID_ANY, title = "Color Picker", pos = wx.DefaultPosition, size = wx.Size( 640,480 ), style = wx.DEFAULT_DIALOG_STYLE )
 
 		self.SetSizeHints( wx.Size( -1,-1 ), wx.DefaultSize )
 
@@ -36,7 +37,7 @@ class ColorPickerDialog ( wx.Dialog ):
 		self.pnlRGBPage = wx.Panel( self.nbColorSelector, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
 		szrRGBPage = wx.BoxSizer( wx.VERTICAL )
 
-		fraRGBChannels = wx.StaticBoxSizer( wx.StaticBox( self.pnlRGBPage, wx.ID_ANY, u" RGB Channels " ), wx.VERTICAL )
+		fraRGBChannels = wx.StaticBoxSizer( wx.StaticBox( self.pnlRGBPage, wx.ID_ANY, _translate(" RGB Channels ") ), wx.VERTICAL )
 
 		szrRGBChannels = wx.FlexGridSizer( 3, 3, 5, 10 )
 		szrRGBChannels.AddGrowableCol( 1 )
@@ -87,7 +88,7 @@ class ColorPickerDialog ( wx.Dialog ):
 
 		szrLowerRGBPage = wx.BoxSizer( wx.HORIZONTAL )
 
-		fraHexRGB = wx.StaticBoxSizer( wx.StaticBox( self.pnlRGBPage, wx.ID_ANY, u"Hex/HTML" ), wx.VERTICAL )
+		fraHexRGB = wx.StaticBoxSizer( wx.StaticBox( self.pnlRGBPage, wx.ID_ANY, _translate("Hex/HTML") ), wx.VERTICAL )
 
 		self.txtHexRGB = wx.TextCtrl( fraHexRGB.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
 		fraHexRGB.Add( self.txtHexRGB, 0, wx.ALL|wx.EXPAND, 5 )
@@ -95,7 +96,7 @@ class ColorPickerDialog ( wx.Dialog ):
 
 		szrLowerRGBPage.Add( fraHexRGB, 1, wx.ALL, 5 )
 
-		fraRGBFormat = wx.StaticBoxSizer( wx.StaticBox( self.pnlRGBPage, wx.ID_ANY, u"RGB Format" ), wx.VERTICAL )
+		fraRGBFormat = wx.StaticBoxSizer( wx.StaticBox( self.pnlRGBPage, wx.ID_ANY, _translate("RGB Format") ), wx.VERTICAL )
 
 		self.rdoRGBModePsychoPy = wx.RadioButton( fraRGBFormat.GetStaticBox(), wx.ID_ANY, u"PsychoPy RGB [-1:1]", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.rdoRGBModePsychoPy.SetValue( True )
@@ -121,7 +122,7 @@ class ColorPickerDialog ( wx.Dialog ):
 		self.pnlHSVPage = wx.Panel( self.nbColorSelector, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
 		szrHSVPage = wx.BoxSizer( wx.VERTICAL )
 
-		fraHSVChannels = wx.StaticBoxSizer( wx.StaticBox( self.pnlHSVPage, wx.ID_ANY, u" HSV Channels " ), wx.VERTICAL )
+		fraHSVChannels = wx.StaticBoxSizer( wx.StaticBox( self.pnlHSVPage, wx.ID_ANY, _translate(" HSV Channels ") ), wx.VERTICAL )
 
 		szrHSVChannels = wx.FlexGridSizer( 3, 3, 5, 10 )
 		szrHSVChannels.AddGrowableCol( 1 )
@@ -190,45 +191,36 @@ class ColorPickerDialog ( wx.Dialog ):
 		szrColorSelector.Fit( self.pnlColorSelector )
 		szrMain.Add( self.pnlColorSelector, 1, wx.EXPAND, 0 )
 
-		self.stlMain = wx.StaticLine( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.LI_HORIZONTAL )
-		szrMain.Add( self.stlMain, 0, wx.EXPAND |wx.ALL, 5 )
+		# Output space chooser
+		self.pnlOutputSelector = wx.Panel(self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
+		szrOutputSelector = wx.BoxSizer(wx.HORIZONTAL)
+		szrOutputSelector.AddStretchSpacer(1)
 
-		self.pnlDlgButtons = wx.Panel( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
-		szrDlgButtons = wx.FlexGridSizer( 0, 6, 0, 0 )
-		szrDlgButtons.AddGrowableCol( 1 )
-		szrDlgButtons.AddGrowableCol( 2 )
-		szrDlgButtons.SetFlexibleDirection( wx.BOTH )
-		szrDlgButtons.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
-
-		self.lblOutputSpace = wx.StaticText( self.pnlDlgButtons, wx.ID_ANY, u"Output Space:", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.lblOutputSpace = wx.StaticText( self.pnlOutputSelector, wx.ID_ANY, _translate("Output Space:"), wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.lblOutputSpace.Wrap( -1 )
+		szrOutputSelector.Add( self.lblOutputSpace, 0, wx.ALIGN_CENTER_VERTICAL|wx.BOTTOM|wx.LEFT|wx.TOP, 0 )
 
-		szrDlgButtons.Add( self.lblOutputSpace, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_RIGHT|wx.BOTTOM|wx.LEFT|wx.TOP, 0 )
+		cboOutputSpaceChoices = [u"PsychoPy RGB (rgb)"]
+		self.cboOutputSpace = wx.Choice(self.pnlOutputSelector, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize,
+										cboOutputSpaceChoices, 0)
+		self.cboOutputSpace.SetSelection(0)
+		szrOutputSelector.Add(self.cboOutputSpace, 0, wx.ALL | wx.EXPAND, 5)
 
-		cboOutputSpaceChoices = [ u"PsychoPy RGB (rgb)" ]
-		self.cboOutputSpace = wx.Choice( self.pnlDlgButtons, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, cboOutputSpaceChoices, 0 )
-		self.cboOutputSpace.SetSelection( 0 )
-		szrDlgButtons.Add( self.cboOutputSpace, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL|wx.EXPAND, 5 )
+		self.cmdCopy = wx.Button( self.pnlOutputSelector, wx.ID_ANY, _translate("Copy"), wx.DefaultPosition, wx.DefaultSize, 0 )
+		szrOutputSelector.Add( self.cmdCopy, 0, wx.BOTTOM|wx.LEFT|wx.TOP, 5 )
 
+		self.cmdInsert = wx.Button( self.pnlOutputSelector, wx.ID_ANY, _translate("Insert"), wx.DefaultPosition, wx.DefaultSize, 0 )
+		szrOutputSelector.Add( self.cmdInsert, 0, wx.ALL, 5 )
 
-		szrDlgButtons.Add( ( 0, 0), 1, wx.EXPAND, 0 )
+		self.pnlOutputSelector.SetSizer(szrOutputSelector)
+		szrMain.Add(self.pnlOutputSelector, 0, wx.ALL | wx.EXPAND, 5)
 
-		self.cmdCancel = wx.Button( self.pnlDlgButtons, wx.ID_ANY, u"Cancel", wx.DefaultPosition, wx.DefaultSize, 0 )
-		szrDlgButtons.Add( self.cmdCancel, 0, wx.BOTTOM|wx.LEFT|wx.TOP, 5 )
+		# Dialog buttons
+		szrDlgButtons = self.CreateStdDialogButtonSizer(flags=wx.CANCEL)
+		#self.cmdCancel = szrDlgButtons.AddButton(wx.ID_CANCEL)
+		szrMain.Add( szrDlgButtons, 0, wx.ALL|wx.EXPAND, 5 )
 
-		self.cmdCopy = wx.Button( self.pnlDlgButtons, wx.ID_ANY, u"Copy", wx.DefaultPosition, wx.DefaultSize, 0 )
-		szrDlgButtons.Add( self.cmdCopy, 0, wx.BOTTOM|wx.LEFT|wx.TOP, 5 )
-
-		self.cmdInsert = wx.Button( self.pnlDlgButtons, wx.ID_ANY, u"Insert", wx.DefaultPosition, wx.DefaultSize, 0 )
-		szrDlgButtons.Add( self.cmdInsert, 0, wx.ALL, 5 )
-
-
-		self.pnlDlgButtons.SetSizer( szrDlgButtons )
-		self.pnlDlgButtons.Layout()
-		szrDlgButtons.Fit( self.pnlDlgButtons )
-		szrMain.Add( self.pnlDlgButtons, 0, wx.ALL|wx.EXPAND, 5 )
-
-
+		# Layout
 		self.SetSizer( szrMain )
 		self.Layout()
 
@@ -259,7 +251,6 @@ class ColorPickerDialog ( wx.Dialog ):
 		self.spnValueChannel.Bind( wx.EVT_SPINCTRLDOUBLE, self.OnValueSpin )
 		self.spnValueChannel.Bind( wx.EVT_TEXT_ENTER, self.OnValueTextEnter )
 		self.lstColorPresets.Bind( wx.EVT_LISTBOX, self.OnPresetSelect )
-		self.cmdCancel.Bind( wx.EVT_BUTTON, self.OnCancel )
 		self.cmdCopy.Bind( wx.EVT_BUTTON, self.OnCopy )
 		self.cmdInsert.Bind( wx.EVT_BUTTON, self.OnInsert )
 

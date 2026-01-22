@@ -11,7 +11,7 @@ from os import path
 from psychopy import logging
 from psychopy.constants import (STARTED, PLAYING, PAUSED, FINISHED, STOPPED,
                                 NOT_STARTED, FOREVER)
-from psychopy.tools.filetools import pathToString
+from psychopy.tools.filetools import pathToString, defaultStim, defaultStimRoot
 from sys import platform
 from .audioclip import AudioClip
 
@@ -164,6 +164,9 @@ class _SoundBase():
         # Re-init sound to ensure bad values will raise error during setting:
         self._snd = None
 
+        if isinstance(value, str) and value in defaultStim:
+            value = defaultStimRoot / defaultStim[value]
+
         # Coerces pathlib obj to string, else returns inputted value
         value = pathToString(value)
         try:
@@ -203,8 +206,8 @@ class _SoundBase():
             self._setSndFromArray(numpy.array(value))
         elif isinstance(value, AudioClip):
             # from an audio clip object
-            self._setSndFromArray(value.samples)
             self.sampleRate = value.sampleRateHz
+            self._setSndFromArray(value.samples)
         # did we succeed?
         if self._snd is None:
             pass  # raise ValueError, "Could not make a "+value+" sound"

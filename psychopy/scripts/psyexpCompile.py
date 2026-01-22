@@ -9,7 +9,6 @@ import io
 import sys
 import os
 import argparse
-from copy import deepcopy
 from subprocess import PIPE, Popen
 
 from psychopy import __version__
@@ -67,6 +66,13 @@ def generateScript(experimentPath, exp, target="PsychoPy"):
         stdout, stderr = output.communicate()
         sys.stdout.write(stdout)
         sys.stderr.write(stderr)
+
+        # we got a non-zero error code, raise an error
+        if output.returncode != 0:
+            raise ChildProcessError(
+                'Error: process exited with code {}, check log for '
+                'output.'.format(output.returncode))
+
     else:
         compileScript(infile=exp, version=None, outfile=filename)
 
@@ -140,43 +146,6 @@ def compileScript(infile=None, version=None, outfile=None):
 
         return thisExp
 
-    def _removeDisabledComponents(exp):
-        """
-        Drop disabled components, if any.
-
-        Parameters
-        ---------
-        exp : psychopy.experiment.Experiment
-            The experiment from which to remove all components that have been
-            marked `disabled`.
-
-        Returns
-        -------
-        exp : psychopy.experiment.Experiment
-            The experiment with the disabled components removed.
-
-        Notes
-        -----
-        This function leaves the original experiment unchanged as it always
-        only works on (and returns) a copy.
-        """
-        # Leave original experiment unchanged.
-        exp = deepcopy(exp)
-        for key, routine in list(exp.routines.items()):  # PY2/3 compat
-            if routine.type == 'StandaloneRoutine':
-                if routine.params['disabled']:
-                    for node in exp.flow:
-                        if node == routine:
-                            exp.flow.removeComponent(node)
-            else:
-                for component in routine:
-                    try:
-                        if component.params['disabled']:
-                            routine.removeComponent(component)
-                    except KeyError:
-                        pass
-        return exp
-
     def _setTarget(outfile):
         """
         Set target for compiling i.e., Python or JavaScript.
@@ -240,7 +209,6 @@ def compileScript(infile=None, version=None, outfile=None):
     ###### Write script #####
     version = _setVersion(version)
     thisExp = _getExperiment(infile, version)
-    thisExp = _removeDisabledComponents(thisExp)
     targetOutput = _setTarget(outfile)
     _makeTarget(thisExp, outfile, targetOutput)
 
