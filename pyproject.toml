@@ -78,7 +78,7 @@ dependencies = [
     "packaging>=24.0",
     "moviepy",
     "pyarrow",
-    "setuptools>=80.10.1",
+    "setuptools>=80.10.2",
 ]
 
 [project.optional-dependencies]  # This is optional dependencies
