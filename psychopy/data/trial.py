@@ -852,19 +852,16 @@ class TrialHandler2(_BaseTrialHandler):
     Then you'll find that `dat` has the following attributes that
     """
 
-    def __init__(
-        self,
-        trialList,
-        nReps,
-        method='random',
-        dataTypes=None,
-        extraInfo=None,
-        seed=None,
-        originPath=None,
-        isTrials=True,
-        name='',
-        autoLog=True
-    ):
+    def __init__(self,
+                 trialList,
+                 nReps,
+                 method='random',
+                 dataTypes=None,
+                 extraInfo=None,
+                 seed=None,
+                 originPath=None,
+                 name='',
+                 autoLog=True):
         """
 
         :Parameters:
@@ -932,14 +929,10 @@ class TrialHandler2(_BaseTrialHandler):
 
             .origin - the contents of the script or builder experiment that
                 created the handler
-            
-            .isTrials - is this controlling trials, or created for another purpose (e.g. iterating a 
-                stimulus within a trial)?
 
         """
         self.name = name
         self.autoLog = autoLog
-        self.isTrials = isTrials
 
         if trialList in [None, [None], []]:  # user wants an empty trialList
             # which corresponds to a list with a single empty entry
@@ -1291,9 +1284,8 @@ class TrialHandler2(_BaseTrialHandler):
             # advance row in data file
             if self.getExp() is not None:
                 self.getExp().nextEntry()
-        # mark as recently skipped so the next iteration (if there is one) is cancelled
-        if n or len(self.upcomingTrials):
-            self._cancelNextIteration = True
+        # mark as recently skipped so the next iteration is cancelled
+        self._cancelNextIteration = True
 
         return self.thisTrial   
 
@@ -1336,29 +1328,6 @@ class TrialHandler2(_BaseTrialHandler):
         self._cancelNextIteration = True
 
         return self.thisTrial
-
-    def cueTrial(self, trial):
-        """
-        Queue up a trial to be next in the trial order.
-
-        Parameters
-        ----------
-        trial : int, dict or Trial
-            Trial or index to queue up
-        isTrials : bool
-            Filter for only loops which have isTrials checked
-        """
-        # if given an integer, assume they're wanting to replay an elapsed trial
-        if isinstance(trial, int):
-            if trial < len(self.elapsedTrials):
-                trial = self.elapsedTrials[trial]
-            else:
-                raise IndexError(f"Cannot replay trial {trial} as fewer than {trial} trials have elapsed.")
-        # if given a dict, create a Trial from it
-        if isinstance(trial, dict):
-            trial = Trial(self, **trial)
-        # set the given trial to be the first upcoming trial
-        self.upcomingTrials.prepend(trial)
     
     def getCurrentTrial(self):
         """
@@ -1485,7 +1454,7 @@ class TrialHandler2(_BaseTrialHandler):
                 thisLine.append(heading)
 
         # loop through stimuli, writing data
-        for stimN in range(len(self.elapsedTrials)):
+        for stimN in range(len(self.trialList)):
             thisLine = []
             lines.append(thisLine)
             # first the params for this stim (from self.trialList)

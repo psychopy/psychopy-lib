@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # Part of the PsychoPy library
 # Copyright (C) 2012-2020 iSolver Software Solutions (C) 2021 Open Science Tools Ltd.
-# Distributed under the terms of the MIT License.
+# Distributed under the terms of the GNU General Public License (GPL).
 import importlib
 import socket
 import os
@@ -490,8 +490,7 @@ def validateDeviceConfiguration(
     """Validate the device configuration settings provided.
     """
     validation_module = importDeviceModule(relative_module_path)
-    validation_file_path = getSupportedConfigSettings(
-        validation_module, deviceClassName=device_class_name)
+    validation_file_path = getSupportedConfigSettings(validation_module)
 
     # use a default config if we can't get the YAML file
     if not os.path.exists(validation_file_path):

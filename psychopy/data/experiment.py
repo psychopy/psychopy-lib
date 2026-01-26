@@ -85,7 +85,6 @@ class ExperimentHandler(_ComparisonMixin):
         """
         self.loops = []
         self.loopsUnfinished = []
-        self.currentRoutine = None
         self.name = name
         self.version = version
         self.runtimeInfo = runtimeInfo
@@ -125,43 +124,19 @@ class ExperimentHandler(_ComparisonMixin):
 
     def __del__(self):
         self.close()
-    
-    def getCurrentLoop(self, isTrials=True):
-        """
-        Return the loop which we are currently in, this will either be a handle to a loop, such as
-        a :class:`~psychopy.data.TrialHandler` or :class:`~psychopy.data.StairHandler`, or the handle
-        of the :class:`~psychopy.data.ExperimentHandler` itself if we are not in a loop.
-
-        Parameters
-        ----------
-        isTrials : bool
-            Filter for only loops which have isTrials checked
-        """
-        if len(self.loopsUnfinished):
-            # iterate through unfinished (aka active) loops, starting with the most recent
-            for loop in reversed(self.loopsUnfinished):
-                # if not filtering, just return the first one
-                if not isTrials:
-                    return loop
-                # otherwise, return the first one which is a trials loop
-                if getattr(loop, 'isTrials', False):
-                    return loop
-        # if we are not in a loop, return to experiment handler
-        return self
 
     @property
     def currentLoop(self):
         """
-        Calls `.getCurrentLoop` with `isTrials=False`
+        Return the loop which we are currently in, this will either be a handle to a loop, such as
+        a :class:`~psychopy.data.TrialHandler` or :class:`~psychopy.data.StairHandler`, or the handle
+        of the :class:`~psychopy.data.ExperimentHandler` itself if we are not in a loop.
         """
-        return self.getCurrentLoop(isTrials=False)
-    
-    @property
-    def currentTrialsLoop(self):
-        """
-        Calls `.getCurrentLoop` with `isTrials=True`
-        """
-        return self.getCurrentLoop(isTrials=True)
+        # If there are unfinished (aka currently active) loops, return the most recent
+        if len(self.loopsUnfinished):
+            return self.loopsUnfinished[-1]
+        # If we are not in a loop, return handle to experiment handler
+        return self
 
     def addLoop(self, loopHandler):
         """Add a loop such as a :class:`~psychopy.data.TrialHandler`
@@ -200,7 +175,7 @@ class ExperimentHandler(_ComparisonMixin):
     def _getExtraInfo(self):
         """Get the names and vals from the extraInfo dict (if it exists)
         """
-        if not isinstance(self.extraInfo, dict):
+        if type(self.extraInfo) != dict:
             names = []
             vals = []
         else:
@@ -299,12 +274,6 @@ class ExperimentHandler(_ComparisonMixin):
         # get entry from row number
         entry = self.thisEntry
         if row is not None:
-            # if row exceeds size of entries, warn and abort
-            if row > len(self.entries):
-                logging.error(_translate(
-                    "Cannot add data to row {} as there are only {} entries"
-                ).format(row, len(self.entries)))
-            # get entry from row
             entry = self.entries[row]
         entry[name] = value
 
@@ -497,37 +466,8 @@ class ExperimentHandler(_ComparisonMixin):
             ))
         # set own status
         self.status = constants.STOPPED
-    
-    def next(self, isTrials=True):
-        """
-        Move on to either the next trial (if in a trials loop) or the next Routine.
 
-        Parameters
-        ----------
-        isTrials : bool
-            Filter for only loops which have isTrials checked
-        """
-        if isinstance(self.getCurrentLoop(isTrials=isTrials), TrialHandler2):
-            # if there is a loop, skip trials
-            self.skipTrials(1, isTrials=isTrials)
-        elif self.currentRoutine is not None:
-            # if not, but there is a Routine, end it
-            self.endCurrentRoutine()
-        else:
-            # otherwise, do nothing
-            return
-    
-    def endCurrentRoutine(self):
-        """
-        End the current Routine (via the Routine.forceEnded attribute)
-        """
-        # if there's no current Routine yet, do nothing
-        if self.currentRoutine is None:
-            return
-        # force end the Routine
-        self.currentRoutine.forceEnded = True
-
-    def skipTrials(self, n=1, isTrials=True):
+    def skipTrials(self, n=1):
         """
         Skip ahead n trials - the trials inbetween will be marked as "skipped". If you try to
         skip past the last trial, will log a warning and skip *to* the last trial.
@@ -536,23 +476,14 @@ class ExperimentHandler(_ComparisonMixin):
         ----------
         n : int
             Number of trials to skip ahead
-        isTrials : bool
-            Filter for only loops which have isTrials checked
         """
-        loop = self.getCurrentLoop(isTrials=isTrials)
         # return if there isn't a TrialHandler2 active
-        if not isinstance(loop, TrialHandler2):
+        if not isinstance(self.currentLoop, TrialHandler2):
             return
-        # end inner loops
-        for innerLoop in self.loopsUnfinished[
-            self.loopsUnfinished.index(loop)+1:
-        ].copy():
-            innerLoop.finished = True
-            self.loopEnded(innerLoop)
         # skip trials in current loop
-        return loop.skipTrials(n)
+        return self.currentLoop.skipTrials(n)
 
-    def rewindTrials(self, n=1, isTrials=True):
+    def rewindTrials(self, n=1):
         """
         Skip ahead n trials - the trials inbetween will be marked as "skipped". If you try to
         skip past the last trial, will log a warning and skip *to* the last trial.
@@ -561,50 +492,17 @@ class ExperimentHandler(_ComparisonMixin):
         ----------
         n : int
             Number of trials to skip ahead
-        isTrials : bool
-            Filter for only loops which have isTrials checked
         """
-        loop = self.getCurrentLoop(isTrials=isTrials)
         # return if there isn't a TrialHandler2 active
-        if not isinstance(loop, TrialHandler2):
+        if not isinstance(self.currentLoop, TrialHandler2):
             return
-        # restart inner loops
-        for innerLoop in self.loopsUnfinished[
-            self.loopsUnfinished.index(loop)+1:
-        ]:
-            innerLoop.rewindTrials(
-                len(innerLoop.elapsedTrials)
-            )
         # rewind trials in current loop
-        return loop.rewindTrials(n)
+        return self.currentLoop.rewindTrials(n)
     
-    def cueTrial(self, trial, isTrials=True):
-        """
-        Queue up a trial to be next in the current TrialHandler.
-
-        Parameters
-        ----------
-        trial : int, dict or Trial
-            Trial or index to queue up
-        isTrials : bool
-            Filter for only loops which have isTrials checked
-        """
-        loop = self.getCurrentLoop(isTrials=isTrials)
-        # return if there isn't a TrialHandler2 active
-        if not isinstance(loop, TrialHandler2):
-            return
-        
-        return loop.cueTrial(trial)
-    
-    def getAllTrials(self, isTrials=True):
+    def getAllTrials(self):
         """
         Returns all trials (elapsed, current and upcoming) with an index indicating which trial is 
         the current trial.
-
-        Parameters
-        ----------
-        isTrials : bool
-            Filter for only loops which have isTrials checked
 
         Returns
         -------
@@ -614,19 +512,14 @@ class ExperimentHandler(_ComparisonMixin):
             Index of the current trial in this list
         """
         # return None if there isn't a TrialHandler2 active
-        if not isinstance(self.getCurrentLoop(isTrials=isTrials), TrialHandler2):
+        if not isinstance(self.currentLoop, TrialHandler2):
             return [None], 0
         # get all trials from current loop
-        return self.getCurrentLoop(isTrials=isTrials).getAllTrials()
+        return self.currentLoop.getAllTrials()
 
-    def getCurrentTrial(self, isTrials=True):
+    def getCurrentTrial(self):
         """
         Returns the current trial (`.thisTrial`)
-
-        Parameters
-        ----------
-        isTrials : bool
-            Filter for only loops which have isTrials checked
 
         Returns
         -------
@@ -634,29 +527,24 @@ class ExperimentHandler(_ComparisonMixin):
             The current trial
         """
         # return None if there isn't a TrialHandler2 active
-        if not isinstance(self.getCurrentLoop(isTrials=isTrials), TrialHandler2):
+        if not isinstance(self.currentLoop, TrialHandler2):
             return None
         
-        return self.getCurrentLoop(isTrials=isTrials).getCurrentTrial()
+        return self.currentLoop.getCurrentTrial()
     
-    def getFutureTrial(self, n=1, isTrials=True):
+    def getFutureTrial(self, n=1):
         """
         Returns the condition for n trials into the future, without
         advancing the trials. Returns 'None' if attempting to go beyond
         the last trial in the current loop, or if there is no current loop.
-
-        Parameters
-        ----------
-        isTrials : bool
-            Filter for only loops which have isTrials checked
         """
         # return None if there isn't a TrialHandler2 active
-        if not isinstance(self.getCurrentLoop(isTrials=isTrials), TrialHandler2):
+        if not isinstance(self.currentLoop, TrialHandler2):
             return None
         # get future trial from current loop
-        return self.getCurrentLoop(isTrials=isTrials).getFutureTrial(n)
+        return self.currentLoop.getFutureTrial(n)
 
-    def getFutureTrials(self, n=1, start=0, isTrials=True):
+    def getFutureTrials(self, n=1, start=0):
         """
         Returns Trial objects for a given range in the future. Will start looking at `start` trials 
         in the future and will return n trials from then, so e.g. to get all trials from 2 in the 
@@ -668,8 +556,6 @@ class ExperimentHandler(_ComparisonMixin):
             How many trials into the future to look, by default 1
         start : int, optional
             How many trials into the future to start looking at, by default 0
-        isTrials : bool
-            Filter for only loops which have isTrials checked
         
         Returns
         -------
@@ -682,7 +568,7 @@ class ExperimentHandler(_ComparisonMixin):
         for i in range(n):
             # add each to the list
             trials.append(
-                self.getFutureTrial(start + i, isTrials=isTrials)
+                self.getFutureTrial(start + i)
             )
         
         return trials
@@ -697,7 +583,7 @@ class ExperimentHandler(_ComparisonMixin):
         for thisLoop in self.loopsUnfinished:
             self.updateEntryFromLoop(thisLoop)
         # add the extraInfo dict to the data
-        if isinstance(self.extraInfo, dict):
+        if type(self.extraInfo) == dict:
             this.update(self.extraInfo)
         self.entries.append(this)
         # add new entry with its
@@ -988,22 +874,9 @@ class ExperimentHandler(_ComparisonMixin):
         origEntries = self.entries
         self.entries = self.getAllEntries()
 
-        # temporarily remove connected save methods so they don't get pickled
-        origConnectedSaveMethods = self.connectedSaveMethods
-        self.connectedSaveMethods = [
-            {
-                'fcn': f"<{callback['fcn'].__module__}:{callback['fcn'].__name__}>",
-                'args': callback['args'],
-                'kwargs': callback['kwargs']
-            } for callback in origConnectedSaveMethods
-        ]
-
         with openOutputFile(fileName=fileName, append=False,
                            fileCollisionMethod=fileCollisionMethod) as f:
             pickle.dump(self, f)
-        
-        # reinstate connected save methods
-        self.connectedSaveMethods = origConnectedSaveMethods
 
         if (fileName is not None) and (fileName != 'stdout'):
             logging.info('saved data to %s' % f.name)

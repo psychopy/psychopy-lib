@@ -4,7 +4,7 @@
 """
 Part of the PsychoPy library
 Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2025 Open Science Tools Ltd.
-Distributed under the terms of the MIT License.
+Distributed under the terms of the GNU General Public License (GPL).
 """
 import copy
 import textwrap
@@ -13,7 +13,6 @@ from xml.etree.ElementTree import Element
 
 from psychopy import prefs
 from psychopy.constants import FOREVER
-from psychopy.experiment.devices import DeviceMixin
 from ..params import Param
 from psychopy.experiment.utils import canBeNumeric
 from psychopy.experiment.utils import CodeGenerationException
@@ -34,7 +33,6 @@ class BaseComponent:
     targets = []
     plugin = None
     iconFile = Path(__file__).parent / "unknown" / "unknown.png"
-    iconSVG = Path(__file__).parent / "BaseComponent.svg"
     tooltip = ""
     # what version was this Component added in?
     version = "0.0.0"
@@ -44,9 +42,6 @@ class BaseComponent:
     validatorClasses = []
     # hide this Component in Builder view?
     hidden = False
-    # are there any known legacy params for this Component?
-    # these will be removed & warnings ignored on experiment load
-    legacyParams = []
 
     def __init__(self, exp, parentName, name='',
                  startType='time (s)', startVal='',
@@ -72,7 +67,7 @@ class BaseComponent:
         msg = _translate(
             "Name of this Component (alphanumeric or _, no spaces)")
         self.params['name'] = Param(name,
-            valType='code', inputType="name", categ=None,
+            valType='code', inputType="single", categ='Basic',
             hint=msg,
             label=_translate("Name"))
 
@@ -132,65 +127,9 @@ class BaseComponent:
 
         msg = _translate("Disable this Component")
         self.params['disabled'] = Param(disabled,
-            valType='bool', inputType="bool", categ=None,
+            valType='bool', inputType="bool", categ="Testing",
             hint=msg, allowedTypes=[], direct=False,
             label=_translate('Disable Component'))
-    
-    @classmethod
-    def getTemplateJSON(cls):
-        from psychopy.experiment import Experiment
-        # try to load SVG
-        try:
-            iconSVG = cls.iconSVG.read_text("utf-8")
-        except:
-            iconSVG = None
-        # include basic info
-        profile = {
-            '__class__': f"{cls.__module__}:{cls.__qualname__}",
-            '__name__': cls.__name__,
-            "categories": cls.categories,
-            "targets": cls.targets,
-            "plugin": cls.plugin,
-            "legacyParams": cls.legacyParams,
-            "iconSVG": iconSVG,
-            "iconFile": cls.iconFile,
-            "tooltip": cls.tooltip,
-            "version": cls.version,
-            "beta": cls.beta,
-            "validatorClasses": cls.validatorClasses,
-            "hidden": cls.hidden,
-            "params": {}
-        }
-        # make an object for defaults
-        exp = Experiment()
-        defaults = cls(exp, "")
-        # order params
-        order = [
-            name for name in defaults.order if name in defaults.params
-        ] + [
-            name for name in defaults.params if name not in defaults.order
-        ]
-        # populate params in order
-        for name in order:
-            # make template
-            profile['params'][name] = defaults.params[name].getTemplateJSON(
-                name=name, depends=defaults.depends
-            )
-
-        return profile
-    
-    def getJSON(self):
-        # populate basic info
-        profile = {
-            'tag': type(self).__name__,
-            'plugin': self.plugin,
-            'params': {}
-        }
-        # populate params
-        for name, param in self.params.items():
-            profile['params'][name] = param.getJSON()
-        
-        return profile
 
     @property
     def _xml(self):
@@ -1248,22 +1187,6 @@ class BaseComponent:
                 if comp.name == name:
                     return comp
 
-    def endsWithRoutine(self):
-        """
-        Does this Component end along with the Routine (i.e. on the final frame)?
-        """
-        # if there's no Routine, then this doesn't apply
-        if self.getRoutine() is None:
-            return
-        # if it has the same stop time as the Routine, then yes it does
-        if self.getStartAndDuration()[1] == self.getRoutine().getMaxTime()[0]:
-            return True
-        # if the Routine times out before this Component ends, then yes it does
-        if self.getStartAndDuration()[1] >= self.getRoutine().settings.getDuration()[0]:
-            return True
-        # otherwise, assume no
-        return False
-    
     def writeRoutineStartValidationCode(self, buff):
         """
         WWrite Routine start code to validate this stimulus against the specified validator.
@@ -1299,25 +1222,6 @@ class BaseComponent:
             return
         # if there is a validator, write its code
         indent = validator.writeEachFrameValidationCode(buff, stim=self)
-        # if validation code indented the buffer, dedent
-        buff.setIndentLevel(-indent, relative=True)
-    
-    def writeRoutineEndValidationCode(self, buff):
-        """
-        Write Routine stop code to validate this stimulus against the specified validator.
-
-        Parameters
-        ----------
-        buff : StringIO
-            String buffer to write code to.
-        """
-        # get validator
-        validator = self.getValidator()
-        # if there is no validator, don't write any code
-        if validator is None:
-            return
-        # if there is a validator, write its code
-        indent = validator.writeRoutineEndValidationCode(buff, stim=self)
         # if validation code indented the buffer, dedent
         buff.setIndentLevel(-indent, relative=True)
 
@@ -1443,9 +1347,6 @@ class BaseComponent:
     @property
     def name(self):
         return self.params['name'].val
-    
-    def getRoutine(self):
-        return self.exp.routines.get(self.parentName, None)
 
     @name.setter
     def name(self, value):
@@ -1472,10 +1373,12 @@ class BaseComponent:
             return "thisExp"
 
 
-class BaseDeviceComponent(BaseComponent, DeviceMixin):
+class BaseDeviceComponent(BaseComponent):
     """
     Base class for most components which interface with a hardware device.
     """
+    # list of class strings (readable by DeviceManager) which this component's device could be
+    deviceClasses = []
 
     def __init__(
             self, exp, parentName,
@@ -1501,9 +1404,22 @@ class BaseDeviceComponent(BaseComponent, DeviceMixin):
             saveStartStop=saveStartStop, syncScreenRefresh=syncScreenRefresh,
             disabled=disabled
         )
-        # add device stuff
-        self.addDeviceParams(
-            defaultLabel=deviceLabel
+        # require hardware
+        self.exp.requirePsychopyLibs(
+            ['hardware']
+        )
+        # --- Device params ---
+        self.order += [
+            "deviceLabel"
+        ]
+        # label to refer to device by
+        self.params['deviceLabel'] = Param(
+            deviceLabel, valType="str", inputType="single", categ="Device",
+            label=_translate("Device label"),
+            hint=_translate(
+                "A label to refer to this Component's associated hardware device by. If using the "
+                "same device for multiple components, be sure to use the same label here."
+            )
         )
 
 
@@ -1571,7 +1487,7 @@ class BaseVisualComponent(BaseComponent):
                          "the colors? (rgb, dkl, lms, hsv)")
         self.params['colorSpace'] = Param(colorSpace,
             valType='str', inputType="choice", categ='Appearance',
-            allowedVals=['named', 'hex', 'rgb', 'dkl', 'lms', 'hsv'],
+            allowedVals=['rgb', 'dkl', 'lms', 'hsv'],
             updates='constant',
             hint=msg,
             label=_translate("Color space"))
@@ -1639,8 +1555,9 @@ class BaseVisualComponent(BaseComponent):
 
         # --- Testing ---
         self.params['validator'] = Param(
-            validator, valType="code", inputType="validator", categ="Testing",
-            allowedVals=self.validatorClasses,
+            validator, valType="code", inputType="choice", categ="Testing",
+            allowedVals=self.getAllValidatorRoutineVals,
+            allowedLabels=self.getAllValidatorRoutineLabels,
             label=_translate("Validate with..."),
             hint=_translate(
                 "Name of validator Component/Routine to use to check the timing of this stimulus."

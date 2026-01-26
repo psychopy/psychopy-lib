@@ -7,7 +7,7 @@ See demo_mouse.py and i{demo_joystick.py} for examples
 """
 # Part of the PsychoPy library
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2025 Open Science Tools Ltd.
-# Distributed under the terms of the MIT License.
+# Distributed under the terms of the GNU General Public License (GPL).
 
 # 01/2011 modified by Dave Britton to get mouse event timing
 
@@ -297,7 +297,7 @@ def _onPygletMouseRelease(x, y, button, modifiers, emulated=False):
 
 def _onPygletMouseWheel(x, y, scroll_x, scroll_y):
     global mouseWheelRel
-    mouseWheelRel +=  numpy.array([scroll_x, scroll_y])
+    mouseWheelRel = mouseWheelRel + numpy.array([scroll_x, scroll_y])
     msg = "Mouse: wheel shift=(%i,%i), pos=(%i,%i)"
     logging.data(msg % (scroll_x, scroll_y, x, y))
 
@@ -678,7 +678,7 @@ class Mouse:
 
         self.lastPos = self._pix2windowUnits(lastPosPix)
 
-        return self.lastPos
+        return copy.copy(self.lastPos)
 
     def mouseMoved(self, distance=None, reset=False):
         """Determine whether/how far the mouse has moved.
@@ -874,28 +874,23 @@ class Mouse:
 
         """
         global mouseButtons, mouseTimes
-
-        if self.win is None:  # no backend specified
-            return None
-
-        if havePyglet and self.win.winType == 'pyglet':
-            # for each (pyglet) window, dispatch its events before checking
-            # event buffer
-            for win in pyglet.app.windows:
-                win.dispatch_events()  # pump events on pyglet windows
-        elif haveGLFW and self.win.winType == 'glfw':
-            glfw.poll_events()
-        elif havePygame and self.win.winType == 'pygame':
+        if usePygame:
             return mouse.get_pressed()
         else:
-            raise RuntimeError(
-                "Mouse.getPressed() is only supported for the pyglet, "
-                                      "pygame and glfw backends.")  
+            # for each (pyglet) window, dispatch its events before checking
+            # event buffer
+            if havePyglet:
+                for win in pyglet.app.windows:
+                    win.dispatch_events()  # pump events on pyglet windows
 
-        if not getTime:
-            return copy.copy(mouseButtons)
-        else:
-            return copy.copy(mouseButtons), copy.copy(mouseTimes)
+            if haveGLFW:
+                glfw.poll_events()
+
+            # else:
+            if not getTime:
+                return copy.copy(mouseButtons)
+            else:
+                return copy.copy(mouseButtons), copy.copy(mouseTimes)
 
     def isPressedIn(self, shape, buttons=(0, 1, 2)):
         """Returns `True` if the mouse is currently inside the shape and

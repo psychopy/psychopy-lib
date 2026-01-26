@@ -56,7 +56,7 @@ Example usage
 
 # Part of the PsychoPy library
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2025 Open Science Tools Ltd.
-# Distributed under the terms of the MIT License.
+# Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import, division, print_function
 
@@ -462,11 +462,14 @@ class KeyboardDevice(BaseResponseDevice, aliases=["keyboard"]):
 
     @staticmethod
     def getAvailableDevices():
-        return [{
-            'deviceName': "Keyboard",
-            'device': -1,
-            'bufferSize': 10000
-        }]
+        devices = []
+        for profile in st.getKeyboards():
+            devices.append({
+                'deviceName': profile.get('device_name', "Unknown Keyboard"),
+                'device': profile.get('index', -1),
+                'bufferSize': profile.get('bufferSize', 10000),
+            })
+        return devices
 
     def getKeys(self, keyList=None, ignoreKeys=None, waitRelease=True, clear=True):
         """

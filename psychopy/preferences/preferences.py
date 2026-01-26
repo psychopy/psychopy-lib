@@ -4,11 +4,9 @@
 import errno
 import os
 import sys
-import argparse
 import platform
 from pathlib import Path
 from psychopy import logging
-from . import devices
 from .. import __version__
 
 from packaging.version import Version
@@ -73,7 +71,7 @@ class Preferences:
         self.paths = {}  # this will remain a dictionary
         self.keys = {}  # does not remain a dictionary
 
-        # Only call loadAll, which will handle getPaths
+        self.getPaths()
         self.loadAll()
         # setting locale is now handled in psychopy.localization.init
         # as called upon import by the app
@@ -103,7 +101,7 @@ class Preferences:
             print(msg % userCfg)
         self.loadAll()  # reloads, now getting all from .spec
 
-    def getPaths(self, userDir=None):
+    def getPaths(self):
         """Get the paths to various directories and files used by PsychoPy.
 
         If the paths are not found, they are created. Usually, this is only
@@ -132,7 +130,6 @@ class Preferences:
         self.paths['resources'] = dirResources
         self.paths['assets'] = join(dirPsychoPy, "assets")
         self.paths['tests'] = join(dirPsychoPy, 'tests')
-        self.paths['scripts'] = join(dirPsychoPy, 'scripts')
         # path to libs/frameworks
         if 'PsychoPy.app/Contents' in exePath:
             self.paths['libs'] = exePath.replace("MacOS/python", "Frameworks")
@@ -142,25 +139,16 @@ class Preferences:
             # if there isn't an app folder at all then this is a lib-only psychopy
             # so don't try to load app prefs etc
             NO_APP = True
-        # get user dir
-        if userDir is not None and os.path.isdir(userDir):
-            self.paths['userPrefsDir'] = join(
-                userDir, '.psychopy3'
-            )
-        elif sys.platform == 'win32':
-            self.paths['userPrefsDir'] = join(
-                os.environ['APPDATA'], 'psychopy3'
-            )
-        else:
-            self.paths['userPrefsDir'] = join(
-                os.environ['HOME'], '.psychopy3'
-            )
-        # get system-appropriate spec file
         if sys.platform == 'win32':
             self.paths['prefsSpecFile'] = join(prefSpecDir, 'Windows.spec')
+            self.paths['userPrefsDir'] = join(os.environ['APPDATA'],
+                                              'psychopy3')
         else:
-            self.paths['prefsSpecFile'] = join(
-                prefSpecDir, platform.system() + '.spec')
+            self.paths['prefsSpecFile'] = join(prefSpecDir,
+                                               platform.system() + '.spec')
+            self.paths['userPrefsDir'] = join(os.environ['HOME'],
+                                              '.psychopy3')
+
         # directory for files created by the app at runtime needed for operation
         self.paths['userCacheDir'] = join(self.paths['userPrefsDir'], 'cache')
 
@@ -187,8 +175,7 @@ class Preferences:
             except OSError as err:
                 if err.errno != errno.EEXIST:
                     raise
-        # make sure there's a device manager config file
-        self.paths['deviceCfgFile'] = Path(self.paths['userPrefsDir']) / "devices.json"
+
         # site-packages root directory for user-installed packages
         userPkgRoot = Path(self.paths['packages'])
 
@@ -281,10 +268,9 @@ class Preferences:
                     Path(self.paths['themes']) / file.name
                 )
 
-    def loadAll(self, userDir=None):
+    def loadAll(self):
         """Load the user prefs and the application data
         """
-        self.getPaths(userDir=userDir)
         self._validator = validate.Validator()
 
         # note: self.paths['userPrefsDir'] gets set in loadSitePrefs()
@@ -354,52 +340,6 @@ class Preferences:
             cfg.write()
         
         return cfg
-    
-    def fromJSON(self, file):
-        import json
-
-        # load params from JSON
-        with open(file, "r") as f:
-            spec = json.load(f)
-        params = spec['params']
-        # iterate through relevant sections
-        for section in [self.general, self.hardware, self.piloting]:
-            # iterate through keys
-            for key in section:
-                # if given in the JSON, set value
-                if key in params:
-                    try:
-                        # attempt to un-stringify
-                        section[key] = json.loads(params[key]['val'])
-                    except:
-                        # use as-is if this fails
-                        section[key] = params[key]['val']
-    
-    @property
-    def devices(self):
-        if not hasattr(self, "_devices"):
-            self._devices = devices.DeviceConfig(
-                self.paths['deviceCfgFile']
-            )
-        
-        return self._devices
-    
-    @devices.setter
-    def devices(self, value):
-        if isinstance(value, devices.DeviceConfig):
-            # if set with a DeviceConfig, use it directly
-            self._devices = value
-        else:
-            # otherwise, assume it's a path
-            self.setDevicesFile(value)
-    
-    def setDevicesFile(self, value):
-        # path-ise and store
-        self.paths['deviceCfgFile'] = Path(value)
-        # create alias object
-        self._devices = devices.DeviceConfig(
-            self.paths['deviceCfgFile']
-        )
 
     def saveUserPrefs(self):
         """Validate and save the various setting to the appropriate files
@@ -482,17 +422,3 @@ class Preferences:
                 print(msg % (', '.join(sectionList), cfg.filename))
 
 prefs = Preferences()
-# parse calling args for any which are prefs relevant
-parser = argparse.ArgumentParser(
-    prog="PsychoPy Preferences",
-    description="Parses arguments relevant to PsychoPy's preferences"
-)
-parser.add_argument(
-    "--prefs-json", 
-    type=Path, 
-    default=None
-)
-args = parser.parse_known_args()[0]
-# load prefs from JSON if one was given
-if args.prefs_json:
-    prefs.fromJSON(args.prefs_json)

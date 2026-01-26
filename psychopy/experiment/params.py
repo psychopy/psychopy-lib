@@ -3,7 +3,7 @@
 
 # Part of the PsychoPy library
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2025 Open Science Tools Ltd.
-# Distributed under the terms of the MIT License.
+# Distributed under the terms of the GNU General Public License (GPL).
 
 """Experiment classes:
     Experiment, Flow, Routine, Param, Loop*, *Handlers, and NameSpace
@@ -16,13 +16,12 @@ The code that writes out a *_lastrun.py experiment file is (in order):
     settings.SettingsComponent.writeEndCode()
 """
 import functools
-import json
 from xml.etree.ElementTree import Element
 
 import re
 from pathlib import Path
 
-from psychopy import data, logging
+from psychopy import logging
 from . import utils
 from . import py2js
 
@@ -56,8 +55,6 @@ inputDefaults = {
 # these are parameters which once existed but are no longer needed, so inclusion in this list will 
 # silence any "future version" warnings
 legacyParams = [
-    # settings params from the early days of PsychoJS
-    "JS libs", "OSF Project ID"
     # in 2021.1, we standardised colorSpace to be object-wide rather than param-specific
     "lineColorSpace", "borderColorSpace", "fillColorSpace", "foreColorSpace", 
     # in 2024.2.0, we removed some superfluous params from the pupil labs backend
@@ -65,29 +62,6 @@ legacyParams = [
     # from 2025.1, latency priority is handled by SpeakerDevice
     "Audio latency priority",
 ]
-
-class SerializationError(Exception):
-    pass
-
-
-def serializeCallable(func, param):
-    # if iterable, call for each item
-    if isinstance(func, (list, tuple)):
-        return [serializeCallable(item, param) for item in func]
-    # if not callable, return as is
-    if not callable(func):
-        return func
-    # prepend this to the stringified output
-    preface = "python:///"
-    # get import path
-    path = f"{func.__module__}:{func.__qualname__}"
-    # if method is a local, we have a problem...
-    if "<locals>" in path:
-        logging.error(
-            f"Param {param.label} contains a local method: {path}"
-        )
-
-    return preface + path
 
 
 class Param():
@@ -256,7 +230,7 @@ class Param():
                 return "%i" % self.val  # int and float -> str(int)
             except TypeError:
                 return "%s" % self.val  # try array of float instead?
-        elif self.valType in ['extendedStr', 'str', 'file', 'table', 'device']:
+        elif self.valType in ['extendedStr','str', 'file', 'table']:
             # at least 1 non-escaped '$' anywhere --> code wanted
             # return str if code wanted
             # return repr if str wanted; this neatly handles "it's" and 'He
@@ -326,18 +300,12 @@ class Param():
                 # Otherwise, treat as string
                 return repr(val)
         elif self.valType == 'list':
-            if self.inputType == "fileList":
-                # treat each item as a string-type param
-                output = []
-                for item in data.utils.listFromString(self.val):
-                    item = str(Param(item, "file"))
-                    output.append(item)
-                return "[{}]".format(",".join(output))
-            else:
-                valid, val = self.dollarSyntax()
-                val = toList(val)
-                return "{}".format(val)
+            valid, val = self.dollarSyntax()
+            val = toList(val)
+            return "{}".format(val)
         elif self.valType == 'fixedList':
+            return "{}".format(self.val)
+        elif self.valType == 'fileList':
             return "{}".format(self.val)
         elif self.valType == 'bool':
             if utils.scriptTarget == "PsychoJS":
@@ -404,88 +372,12 @@ class Param():
             allowedLabels=self.allowedLabels,
             direct=self.direct,
             canBePath=self.canBePath,
-            categ=self.categ,
-            ctrlParams=self.ctrlParams
+            categ=self.categ
         )
 
     def __deepcopy__(self, memo):
         return self.copy()
-    
-    @classmethod
-    def fromJSON(cls, data):
-        # initialise
-        param = Param(
-            "",
-            "code",
-        )
-        # apply
-        param.applyJSON(data)
-        
-        return param
-    
-    def applyJSON(self, data):
-        if "val" in data:
-            self.val = data['val']
-        if "valType" in data:
-            self.valType = data['valType']
-        if "updates" in data:
-            self.updates = "{}".format(data['updates'])
-        if "plugin" in data:
-            self.plugin = "{}".format(data['plugin'])
-    
-    def getTemplateJSON(self, name=None, depends=None):
-        # return the full JSON spec (used in getJSON for params of a *class*)
-        profile = {
-            'val': self.val,
-            'valType': self.valType,
-            'inputType': self.inputType,
-            'categ': self.categ,
-            'updates': self.updates,
-            'allowedUpdates': self.allowedUpdates,
-            'allowedVals': serializeCallable(self.allowedVals, self),
-            'allowedLabels': serializeCallable(self.allowedLabels, self),
-            'ctrlParams': self.ctrlParams,
-            'label': self.label,
-            'hint': self.hint,
-            'plugin': self.plugin,
-            'depends': {
-                'shown': [],
-                'enabled': []
-            }
-        }
-        # populate depends if given
-        if depends is not None:
-            # populate depends
-            for dep in depends:
-                # ignore irrelevent dependencies
-                if dep['param'] != name:
-                    continue
-                # hide if...
-                if dep['false'] == "hide":
-                    profile['depends']['shown'].append({
-                        'param': dep['dependsOn'],
-                        'condition': dep['condition']
-                    })
-                # disable if...
-                if dep['false'] == "disable":
-                    profile['depends']['enabled'].append({
-                        'param': dep['dependsOn'],
-                        'condition': dep['condition']
-                    })
-        
-        return profile
-    
-    def getJSON(self):
-        # return just the settable parts (used in getJSON for params of an *instance*)
-        return {
-            'val': self.val,
-            'valType': self.valType,
-            'updates': self.updates,
-            'plugin': self.plugin
-        }
 
-        
-    
     @property
     def _xml(self):
         # Make root element
@@ -533,7 +425,7 @@ class Param():
                     return True, val
             else:
                 # If value does not begin with an unescaped $, treat it as a string
-                if not re.findall(r"(?<!\\)\$", str(val)):
+                if not re.findall(r"(?<!\\)\$", val):
                     # Return if all $ are escaped (\$)
                     return True, val
         else:

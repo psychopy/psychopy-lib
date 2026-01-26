@@ -5,7 +5,7 @@
 
 # Part of the PsychoPy library
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2025 Open Science Tools Ltd.
-# Distributed under the terms of the MIT License
+# Distributed under the terms of the GNU General Public License (GPL)
 
 import numpy
 
@@ -167,7 +167,7 @@ class BaseShapeStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
                 "fillColorSpace parameter is deprecated. Please use colorSpace instead."
             )
             fillColor = Color(fillColor, space=fillColorSpace)
-        elif fillRGB is not undefined:
+        if fillRGB is not undefined:
             logging.warning(
                 "fillRGB parameter is deprecated. Please use lineColor and colorSpace instead"
             )
@@ -178,7 +178,7 @@ class BaseShapeStim(BaseVisualStim, DraggingMixin, ColorMixin, ContainerMixin):
                 "lineColorSpace parameter is deprecated. Please use colorSpace instead."
             )
             lineColor = Color(lineColor, space=lineColorSpace)
-        elif lineRGB is not undefined:
+        if lineRGB is not undefined:
             logging.warning(
                 "lineRGB parameter is deprecated. Please use lineColor and colorSpace instead"
             )

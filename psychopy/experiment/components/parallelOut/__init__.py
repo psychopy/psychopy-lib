@@ -3,7 +3,7 @@
 
 # Part of the PsychoPy library
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2025 Open Science Tools Ltd.
-# Distributed under the terms of the MIT License.
+# Distributed under the terms of the GNU General Public License (GPL).
 
 from pathlib import Path
 from psychopy.experiment.components import BaseComponent, Param, _translate
@@ -16,7 +16,6 @@ class ParallelOutComponent(BaseComponent):
     categories = ['I/O', 'EEG']
     targets = ['PsychoPy']
     iconFile = Path(__file__).parent / 'parallel.png'
-    iconSVG = Path(__file__).parent / 'ParallelOutComponent.svg'
     tooltip = _translate('Parallel out: send signals from the parallel port')
 
     def __init__(self, exp, parentName, name='p_port',

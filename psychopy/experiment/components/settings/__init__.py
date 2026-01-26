@@ -71,29 +71,12 @@ participantIdAliases = ('participant', 'Participant', 'Subject', 'Observer')
 #         pass
 
 
-def getVersions():
-    """
-    Search for options locally available
-    """
-    import psychopy.tools.versionchooser as versions
-    available = versions._versionFilter(versions.versionOptions(), wx_version)
-    available += ['']
-    available += versions._versionFilter(versions.availableVersions(), wx_version)
-    return available
-
-
-def getSoundBackends():
-    from psychopy.sound.sound import Sound
-    return list(Sound.getBackends())
-
-
 class SettingsComponent:
     """This component stores general info about how to run the experiment
     """
     categories = ['Custom']
     targets = ['PsychoPy', 'PsychoJS']
     iconFile = Path(__file__).parent / 'settings.png'
-    iconSVG = Path(__file__).parent / 'SettingsComponent.svg'
     tooltip = _translate("Edit settings for this experiment")
     plugin = None
     version = "0.0.0"
@@ -205,6 +188,16 @@ class SettingsComponent:
             )
         )
 
+        def getVersions():
+            """
+            Search for options locally available
+            """
+            import psychopy.tools.versionchooser as versions
+            available = versions._versionFilter(versions.versionOptions(), wx_version)
+            available += ['']
+            available += versions._versionFilter(versions.availableVersions(), wx_version)
+            return available
+
         self.params['Use version'] = Param(
             useVersion, valType='str', inputType="choice",
             allowedVals=getVersions,
@@ -257,8 +250,8 @@ class SettingsComponent:
             "winBackend",
             "Screen",
             "Full-screen window",
-            "Window size (pixels)",
             "Show mouse",
+            "Window size (pixels)",
             "Units",
             "color",
             "blendMode",
@@ -273,36 +266,16 @@ class SettingsComponent:
             fullScr, valType='bool', inputType="bool", allowedTypes=[],
             hint=_translate("Run the experiment full-screen (recommended)"),
             label=_translate("Full-screen window"), categ='Screen')
-        self.params['Window size (pixels)'] = Param(
-            winSize, valType='list', inputType="single", allowedTypes=[],
-            hint=_translate("Size of window (if not fullscreen)"),
-            label=_translate("Window size (pixels)"), categ='Screen'
-        )
-        self.depends.append({
-            'dependsOn': "Full-screen window",  # if...
-            'condition': "==False",  # matches
-            'param': "Window size (pixels)",  # then...
-            'true': "show",  # should...
-            'false': "hide",  # otherwise...
-        })
-        self.params['Show mouse'] = Param(
-            showMouse, valType='bool', inputType="bool", allowedTypes=[],
-            hint=_translate("Should the mouse be visible on screen? Only applicable for fullscreen experiments."),
-            label=_translate("Show mouse"), categ='Screen'
-        )
-        self.depends.append({
-            'dependsOn': "Full-screen window",  # if...
-            'condition': "",  # matches
-            'param': "Show mouse",  # then...
-            'true': "show",  # should...
-            'false': "hide",  # otherwise...
-        })
         self.params['winBackend'] = Param(
             winBackend, valType='str', inputType="choice", categ="Screen",
             allowedVals=plugins.getWindowBackends(),
             hint=_translate("What Python package should be used behind the scenes for drawing to the window?"),
             label=_translate("Window backend")
-        )        
+        )
+        self.params['Window size (pixels)'] = Param(
+            winSize, valType='list', inputType="single", allowedTypes=[],
+            hint=_translate("Size of window (if not fullscreen)"),
+            label=_translate("Window size (pixels)"), categ='Screen')
         self.params['Screen'] = Param(
             screen, valType='num', inputType="spin", allowedTypes=[],
             hint=_translate("Which physical screen to run on (1 or 2)"),
@@ -323,7 +296,7 @@ class SettingsComponent:
             colorSpace, valType='str', inputType="choice",
             hint=_translate("Needed if color is defined numerically (see "
                             "PsychoPy documentation on color spaces)"),
-            allowedVals=['named', 'hex', 'rgb', 'dkl', 'lms', 'hsv'],
+            allowedVals=['rgb', 'dkl', 'lms', 'hsv', 'hex'],
             label=_translate("Color space"), categ="Screen")
         self.params['backgroundImg'] = Param(
             backgroundImg, valType="str", inputType="file", categ="Screen",
@@ -350,6 +323,10 @@ class SettingsComponent:
             hint=_translate("Should new stimuli be added or averaged with "
                             "the stimuli that have been drawn already"),
             label=_translate("Blend mode"), categ='Screen')
+        self.params['Show mouse'] = Param(
+            showMouse, valType='bool', inputType="bool", allowedTypes=[],
+            hint=_translate("Should the mouse be visible on screen? Only applicable for fullscreen experiments."),
+            label=_translate("Show mouse"), categ='Screen')
         self.params['measureFrameRate'] = Param(
             measureFrameRate, valType="bool", inputType="bool", categ="Screen",
             label=_translate("Measure frame rate?"),
@@ -369,10 +346,10 @@ class SettingsComponent:
         )
         self.depends.append({
                 "dependsOn": "measureFrameRate",  # if...
-                "condition": "==False",  # meets...
+                "condition": "",  # meets...
                 "param": "frameRate",  # then...
-                "true": "show",  # should...
-                "false": "hide",  # otherwise...
+                "true": "hide",  # should...
+                "false": "show",  # otherwise...
         })
         self.params['frameRateMsg'] = Param(
             frameRateMsg, valType="str", inputType="single", categ="Screen",
@@ -404,7 +381,7 @@ class SettingsComponent:
             label=_translate("Force stereo"))
         self.params['Audio lib'] = Param(
             'ptb', valType='str', inputType="choice",
-            allowedVals=getSoundBackends,
+            allowedVals=['ptb', 'pyo', 'sounddevice', 'pygame'],
             hint=_translate("Which Python sound engine do you want to play your sounds?"),
             label=_translate("Audio library"), categ='Audio')
 
@@ -791,54 +768,6 @@ class SettingsComponent:
             hint=_translate("What Python package should PsychoPy use to get keyboard input?"),
             label=_translate("Keyboard backend"), categ="Input"
         )
-    
-    @classmethod
-    def getTemplateJSON(cls):
-        from psychopy.experiment import Experiment
-        # include basic info
-        profile = {
-            '__class__': f"{cls.__module__}:{cls.__qualname__}",
-            '__name__': cls.__name__,
-            "categories": cls.categories,
-            "targets": cls.targets,
-            "plugin": cls.plugin,
-            "iconFile": cls.iconFile,
-            "tooltip": cls.tooltip,
-            "version": cls.version,
-            "beta": cls.beta,
-            "hidden": cls.hidden,
-            "params": {}
-        }
-        # make an object for defaults
-        exp = Experiment()
-        defaults = cls("", exp)
-        # order params
-        order = [
-            name for name in defaults.order if name in defaults.params
-        ] + [
-            name for name in defaults.params if name not in defaults.order
-        ]
-        # populate params in order
-        for name in order:
-            # make template
-            profile['params'][name] = defaults.params[name].getTemplateJSON(
-                name=name, depends=defaults.depends
-            )
-
-        return profile
-    
-    def getJSON(self):
-        # populate basic info
-        profile = {
-            'tag': type(self).__name__,
-            'plugin': self.plugin,
-            'params': {}
-        }
-        # populate params
-        for name, param in self.params.items():
-            profile['params'][name] = param.getJSON()
-        
-        return profile
 
     @property
     def _xml(self):
@@ -977,6 +906,13 @@ class SettingsComponent:
             "from psychopy import prefs\n"
             "from psychopy import plugins\n"
             "plugins.activatePlugins()\n"  # activates plugins
+        )
+        # adjust the prefs for this study if needed
+        if self.params['Audio lib'].val.lower() != 'use prefs':
+            buff.writelines(
+                "prefs.hardware['audioLib'] = {}\n".format(self.params['Audio lib'])
+            )
+        buff.write(
             "from psychopy import %s\n" % ', '.join(psychopyImports) +
             "from psychopy.tools import environmenttools\n"
             "from psychopy.constants import (\n"
@@ -990,8 +926,7 @@ class SettingsComponent:
             "from numpy.random import %s\n" % ', '.join(_numpyRandomImports) +
             "import os  # handy system and path functions\n" +
             "import sys  # to get file system encoding\n"
-            "\n"
-        )
+            "\n")
 
         if not self.params['eyetracker'] == "None" or self.params['keyboardBackend'] == "ioHub":
             code = (
@@ -1342,19 +1277,14 @@ class SettingsComponent:
         buff.writeIndentedLines(code % params)
 
         # set up the ExperimentHandler
-        code = (
-            "\n"
-            "# an ExperimentHandler isn't essential but helps with data saving\n"
-            "thisExp = data.ExperimentHandler(\n"
-            "    name=expName, version=expVersion,\n"
-            "    extraInfo=expInfo, runtimeInfo=None,\n"
-            "    originPath=%(originPath)s,\n"
-            "    savePickle=%(Save psydat file)s, saveWideText=%(Save wide csv file)s,\n"
-            "    dataFileName=dataDir + os.sep + filename, sortColumns=%(sortColumns)s\n"
-            ")\n"
-            "# store pilot mode in data file\n"
-            "thisExp.addData('piloting', PILOTING, priority=priority.LOW)\n"
-        )
+        code = ("\n# an ExperimentHandler isn't essential but helps with data saving\n"
+                "thisExp = data.ExperimentHandler(\n"
+                "    name=expName, version=expVersion,\n"
+                "    extraInfo=expInfo, runtimeInfo=None,\n"
+                "    originPath=%(originPath)s,\n"
+                "    savePickle=%(Save psydat file)s, saveWideText=%(Save wide csv file)s,\n"
+                "    dataFileName=dataDir + os.sep + filename, sortColumns=%(sortColumns)s\n"
+                ")\n")
         buff.writeIndentedLines(code % params)
 
         # enforce dict on column priority param
@@ -1838,17 +1768,14 @@ class SettingsComponent:
             "    )\n"
         )
         buff.writeIndentedLines(code % inits)
-        # setup devices from config
-        for deviceName in self.exp.getRequiredDeviceNames():
-            if deviceName in prefs.devices:
-                # write device setup if possile
-                prefs.devices[deviceName].writeDeviceCode(buff)
-            elif deviceName is None:
-                # if default, let init code handle device
-                pass
-            else:
-                # alert if not
-                alert(4810, strFields={'deviceName': deviceName})
+        # write any device setup code required by a component
+        for rt in self.exp.flow:
+            if isinstance(rt, Routine):
+                for comp in rt:
+                    if hasattr(comp, "writeDeviceCode"):
+                        comp.writeDeviceCode(buff)
+            elif isinstance(rt, BaseStandaloneRoutine):
+                rt.writeDeviceCode(buff)
 
         code = (
             "# return True if completed successfully\n"
@@ -2177,10 +2104,6 @@ class SettingsComponent:
         buff.setIndentLevel(+1, relative=True)
         # Write code to end experiment
         code = (
-            "# stop any playback components\n"
-            "if thisExp.currentRoutine is not None:\n"
-            "    for comp in thisExp.currentRoutine.getPlaybackComponents():\n"
-            "        comp.stop()\n"
             "if win is not None:\n"
             "    # remove autodraw from all current components\n"
             "    win.clearAutoDraw()\n"

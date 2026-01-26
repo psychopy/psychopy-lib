@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # Part of the PsychoPy library
 # Copyright (C) 2012-2020 iSolver Software Solutions (C) 2021 Open Science Tools Ltd.
-# Distributed under the terms of the MIT License.
+# Distributed under the terms of the GNU General Public License (GPL).
 import sys
 import os
 import copy
@@ -168,13 +168,14 @@ def getSupportedConfigSettings(moduleName, deviceClassName=None):
         fileName = 'supported_config_settings_{0}.yaml'.format(
             deviceClassName.lower())
         yamlFile = yamlRoot / pathlib.Path(moduleName.__file__).parent / fileName
-        if yamlFile.exists():
-            logging.debug(
-                "Found ioHub device configuration file: {0}".format(yamlFile))
-            return str(yamlFile)
-        logging.debug(("No configuration matching device class name '{0}' found in "
-                       "module dir {1}. Using default config file instead.").format(
-            deviceClassName, yamlRoot))
+        if not yamlFile.exists():
+            raise FileNotFoundError(
+                "No config file found in module dir for: {0}".format(
+                    moduleName))
+        logging.debug(
+            "Found ioHub device configuration file: {0}".format(yamlFile))
+
+        return str(yamlFile)
 
     # file name for yaml file name convention for single file
     yamlFile = yamlRoot / pathlib.Path('supported_config_settings.yaml')

@@ -3,7 +3,7 @@
 
 # Part of the PsychoPy library
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2025 Open Science Tools Ltd.
-# Distributed under the terms of the MIT License.
+# Distributed under the terms of the GNU General Public License (GPL).
 
 from os import path
 from pathlib import Path
@@ -26,7 +26,6 @@ class ButtonComponent(BaseVisualComponent):
     targets = ['PsychoPy', 'PsychoJS']
     version = "2021.1.0"
     iconFile = Path(__file__).parent / 'button.png'
-    iconSVG = Path(__file__).parent / 'ButtonComponent.svg'
     tooltip = _translate('Button: A clickable textbox')
     beta = True
 
@@ -88,7 +87,7 @@ class ButtonComponent(BaseVisualComponent):
             label=_translate("Run once per click")
         )
         self.params['callback'] = Param(
-            callback, valType='extendedCode', inputType="code", allowedVals="python", categ='Basic',
+            callback, valType='extendedCode', inputType="multi", allowedTypes=[], categ='Basic',
             updates='constant',
             hint=_translate("Code to run when button is clicked"),
             label=_translate("Callback function"))

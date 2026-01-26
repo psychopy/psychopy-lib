@@ -3,7 +3,7 @@
 
 # Part of the PsychoPy library
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2025 Open Science Tools Ltd.
-# Distributed under the terms of the MIT License.
+# Distributed under the terms of the GNU General Public License (GPL).
 
 import io
 import sys
@@ -143,7 +143,7 @@ def compileScript(infile=None, version=None, outfile=None):
             The experiment object used for generating the experiment script
         """
         # import PsychoPy experiment and write script with useVersion active
-        from psychopy import experiment
+        from psychopy.app.builder import experiment
         # Check infile type
         if isinstance(infile, experiment.Experiment):
             thisExp = infile

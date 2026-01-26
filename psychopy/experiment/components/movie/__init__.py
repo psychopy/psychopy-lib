@@ -3,7 +3,7 @@
 
 # Part of the PsychoPy library
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2025 Open Science Tools Ltd.
-# Distributed under the terms of the MIT License.
+# Distributed under the terms of the GNU General Public License (GPL).
 
 from pathlib import Path
 import copy
@@ -17,7 +17,6 @@ class MovieComponent(BaseVisualComponent):
     categories = ['Stimuli']
     targets = ['PsychoPy', 'PsychoJS']
     iconFile = Path(__file__).parent / 'movie.png'
-    iconSVG = Path(__file__).parent / 'MovieComponent.svg'
     tooltip = _translate('Movie: play movie files')
 
     def __init__(self, exp, parentName, name='movie', movie='',
@@ -72,10 +71,10 @@ class MovieComponent(BaseVisualComponent):
 
         self.depends.append(
             {"dependsOn": "No audio",  # must be param name
-             "condition": "==False",  # val to check for
+             "condition": "==True",  # val to check for
              "param": "volume",  # param property to alter
-             "true": "show",  # what to do with param if condition is True
-             "false": "hide",  # permitted: hide, show, enable, disable
+             "true": "hide",  # what to do with param if condition is True
+             "false": "show",  # permitted: hide, show, enable, disable
              }
         )
 
@@ -282,13 +281,15 @@ class MovieComponent(BaseVisualComponent):
             code = (
                 "%(name)s.setAutoDraw(False)\n"
             )
+            if self.params['backend'].val not in ('moviepy', 'avbin', 'vlc'):
+                code += "%(name)s.stop()\n"
             buff.writeIndentedLines(code % self.params)
         # to get out of the if statement
         buff.setIndentLevel(-indented, relative=True)
 
         # do force end of trial code
         if self.params['forceEndRoutine'].val is True:
-            code = ("if %s.status == FINISHED:  # force-end the Routine\n"
+            code = ("if %s.isFinished:  # force-end the Routine\n"
                     "    continueRoutine = False\n" %
                     self.params['name'])
             buff.writeIndentedLines(code)
@@ -335,7 +336,6 @@ class MovieComponent(BaseVisualComponent):
         if self.params['stopWithRoutine']:
             # stop at the end of the Routine, if requested
             code = (
-                "%(name)s.setAutoDraw(False)\n"
                 "%(name)s.stop()  # ensure movie has stopped at end of Routine\n"
             )
             buff.writeIndentedLines(code % self.params)

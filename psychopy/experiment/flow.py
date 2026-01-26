@@ -3,7 +3,7 @@
 
 # Part of the PsychoPy library
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2025 Open Science Tools Ltd.
-# Distributed under the terms of the MIT License.
+# Distributed under the terms of the GNU General Public License (GPL).
 
 """Describes the Flow of an experiment
 """
@@ -274,11 +274,6 @@ class Flow(list):
         code = (
             "# mark experiment as started\n"
             "thisExp.status = STARTED\n"
-            "# update experiment info\n"
-            "expInfo['date'] = data.getDateStr()\n"
-            "expInfo['expName'] = expName\n"
-            "expInfo['expVersion'] = expVersion\n"
-            "expInfo['psychopyVersion'] = psychopyVersion\n"
             "# make sure window is set to foreground to prevent losing focus\n"
             "win.winHandle.activate()\n"
             "# make sure variables created by exec are available globally\n"
@@ -341,8 +336,6 @@ class Flow(list):
                 "if ioServer is not None:\n"
                 "    ioServer.syncClock(globalClock)\n"
                 "logging.setDefaultClock(globalClock)\n"
-                "if eyetracker is not None:\n"
-                "    eyetracker.enableEventReporting()\n"
                 "# routine timer to track time remaining of each (possibly non-slip) routine\n"
                 "routineTimer = core.Clock()\n"
                 "win.flip()  # flip window to reset last flip timer\n"

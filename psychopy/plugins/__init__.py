@@ -3,7 +3,7 @@
 
 # Part of the PsychoPy library
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2025 Open Science Tools Ltd.
-# Distributed under the terms of the MIT License.
+# Distributed under the terms of the GNU General Public License (GPL).
 """Utilities for extending PsychoPy with plugins."""
 
 __all__ = [
@@ -437,7 +437,7 @@ def scanPlugins():
             if not ep.group.startswith("psychopy"):
                 continue
             # make sure we have an entry for this distribution
-            if sys.version.startswith("3.8") or sys.version.startswith("3.9"):
+            if sys.version.startswith("3.8"):
                 distName = dist.metadata['name']
             else:
                 distName = dist.name
@@ -789,10 +789,10 @@ def loadPlugin(plugin):
                 f"Registering entry point {ep.value} (from {plugin}) to {ep.group}:{ep.name}"
             )
             try:
-                mod = ep.load()  # load the entry point
+                ep = ep.load()  # load the entry point
 
                 # Raise a warning if the plugin is being loaded from a zip file.
-                if '.zip' in inspect.getfile(mod):
+                if '.zip' in inspect.getfile(ep):
                     logging.warning(
                         "Plugin `{}` is being loaded from a zip file. This may "
                         "cause issues with the plugin's functionality.".format(plugin))
@@ -801,7 +801,7 @@ def loadPlugin(plugin):
                 msg = f"Skipping entry point {ep.value} (from {plugin}) to {ep.group}:{ep.name}"
                 # append reason
                 if isinstance(err, ImportError):
-                    msg += f" as {ep.value} cannot be imported ({err})."
+                    msg += f" as {ep.value} cannot be imported."
                 else:
                     msg += f", reason: {err}"
                 # log message
@@ -811,8 +811,6 @@ def loadPlugin(plugin):
                     _failed_plugins_.append(plugin)
 
                 continue
-            else:
-                ep = mod
 
             # If we get here, the entry point is valid and we can safely add it
             # to PsychoPy's namespace.

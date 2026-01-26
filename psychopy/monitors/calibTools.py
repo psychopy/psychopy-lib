@@ -6,7 +6,7 @@
 
 # Part of the PsychoPy library
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2025 Open Science Tools Ltd.
-# Distributed under the terms of the MIT License.
+# Distributed under the terms of the GNU General Public License (GPL).
 
 from .calibData import wavelength_5nm, juddVosXYZ1976_5nm, cones_SmithPokorny
 from psychopy import __version__, logging
@@ -521,16 +521,6 @@ class Monitor:
         """Equivalent of :func:`~psychopy.monitors.Monitor.save`.
         """
         self.save()
-
-    def getJSON(self):
-        return {
-            'name': self.name,
-            'calibrations': self.calibs
-        }
-    
-    def fromJSON(self, node):
-        self.name = node['name']
-        self.calibs = node['calibrations']
 
     def _saveJSON(self):
         thisFileName = os.path.join(monitorFolder, self.name + ".json")

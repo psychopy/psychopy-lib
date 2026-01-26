@@ -34,11 +34,6 @@ except Exception:
 
 import numpy as np
 
-__all__ = [
-    "SoundPTB",
-    "Sound"
-]
-
 
 defaultLatencyClass = 1
 # suggestedLatency = 0.005  ## Not currently used. Keep < 1 scr refresh
@@ -401,6 +396,3 @@ class SoundPTB(_SoundBase):
             self.__dict__['track'] = None
         else:
             self.__dict__['track'] = weakref.ref(track)
-
-
-Sound = SoundPTB

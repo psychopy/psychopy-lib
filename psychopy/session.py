@@ -256,8 +256,6 @@ class Session:
         ):
         # Store root and add to Python path
         self.root = Path(root)
-        if not self.root.is_absolute():
-            self.root = self.root.absolute()
         sys.path.insert(1, str(self.root))
         # store rest message
         self.restMsg = restMsg
@@ -964,7 +962,44 @@ class Session:
                 f"Device names are not available for experiments added to Session directly as a "
                 f".py file."
             )
-        return exp.getRequiredDeviceNames()
+        # get ready to store usages
+        usages = {}
+
+        def _process(name, emt):
+            """
+            Process an element (Component or Routine) for device names and append them to the
+            usages dict.
+
+            Parameters
+            ----------
+            name : str
+                Name of this element in Builder
+            emt : Component or Routine
+                Element to process
+            """
+            # if we have a device name for this element...
+            if "deviceLabel" in emt.params:
+                # get init value so it lines up with boilerplate code
+                inits = experiment.getInitVals(emt.params)
+                # get value
+                deviceName = inits['deviceLabel'].val
+                # if deviceName exists from other elements, add usage to it
+                if deviceName in usages:
+                    usages[deviceName].append(name)
+                else:
+                    usages[deviceName] = [name]
+
+        # iterate through routines
+        for rtName, rt in exp.routines.items():
+            if isinstance(rt, experiment.routines.BaseStandaloneRoutine):
+                # for standalone routines, get device names from params
+                _process(rtName, rt)
+            else:
+                # for regular routines, get device names from each component
+                for comp in rt:
+                    _process(comp.name, comp)
+
+        return list(usages)
 
     def runExperiment(self, key, expInfo=None, blocking=True):
         """
@@ -1229,13 +1264,6 @@ class Session:
 
         # set ExperimentHandler status to PAUSED
         self.currentExperiment.pause()
-        # update Liaison if needed
-        if self.liaison is not None:
-            self.sendToLiaison({
-                'type': "experiment_status",
-                'name': self.currentExperiment.name,
-                'status': self.currentExperiment.status,
-            })
 
         return True
 
@@ -1257,13 +1285,6 @@ class Session:
             return False
         # set ExperimentHandler status to STARTED
         self.currentExperiment.resume()
-        # update Liaison if needed
-        if self.liaison is not None:
-            self.sendToLiaison({
-                'type': "experiment_status",
-                'name': self.currentExperiment.name,
-                'status': self.currentExperiment.status,
-            })
 
         return True
 
@@ -1284,25 +1305,8 @@ class Session:
             )
             return False
         self.currentExperiment.stop()
-        # update Liaison if needed
-        if self.liaison is not None:
-            self.sendToLiaison({
-                'type': "experiment_status",
-                'name': self.currentExperiment.name,
-                'status': self.currentExperiment.status,
-            })
 
         return True
-    
-    def next(self):
-        """
-        Move on to either the next trial (if in a trials loop) or the next Routine.
-        """
-        # return if there's no current experiment
-        if self.currentExperiment is None:
-            return
-        # skip trials in current loop
-        return self.currentExperiment.next()
 
     def skipTrials(self, n=1):
         """
@@ -1340,23 +1344,6 @@ class Session:
             return
         # rewind trials in current loop
         return self.currentExperiment.rewindTrials(n)
-
-    def cueTrial(self, trial, isTrials=True):
-        """
-        Queue up a trial to be next in the current TrialHandler.
-
-        Parameters
-        ----------
-        trial : int, dict or Trial
-            Trial or index to queue up
-        isTrials : bool
-            Filter for only loops which have isTrials checked
-        """
-        # return if there's no current experiment
-        if self.currentExperiment is None:
-            return
-        
-        return self.currentExperiment.cueTrial(trial)
 
     def saveExperimentData(self, key, thisExp=None, blocking=True):
         """

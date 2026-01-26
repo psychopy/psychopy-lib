@@ -6,7 +6,7 @@
 
 # Part of the PsychoPy library
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
-# Distributed under the terms of the MIT License.
+# Distributed under the terms of the GNU General Public License (GPL).
 
 import re
 import ast
@@ -251,7 +251,7 @@ class CaseSwitcher:
 
 
 def wrap(value, chars, delim=r"\s|-"):
-    r"""
+    """
     Wrap a string at a number of characters.
 
     Parameters
@@ -393,50 +393,25 @@ def _actualizeAstValue(item):
         return tuple(_actualizeAstValue(i) for i in item.elts)
 
 
-def getVariableDefs(code):
+def getVariables(code):
     """
-    Returns a dict of variables defined in the given code, and their values.
-
-    Parameters
-    ----------
-    code : str
-        Code to parse for variable defs
+    Use AST tree parsing to convert a string of valid Python code to a dict containing each variable created and its
+    value.
     """
-    assert isinstance(code, str), "First input to `getVariableDefs()` must be a string"
-    # make blank output dict
+    assert isinstance(code, str), "First input to `getArgs()` must be a string"
+    # Make blank output dict
     vars = {}
-    # construct tree
+    # Construct tree
     tree = compile(code, '', 'exec', flags=ast.PyCF_ONLY_AST)
-    # iterate through each node
+    # Iterate through each line
     for line in tree.body:
         if hasattr(line, "targets") and hasattr(line, "value"):
-            # append targets and values this line to arguments dict
+            # Append targets and values this line to arguments dict
             for target in line.targets:
                 if hasattr(target, "id"):
                     vars[target.id] = _actualizeAstValue(line.value)
 
     return vars
-
-def getVariables(code):
-    """
-    Returns a list of variables referenced in the given code.
-
-    Parameters
-    ----------
-    code : str
-        Code to parse for variables
-    """
-    assert isinstance(code, str), "First input to `getVariables()` must be a string"
-    # make blank output list
-    vars = set()
-    # construct tree
-    tree = compile(code, '', 'exec', flags=ast.PyCF_ONLY_AST)
-    # iterate through each node
-    for node in ast.walk(tree):
-        if isinstance(node, ast.Name):
-            vars.add(node.id)
-    
-    return list(vars)
 
 
 def getArgs(code):

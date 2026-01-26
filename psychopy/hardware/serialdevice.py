@@ -3,7 +3,7 @@
 
 # Part of the PsychoPy library
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2025 Open Science Tools Ltd.
-# Distributed under the terms of the MIT License.
+# Distributed under the terms of the GNU General Public License (GPL).
 
 """Base class for serial devices. Includes some convenience methods to open
 ports and check for the expected device
@@ -293,21 +293,7 @@ class SerialDevice(BaseDevice, AttributeGetSetMixin):
             t = time.time() - start
             resp = self.com.read()
         # get remaining chars
-        active = True
-        while active and t < timeout:
-            # get resp
-            thisResp = self.com.read_until(self.eol)
-            # concatenate it to what we already have
-            resp += thisResp
-            # decide whether to continue
-            if thisResp.endswith(self.eol) and not multiline:
-                # in single line mode, always stop after an eol
-                active = False
-            else:
-                # otherwise, continue so long as we have a response
-                active = len(thisResp)
-            # wait for more
-            self.pause()
+        resp += self.com.readall()
         # if we timed out, return None
         if t > timeout:
             return
@@ -315,7 +301,7 @@ class SerialDevice(BaseDevice, AttributeGetSetMixin):
         resp = resp.decode('utf-8')
         # if multiline, split by eol
         if multiline:
-            resp = resp.split(self.eol.decode("utf-8"))
+            resp = resp.split(str(self.eol))
 
         return resp
 

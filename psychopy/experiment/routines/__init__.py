@@ -5,10 +5,10 @@
 
 # Part of the PsychoPy library
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2025 Open Science Tools Ltd.
-# Distributed under the terms of the MIT License.
+# Distributed under the terms of the GNU General Public License (GPL).
 
 from importlib import import_module
-from ._base import BaseStandaloneRoutine, BaseDeviceRoutine, BaseValidatorRoutine, Routine
+from ._base import BaseStandaloneRoutine, BaseValidatorRoutine, Routine
 from .unknown import UnknownRoutine
 from pathlib import Path
 from psychopy import logging

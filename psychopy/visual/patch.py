@@ -7,7 +7,7 @@ or the :class:`~psychopy.visual.ImageStim` classes.'''
 
 # Part of the PsychoPy library
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2025 Open Science Tools Ltd.
-# Distributed under the terms of the MIT License.
+# Distributed under the terms of the GNU General Public License (GPL).
 
 from psychopy.plugins import PluginStub
 

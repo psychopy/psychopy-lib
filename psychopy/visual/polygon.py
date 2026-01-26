@@ -6,7 +6,7 @@
 
 # Part of the PsychoPy library
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2025 Open Science Tools Ltd.
-# Distributed under the terms of the MIT License.
+# Distributed under the terms of the GNU General Public License (GPL).
 
 import psychopy  # so we can get the __path__
 from psychopy.visual.shape import ShapeStim
@@ -174,12 +174,8 @@ class Polygon(ShapeStim):
         if self.edges == "circle":
             # If circle is requested, calculate min edges needed for it to appear smooth
             edges = self._calculateMinEdges(self.__dict__['lineWidth'], threshold=1)
-        elif self.edges is None:
-            # if no edges, default
-            edges = 3
         else:
             edges = self.edges
-        # calculate edges
         self.vertices = self._calcEquilateralVertices(edges, self.radius)
         
     @attributeSetter

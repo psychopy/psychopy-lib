@@ -3,7 +3,7 @@
 
 # Part of the PsychoPy library
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2025 Open Science Tools Ltd.
-# Distributed under the terms of the MIT License.
+# Distributed under the terms of the GNU General Public License (GPL).
 
 """Functions and classes related to attribute handling
 """
@@ -58,19 +58,12 @@ class attributeSetter:
     """Makes functions appear as attributes. Takes care of autologging.
     """
 
-    def __init__(self, func):
+    def __init__(self, func, doc=None):
         self.func = func
-        self.__doc__ = func.__doc__
-    
-    def __set_name__(self, owner: type, name: str):
-        # if we already have docs, no further action needed
-        if self.__doc__ is not None:
-            return
-        # inherit docs from first base class which has any for this method
-        for base in owner.__bases__:
-            if hasattr(base, name) and getattr(base, name).__doc__ is not None:
-                self.__doc__ = getattr(base, name).__doc__
-                break
+        if doc is not None:
+            self.__doc__ = doc
+        else:
+            self.__doc__ = func.__doc__
 
     def __set__(self, obj, value):
         newValue = self.func(obj, value)

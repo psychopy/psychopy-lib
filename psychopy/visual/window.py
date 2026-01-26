@@ -5,7 +5,7 @@
 
 # Part of the PsychoPy library
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2025 Open Science Tools Ltd.
-# Distributed under the terms of the MIT License.
+# Distributed under the terms of the GNU General Public License (GPL).
 
 import ctypes
 import os
@@ -14,8 +14,6 @@ import weakref
 import atexit
 from itertools import product
 from collections import deque
-
-from psychopy.tools import colorspacetools as ct
 
 from psychopy.contrib.lazy_import import lazy_import
 from psychopy import colors, event
@@ -374,18 +372,6 @@ class Window():
         else:
             self.monitor = monitor
 
-        # Register lms and dkl conversion matrices for colorspacetools to grab if it wants
-        # ARW 020825
-        try:
-            lms_mat = self.monitor.getLMS_RGB()
-        except Exception:
-            lms_mat = None
-        try:
-            dkl_mat = self.monitor.getDKL_RGB()
-        except Exception:
-            dkl_mat = None
-
-        ct._register_active_cone_matrices(lms_mat, dkl_mat)
         # otherwise monitor will just be a dict
         self.scrWidthCM = self.monitor.getWidth()
         self.scrDistCM = self.monitor.getDistance()
@@ -639,7 +625,7 @@ class Window():
         self._projectionMatrixNeedsUpdate = True
         self._viewMatrixNeedsUpdate = True
 
-        self.setDefaultView()  # initialize view/proj matrix
+        self.setOrthographicView()
 
         # piloting indicator
         self._pilotingIndicator = None
@@ -836,14 +822,13 @@ class Window():
         settings.
         """
         if self._projectionMatrixNeedsUpdate:
-            # widthOver2 = self.size[0] / 2.0
-            # heightOver2 = self.size[1] / 2.0
-            # self._projectionMatrix[:, :] = viewtools.orthoProjectionMatrix(
-            #     -widthOver2, widthOver2,    # -X, +X
-            #     -heightOver2, heightOver2,  # -Y, +Y
-            #     -1.0, 1.0,                  # -Z, +Z
-            #     dtype=numpy.float32)
-            self._projectionMatrix[:, :] = numpy.identity(4, dtype=numpy.float32)
+            widthOver2 = self.size[0] / 2.0
+            heightOver2 = self.size[1] / 2.0
+            self._projectionMatrix[:, :] = viewtools.orthoProjectionMatrix(
+                -widthOver2, widthOver2,    # -X, +X
+                -heightOver2, heightOver2,  # -Y, +Y
+                -1.0, 1.0,                  # -Z, +Z
+                dtype=numpy.float32)
             self._projectionMatrixNeedsUpdate = False
 
     @property
@@ -2282,20 +2267,6 @@ class Window():
         if applyTransform:
             self.applyEyeTransform(clearDepth=clearDepth)
 
-    def setDefaultView(self, applyTransform=True, clearDepth=True):
-        """Set the projection and view matrix to PsychoPy's default.
-
-        This is the mode which is typically used for rendering 2D stimuli. It should
-        be called prior to rendering any 2D stimuli if the projection has been
-        changed.
-
-        """
-        self._updateViewMatrix()
-        self._updateProjectionMatrix()
-
-        if applyTransform:
-            self.applyEyeTransform(clearDepth=clearDepth)
-
     def setOrthographicView(self, applyTransform=True, clearDepth=True):
         """Set the projection and view matrix to render with orthographic view.
 
@@ -2319,16 +2290,8 @@ class Window():
             Clear the depth buffer.
 
         """
+        self._updateProjectionMatrix()
         self._updateViewMatrix()
-
-        widthOver2 = self.size[0] / 2.0
-        heightOver2 = self.size[1] / 2.0
-        self._projectionMatrix[:, :] = viewtools.orthoProjectionMatrix(
-            -widthOver2, widthOver2,    # -X, +X
-            -heightOver2, heightOver2,  # -Y, +Y
-            -1.0, 1.0,                  # -Z, +Z
-            dtype=numpy.float32)
-        self._projectionMatrix[:, :] = numpy.identity(4, dtype=numpy.float32)
 
         if applyTransform:
             self.applyEyeTransform(clearDepth=clearDepth)
@@ -2503,8 +2466,8 @@ class Window():
                                       win=self)[:2]
 
         # transform psychopy mouse coordinates to viewport coordinates
-        scrX += (self.size[0] / 2.)
-        scrY +=  (self.size[1] / 2.)
+        scrX = scrX + (self.size[0] / 2.)
+        scrY = scrY + (self.size[1] / 2.)
 
         # get the NDC coordinates of the
         projX = 2. * (scrX - self.viewport[0]) / self.viewport[2] - 1.
@@ -3675,9 +3638,6 @@ class Window():
         threshold : int or float, optional
             The threshold for the std deviation (in ms) before the set
             are considered a match.
-        infoMsg : str, optional
-            An optional message to display in the window while measuring
-            the frame rate. If `None`, a default message will be used.
 
         Returns
         -------
@@ -3710,40 +3670,34 @@ class Window():
         self.recordFrameIntervals = False
 
         # warm-up, allow the system to settle a bit before measuring frames
-        for _ in range(nWarmUpFrames):
+        for frameN in range(nWarmUpFrames):
             self.flip()
 
+        # run test frames
         self.recordFrameIntervals = True  # record intervals for actual test
-
-        # run test frames 
         threshSecs = threshold / 1000.0  # must be in seconds
-        rate = None
-        for _ in range(nMaxFrames):
+        for frameN in range(nMaxFrames):
             self.flip()
-
             recentFrames = self.frameIntervals[-nIdentical:]
-            nIntervals = len(recentFrames)
+            nIntervals = len(self.frameIntervals)
             if len(recentFrames) < 3:
                 continue  # no need to check variance yet
-
             recentFramesStd = numpy.std(recentFrames)  # compute variability
             if nIntervals >= nIdentical and recentFramesStd < threshSecs:
                 # average duration of recent frames
                 period = numpy.mean(recentFrames)  # log this too?
                 rate = 1.0 / period  # compute frame rate in Hz
+                if self.autoLog:
+                    scrStr = "" if screen is None else " (%i)" % screen
+                    msg = "Screen{} actual frame rate measured at {:.2f}Hz"
+                    logging.exp(msg.format(scrStr, rate))
 
-        self.recordFrameIntervals = recordFrmIntsOrig
-        self.frameIntervals = []
+                self.recordFrameIntervals = recordFrmIntsOrig
+                self.frameIntervals = []
+                self.hideMessage()  # remove the message
+                return rate
+
         self.hideMessage()  # remove the message
-
-        if rate is not None:
-            # log the measured frame rate
-            if self.autoLog:
-                scrStr = "" if screen is None else " (%i)" % screen
-                msg = "Screen{} actual frame rate measured at {:.2f}Hz"
-                logging.exp(msg.format(scrStr, rate))
-
-            return rate
 
         # if we get here we reached end of `maxFrames` with no consistent value
         msg = ("Couldn't measure a consistent frame rate!\n"

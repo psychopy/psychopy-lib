@@ -3,7 +3,7 @@
 
 # Part of the PsychoPy library
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2025 Open Science Tools Ltd.
-# Distributed under the terms of the MIT License.
+# Distributed under the terms of the GNU General Public License (GPL).
 
 """Describes the Flow of an experiment
 """
@@ -16,7 +16,6 @@ from pathlib import Path
 
 from psychopy.experiment.components.static import StaticComponent
 from psychopy.experiment.components.routineSettings import RoutineSettingsComponent
-from psychopy.experiment.devices import DeviceMixin
 from psychopy.localization import _translate
 from psychopy.experiment import Param
 
@@ -25,19 +24,14 @@ class BaseStandaloneRoutine:
     categories = ['Custom']
     targets = []
     iconFile = Path(__file__).parent / "unknown" / "unknown.png"
-    iconSVG = Path(__file__).parent / "BaseRoutine.svg"
     tooltip = ""
     limit = float('inf')
-    plugin = None
     # what version was this Routine added in?
     version = "0.0.0"
     # is it still in beta?
     beta = False
     # hide this Component in Builder view?
     hidden = False
-    # are there any known legacy params for this Routine?
-    # these will be removed & warnings ignored on experiment load
-    legacyParams = []
 
     def __init__(self, exp, name='',
                  stopType='duration (s)', stopVal='',
@@ -53,7 +47,7 @@ class BaseStandaloneRoutine:
         msg = _translate(
             "Name of this Routine (alphanumeric or _, no spaces)")
         self.params['name'] = Param(name,
-                                    valType='code', inputType="name", categ=None,
+                                    valType='code', inputType="single", categ='Basic',
                                     hint=msg,
                                     label=_translate('Name'))
 
@@ -73,7 +67,7 @@ class BaseStandaloneRoutine:
         # Testing
         msg = _translate("Disable this Routine")
         self.params['disabled'] = Param(disabled,
-            valType='bool', inputType="bool", categ=None,
+            valType='bool', inputType="bool", categ="Testing",
             hint=msg, allowedTypes=[], direct=False,
             label=_translate('Disable Routine'))
 
@@ -97,61 +91,6 @@ class BaseStandaloneRoutine:
         else:
             self.__iterstop = True
             return self
-    
-    @classmethod
-    def getTemplateJSON(cls):
-        from psychopy.experiment import Experiment
-        # try to load SVG
-        try:
-            iconSVG = cls.iconSVG.read_text("utf-8")
-        except:
-            iconSVG = None
-        # include basic info
-        profile = {
-            '__class__': f"{cls.__module__}:{cls.__qualname__}",
-            '__name__': cls.__name__,
-            "categories": cls.categories,
-            "targets": cls.targets,
-            "plugin": cls.plugin,
-            "legacyParams": cls.legacyParams,
-            "iconSVG": iconSVG,
-            "iconFile": cls.iconFile,
-            "tooltip": cls.tooltip,
-            "version": cls.version,
-            "beta": cls.beta,
-            "hidden": cls.hidden,
-            "params": {}
-        }
-        # make an object for defaults
-        exp = Experiment()
-        defaults = cls(exp)
-        # order params
-        order = [
-            name for name in defaults.order if name in defaults.params
-        ] + [
-            name for name in defaults.params if name not in defaults.order
-        ]
-        # populate params in order
-        for name in order:
-            # make template
-            profile['params'][name] = defaults.params[name].getTemplateJSON(
-                name=name, depends=defaults.depends
-            )
-
-        return profile
-    
-    def getJSON(self):
-        # populate basic info
-        profile = {
-            'tag': type(self).__name__,
-            'plugin': self.plugin,
-            'params': {}
-        }
-        # populate params
-        for name, param in self.params.items():
-            profile['params'][name] = param.getJSON()
-        
-        return profile
 
     @property
     def _xml(self):
@@ -435,41 +374,14 @@ class BaseStandaloneRoutine:
         self.params['disabled'].val = value
 
 
-class BaseDeviceRoutine(BaseStandaloneRoutine, DeviceMixin):
-    """
-    Base class for most routines which interface with a hardware device.
-    """
-    def __init__(
-            self, exp,
-            # basic
-            name='',
-            stopType='duration (s)', stopVal='',
-            # device
-            deviceLabel="",
-            # testing
-            disabled=False
-    ):
-        # initialise base component
-        BaseStandaloneRoutine.__init__(
-            self, exp, 
-            # basic
-            name=name,
-            stopType=stopType, stopVal=stopVal,
-            # testing
-            disabled=disabled
-        )
-        # add device stuff
-        self.addDeviceParams(
-            defaultLabel=deviceLabel
-        )
-
-
-class BaseValidatorRoutine(BaseDeviceRoutine):
+class BaseValidatorRoutine(BaseStandaloneRoutine):
     """
     Subcategory of Standalone Routine, which sets up a "validator" - an object which is linked to in the Testing tab
     of another Component and validates that the component behaved as expected. Any validator Routines should subclass
     this rather than BaseStandaloneRoutine.
     """
+    # list of class strings (readable by DeviceManager) which this component's device could be
+    deviceClasses = []
 
     def writeRoutineStartValidationCode(self, buff, stim):
         """
@@ -493,25 +405,6 @@ class BaseValidatorRoutine(BaseDeviceRoutine):
     def writeEachFrameValidationCode(self, buff, stim):
         """
         Write the each frame code to validate a given stimulus using this validator.
-
-        Parameters
-        ----------
-        buff : StringIO
-            String buffer to write code to.
-        stim : BaseComponent
-            Stimulus to validate
-
-        Returns
-        -------
-        int
-            Change in indentation level after writing
-        """
-        # this method should be overloaded when subclassing!
-        return 0
-    
-    def writeEachFrameValidationCode(self, buff, stim):
-        """
-        Write Routine stop code to validate this stimulus against the specified validator.
 
         Parameters
         ----------
@@ -774,23 +667,19 @@ class Routine(list):
         )
         buff.writeIndentedLines(code % self.params)
 
-        code = (
-            "for thisComponent in {name}.components:\n"
-            "    thisComponent.tStart = None\n"
-            "    thisComponent.tStop = None\n"
-            "    thisComponent.tStartRefresh = None\n"
-            "    thisComponent.tStopRefresh = None\n"
-            "    if hasattr(thisComponent, 'status'):\n"
-            "        thisComponent.status = NOT_STARTED\n"
-            "# reset timers\n"
-            't = 0\n'
-            '_timeToFirstFrame = win.getFutureFlipTime(clock="now")\n'
-            # '{clockName}.reset(-_timeToFirstFrame)  # t0 is time of first possible flip\n'
-            'frameN = -1\n'
-            '\n'
-            '# --- Run Routine "{name}" ---\n'
-            'thisExp.currentRoutine = {name}\n'
-        )
+        code = ("for thisComponent in {name}.components:\n"
+                "    thisComponent.tStart = None\n"
+                "    thisComponent.tStop = None\n"
+                "    thisComponent.tStartRefresh = None\n"
+                "    thisComponent.tStopRefresh = None\n"
+                "    if hasattr(thisComponent, 'status'):\n"
+                "        thisComponent.status = NOT_STARTED\n"
+                "# reset timers\n"
+                't = 0\n'
+                '_timeToFirstFrame = win.getFutureFlipTime(clock="now")\n'
+                # '{clockName}.reset(-_timeToFirstFrame)  # t0 is time of first possible flip\n'
+                'frameN = -1\n'
+                '\n# --- Run Routine "{name}" ---\n')
         buff.writeIndentedLines(code.format(name=self.name,
                                             clockName=self._clockName))
 
@@ -871,16 +760,16 @@ class Routine(list):
         # are we done yet?
         code = (
             '\n'
-            '# has a Component requested the Routine to end?\n'
-            'if not continueRoutine:\n'
+            '# check if all components have finished\n'
+            'if not continueRoutine:  # a component has requested a '
+            'forced-end of Routine\n'
             '    %(name)s.forceEnded = routineForceEnded = True\n'
-            '# has the Routine been forcibly ended?\n'
-            'if %(name)s.forceEnded or routineForceEnded:\n'
             '    break\n'
-            '# has every Component finished?\n'
-            'continueRoutine = False\n'
+            'continueRoutine = False  # will revert to True if at least '
+            'one component still running\n'
             'for thisComponent in %(name)s.components:\n'
-            '    if hasattr(thisComponent, "status") and thisComponent.status != FINISHED:\n'
+            '    if hasattr(thisComponent, "status") and '
+            'thisComponent.status != FINISHED:\n'
             '        continueRoutine = True\n'
             '        break  # at least one component has not yet finished\n')
         buff.writeIndentedLines(code % self.params)
@@ -902,7 +791,6 @@ class Routine(list):
                 '        thisComponent.setAutoDraw(False)\n')
         buff.writeIndentedLines(code % self.params)
         for event in self:
-            event.writeRoutineEndValidationCode(buff)
             event.writeRoutineEndCode(buff)
 
         if useNonSlip:

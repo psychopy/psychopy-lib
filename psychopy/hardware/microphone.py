@@ -275,9 +275,6 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
         # recording buffer information
         self._recording = []  # use a list
         self._totalSamples = 0
-        self._absRecStartTime = self._absRecStopTime = -1.0
-        self._recPositionSecs = 0.0
-
         self._maxRecordingSize = (
             -1 if maxRecordingSize is None else int(maxRecordingSize))
         self._policyWhenFull = policyWhenFull
@@ -466,7 +463,6 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
                 index = profile.get('index', None)
             device = {
                 'deviceName': profile.get('device_name', "Unknown Microphone"),
-                'deviceClass': "psychopy.hardware.microphone.MicrophoneDevice",
                 'index': index,
                 'sampleRateHz': profile.get('defaultSampleRate', None),
                 'channels': profile.get('inputChannels', None),
@@ -517,16 +513,6 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
     def recBufferSecs(self):
         """Capacity of the recording buffer in seconds (`float`)."""
         return self._totalSamples / float(self._sampleRateHz)
-    
-    @property
-    def recSampleCount(self):
-        """Total number of samples in the recording buffer (`int`).
-
-        This is the total number of samples that have been recorded since the
-        last `start` call. If the stream is not started, this will return `0`.
-
-        """
-        return self._totalSamples
 
     @property
     def latencyBias(self):
@@ -656,16 +642,6 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
             logging.debug(f"Microphone test failed. Error: {err}")
 
             raise err
-        
-    @property
-    def recordingTime(self):
-        """Current position in the recording buffer in seconds (`float`).
-
-        This is the position of the next sample to be written to the recording
-        buffer. If the stream is not started, this will return `0.0`.
-
-        """
-        return self._recPositionSecs
 
     def start(self, when=None, waitForStart=0, stopTime=None):
         """Start an audio recording.
@@ -703,12 +679,11 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
         # reset the recording buffer
         self._recording = []
         self._totalSamples = 0
-        self._recPositionSecs = 0.0
 
         # reset warnings
         # self._warnedRecBufferFull = False
 
-        self._absRecStartTime = self._stream.start(
+        startTime = self._stream.start(
             repetitions=0,
             when=when,
             wait_for_start=int(waitForStart),
@@ -719,9 +694,9 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
 
         logging.debug(
             'Scheduled start of audio capture for device #{} at t={}.'.format(
-                self._device.deviceIndex, self._absRecStartTime))
+                self._device.deviceIndex, startTime))
 
-        return self._absRecStartTime
+        return startTime
 
     def record(self, when=None, waitForStart=0, stopTime=None):
         """Start an audio recording (alias of `.start()`).
@@ -782,7 +757,7 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
             return
 
         # poll remaining samples, if any
-        _ = self.poll()
+        self.poll()
 
         startTime, endPositionSecs, xruns, estStopTime = self._stream.stop(
             block_until_stopped=int(blockUntilStopped),
@@ -918,16 +893,6 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
         if self._maxRecordingSize < 0:
             return False
         return self._totalSamples >= self._maxRecordingSize
-    
-    @property
-    def recStartTime(self):
-        """Absolute time when the recording started (`float`).
-
-        This is the time when the first sample was recorded. If the recording
-        has not started, this will be `-1.0`.
-
-        """
-        return self._absRecStartTime
 
     def poll(self):
         """Poll audio samples.
@@ -944,14 +909,7 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
         Returns
         -------
         int
-            Current recording position in samples (`int`) and number of 
-            overflows (`int`). If the returned position is less than zero
-            (negative) then microphone is still starting up and wont be ready
-            until the position is greater than or equal to zero. If overflow 
-            occurs, this means that the recording buffer is full and no more 
-            samples can be added until polled. To prevent this, ensure that 
-            `poll()` is called often enough or increase the size of the audio 
-            buffer with `bufferSecs`.
+            Number of overruns in sampling.
 
         """
         if not self.isStarted:
@@ -1017,12 +975,8 @@ class MicrophoneDevice(BaseDevice, aliases=["mic", "microphone"]):
             elif self._policyWhenFull == 'error':
                 raise AudioStreamError(
                     "Recording buffer is full, no more samples will be added.")
-            
-        # update the recording position
-        self._absRecStopTime = absRecPosition / self._sampleRateHz
-        self._recPositionSecs = self._absRecStopTime - self._absRecStartTime
 
-        return absRecPosition, overflow
+        return 0
     
     def _mergeAudioFragments(self):
         """Merge audio fragments into a single segment.

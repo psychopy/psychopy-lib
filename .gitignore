@@ -1,4 +1,3 @@
-
 #########################################
 # Editor temporary/working/backup files #
 .#*
@@ -19,6 +18,7 @@
 /.cache
 /.idea
 /.untitled.py
+scratch.py
 
 # Compiled source #
 ###################
@@ -32,6 +32,7 @@
 *.so
 *.egg
 .eggs
+psychopy/app/locale/**/LC_MESSAGE/messages.mo
 
 # Python files #
 ################
@@ -47,6 +48,7 @@ dist
 *.egg-info
 # tox testing tool
 .tox
+.venv
 # Moves icons from res to component folders
 /dropoff/dropoff_dark.py
 /dropoff/dropoff_light.py
@@ -67,9 +69,8 @@ nonSVN
 
 # Things specific to this project #
 ###################################
-PsyScope*
-psychopy1
-psychojs.zip
+# pdm.lock will include platform-specific libs so not portable
+# pdm.lock
 
 psychopy/demos/coder/misc/frame*
 psychopy/demos/**/data/*.psydat
@@ -106,9 +107,14 @@ gource_psychopy.mkv
 *.hdf5
 *.7z
 
+# NSIS temp compilation files #
+###############################
+uninstallFiles.nsi
+
 # Documentation generated files #
 #################################
 .coverage
 #nonSphinx
 /venv*/
+/.venv*/
 !psychopy

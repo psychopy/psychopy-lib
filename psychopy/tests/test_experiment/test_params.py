@@ -27,7 +27,6 @@ class TestStyle:
         'surveyjs': "SurveyJS",
         # other brand names
         'python': "Python",
-        'py': "Py",
         'excel': "Excel",
         'gazepoint': "GazePoint",
         'eyelink': "EyeLink",
@@ -40,7 +39,7 @@ class TestStyle:
         'html': "HTML",
         'js': "JS",
         'ip': "IP",
-        'rt': "RT"
+        'rt': "RT",
     }
     # add sentence start versions
     for kw in keywords.copy():
@@ -93,7 +92,6 @@ class TestStyle:
                 f"(?<= )({pattern})(?= )"  # space before and after
                 f"|(?<= )({pattern})$"  # space before and line end after
                 f"|(?<= )({pattern})(?=[^\\w\\s]+)"  # space before and punctuation after
-                f"|(?<=[^\\w\\s/])({pattern})(?=[^\\w\\s]+)"  # punctuation before and punctuation after
                 f"|^({pattern})(?= )"  # line start before and space after
                 f"|^({pattern})(?=[^\\w\\s]+)"  # line start before and punctuation after
                 f"|^({pattern})$"  # line start before and line end after

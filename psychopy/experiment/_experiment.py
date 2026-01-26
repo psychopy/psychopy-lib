@@ -3,7 +3,7 @@
 
 # Part of the PsychoPy library
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2025 Open Science Tools Ltd.
-# Distributed under the terms of the MIT License.
+# Distributed under the terms of the GNU General Public License (GPL).
 
 """Experiment classes:
     Experiment, Flow, Routine, Param, Loop*, *Handlers, and NameSpace
@@ -31,7 +31,8 @@ from .components.resourceManager import ResourceManagerComponent
 from .components.static import StaticComponent
 from .exports import IndentingBuffer, NameSpace
 from .flow import Flow
-from .loops import getAllLoopTypes, TrialHandler, LoopInitiator, LoopTerminator, StairHandler, MultiStairHandler
+from .loops import TrialHandler, LoopInitiator, \
+    LoopTerminator, StairHandler, MultiStairHandler
 from .params import _findParam, Param, legacyParams
 from psychopy.experiment.routines._base import Routine, BaseStandaloneRoutine
 from psychopy.experiment.routines import getAllStandaloneRoutines
@@ -116,7 +117,6 @@ class Experiment:
     Routine. The Flow controls how Routines are organised
     e.g. the nature of repeats and branching of an experiment.
     """
-    
 
     def __init__(self, prefs=None):
         super(Experiment, self).__init__()
@@ -164,11 +164,6 @@ class Experiment:
         # in writeRoutineEndCode
         self._expHandler = TrialHandler(exp=self, name='thisExp')
         self._expHandler.type = 'ExperimentHandler'  # true at run-time
-
-        # get a local reference of all Components and Routines (refreshed on loading a new file)
-        self.allCompons = getAllComponents(
-            self.prefsBuilder['componentsFolders'], fetchIcons=False)
-        self.allRoutines = getAllStandaloneRoutines(fetchIcons=False)
 
     def __eq__(self, other):
         if isinstance(other, Experiment):
@@ -292,24 +287,12 @@ class Experiment:
     def writeScript(self, expPath=None, target="PsychoPy", modular=True):
         """Write a PsychoPy script for the experiment
         """
-        # sanitize and store expPath
-        if expPath is not None:
-            # if there is an expPath, convert it to a Path
-            expPath = Path(expPath)
-            # transform expPath from psyexp to py/js if needed
-            if expPath.suffix == ".psyexp":
-                if target == "PsychoPy":
-                    expPath = expPath.parent / (expPath.stem + ".py")
-                if target == "PsychoJS":
-                    expPath = expPath.parent / (expPath.stem + ".js")
-            # turn back into a string for actual writing
-            self.expPath = str(expPath)
-        else:
-            self.expPath = None
-        # make sure is current
-        self.psychopyVersion = psychopy.__version__
+        # self.integrityCheck()
+
+        self.psychopyVersion = psychopy.__version__  # make sure is current
         # set this so that params write for approp target
         utils.scriptTarget = target
+        self.expPath = expPath
         script = IndentingBuffer(target=target)  # a string buffer object
 
         # get date info, in format preferred by current locale as set by app:
@@ -594,14 +577,6 @@ class Experiment:
         name = paramNode.get('name')
         valType = paramNode.get('valType')
         val = paramNode.get('val')
-        # 
-        # get knowwn legacy params for the current Component
-        componentLegacyParams = []
-        if componentNode is not None:
-            if componentNode.tag in self.allCompons:
-                componentLegacyParams = self.allCompons[componentNode.tag].legacyParams
-            if componentNode.tag in self.allRoutines:
-                componentLegacyParams = self.allRoutines[componentNode.tag].legacyParams
         # many components need web char newline replacement
         if not name == 'advancedParams':
             val = val.replace("&#10;", "\n")
@@ -752,10 +727,6 @@ class Experiment:
             else:
                 if name in params:
                     params[name].val = val
-                elif name in legacyParams + componentLegacyParams:
-                    # don't warn people if we know it's OK (e.g. for params
-                    # that have been removed
-                    return recognised
                 else:
                     # we found an unknown parameter (probably from the future)
                     params[name] = Param(
@@ -769,7 +740,11 @@ class Experiment:
                     params[name].allowedTypes = paramNode.get('allowedTypes')
                     if params[name].allowedTypes is None:
                         params[name].allowedTypes = []
-                    if componentNode is not None and componentNode.get("plugin", False) not in (False, "", "None", None):
+                    if name in legacyParams + ['JS libs', 'OSF Project ID']:
+                        # don't warn people if we know it's OK (e.g. for params
+                        # that have been removed
+                        pass
+                    elif componentNode is not None and componentNode.get("plugin", False) not in (False, "", "None", None):
                         # is param unrecognised because it's from a plugin?
                         params[name].categ = "Plugin"
                         params[name].plugin = componentNode.get("plugin", False)
@@ -782,24 +757,17 @@ class Experiment:
 
         # get the value type and update rate
         if 'valType' in list(paramNode.keys()):
-            valType = paramNode.get('valType')
-            setValType = True
+            params[name].valType = paramNode.get('valType')
             # compatibility checks:
             if name in ['allowedKeys'] and paramNode.get('valType') == 'str':
                 # these components were changed in v1.70.00
-                valType = 'code'
+                params[name].valType = 'code'
             elif name == 'Selected rows':
                 # changed in 1.81.00 from 'code' to 'str': allow string or var
-                valType = 'str'
+                params[name].valType = 'str'
             # conversions based on valType
             if params[name].valType == 'bool':
                 params[name].val = eval("%s" % params[name].val)
-            # "device" valType was introduced in 2025.2.0 and should always override saved valType
-            if params[name].valType == "device":
-                setValType = False
-            # do actual setting
-            if setValType:
-                params[name].valType = valType
         if 'updates' in list(paramNode.keys()):
             params[name].updates = paramNode.get('updates')
 
@@ -854,119 +822,6 @@ class Experiment:
             modifiedNames.append(routineNode.get('name'))
         self.namespace.add(routineGoodName)
         return routineGoodName
-    
-    def getJSON(self):
-        return {
-            'filename': self.filename,
-            'version': self.psychopyVersion,
-            'settings': self.settings.getJSON(),
-            'routines': [rt.getJSON() for rt in self.routines],
-            'flow': self.flow.getJSON()
-        }
-    
-    @staticmethod
-    def fromJSON(filename, data):
-        # make new Experiment
-        exp = Experiment()
-        # load file
-        exp.applyJSON(data)
-
-        return exp
-
-    def applyJSON(self, data):
-        # get all element classes
-        standaloneRoutines = getAllStandaloneRoutines()
-        components = getAllComponents()
-        from psychopy.experiment.components.unknown import UnknownComponent
-        from psychopy.experiment.components.unknownPlugin import UnknownPluginComponent
-        from psychopy.experiment.routines.unknown import UnknownRoutine
-        # start off blank
-        self.flow = Flow(exp=self)
-        self.routines = {}
-        self.namespace = NameSpace(self)
-        # apply basics
-        self.filename = data['filename']
-        self.psychopyVersion = data['version']
-        # apply settings
-        for paramName, param in self.settings.params.items():
-            param.applyJSON(data['settings']['params'][paramName])
-        # create routines
-        for rtName, rtProfile in data['routines'].items():
-            # for a regular Routine...
-            if rtProfile['tag'] == "Routine":
-                # make Routine
-                rt = Routine(
-                    name=rtName,
-                    exp=self
-                )
-                # apply settings
-                for paramName, param in rt.settings.params.items(): 
-                    param.applyJSON(rtProfile['settings']['params'][paramName])
-                # make each Component
-                for compProfile in rtProfile['components']:
-                    # get comp class if possible
-                    if compProfile['tag'] in components:
-                        cls = components[compProfile['tag']]
-                    else:
-                        # if not possible, use UnknownPluginComponent or UnknownComponent depending
-                        # on whether profile specifies a plugin
-                        if compProfile['plugin']:
-                            cls = UnknownPluginComponent
-                        else:
-                            cls = UnknownComponent
-                    # make component
-                    comp = cls(
-                        exp=self,
-                        parentName=rtName
-                    )
-                    comp.plugin = compProfile['plugin']
-                    # apply params
-                    for paramName, param in comp.params.items():
-                        param.applyJSON(compProfile['params'][paramName])
-                    # append to Routine
-                    rt.append(comp)
-            else:
-                # get rt class if possible
-                if rtProfile['tag'] in standaloneRoutines:
-                    cls = standaloneRoutines[rtProfile['tag']]
-                else:
-                    # if not possible, use UnknownRoutine
-                    cls = UnknownRoutine
-                # make rt
-                rt = cls(
-                    exp=self, 
-                    name=rtName
-                )
-                # apply params
-                for paramName, param in rt.params.items():
-                    param.applyJSON(rtProfile['params'][paramName])
-            # append to experiment
-            self.routines[rtName] = rt
-        # array to store loops in
-        loops = {}
-        # populate flow
-        for nodeProfile in data['flow']:
-            if "ref" in nodeProfile:
-                # if node is a reference, get routine
-                node = self.routines.get(nodeProfile['ref'], None)
-            elif nodeProfile['tag'] == "LoopTerminator":
-                # if node is a loop terminator, make it
-                node = LoopTerminator(
-                    loop=loops[nodeProfile['name']]
-                )
-            else:
-                # anything else, assume it's a loop
-                cls = getAllLoopTypes().get(nodeProfile['tag'], TrialHandler)
-                # make loop object
-                loops[nodeProfile['params']['name']['val']] = cls.fromJSON(
-                    self, nodeProfile
-                )
-                # make initiator
-                node = LoopInitiator(
-                    loop=loops[nodeProfile['params']['name']['val']]
-                )
-            # append node
-            self.flow.append(node)
 
     def loadFromXML(self, filename):
         """Loads an xml file and parses the builder Experiment from it
@@ -1018,9 +873,9 @@ class Experiment:
             self.setExpName(shortName)
         # fetch routines
         routinesNode = root.find('Routines')
-        self.allCompons = allCompons = getAllComponents(
+        allCompons = getAllComponents(
             self.prefsBuilder['componentsFolders'], fetchIcons=False)
-        self.allRoutines = allRoutines = getAllStandaloneRoutines(fetchIcons=False)
+        allRoutines = getAllStandaloneRoutines(fetchIcons=False)
         # get each routine node from the list of routines
         for routineNode in routinesNode:
             if routineNode.tag == "Routine":
@@ -1104,9 +959,6 @@ class Experiment:
                     if paramNode.tag == "Param":
                         for key, val in paramNode.items():
                             name = paramNode.get("name")
-                            # "device" valType was introduced in 2025.2.0 and should always override saved valType
-                            if key == "valType" and routine.params[name].valType == "device":
-                                continue
                             if name in routine.params:
                                 setattr(routine.params[name], key, val)
                 # Add routine to experiment
@@ -1149,12 +1001,7 @@ class Experiment:
                 if loopName != elementNode.get('name'):
                     modifiedNames.append(elementNode.get('name'))
                 self.namespace.add(loopName)
-                # make loop
-                cls = getAllLoopTypes().get(loopType, TrialHandler)
-                loop = cls(
-                    exp=self,
-                    name=loopName
-                )
+                loop = eval('%s(exp=self,name="%s")' % (loopType, loopName))
                 loops[loopName] = loop
                 for paramNode in elementNode:
                     recognised = self._getXMLparam(paramNode=paramNode, params=loop.params)
@@ -1286,58 +1133,6 @@ class Experiment:
     @property
     def htmlFolder(self):
         return self.settings.params['HTML path'].val
-
-    def getRequiredDeviceNames(self):
-        """
-        Get the device names which need to be defined for this experiment to run, along with a list 
-        of possible types for each one.
-
-        Returns
-        -------
-        dict[str: list[str]]
-            Device names and a list of possible types for each one
-        """
-        # dict in which to store usages
-        usages = {}
-
-        def _process(emt):
-            """
-            Process an element (Component or Routine) for device names and append them to the
-            usages dict.
-
-            Parameters
-            ----------
-            emt : Component or Routine
-                Element to process
-            """
-            # iterate through param's inita values
-            for param in getInitVals(emt.params).values():
-                # if it's a device...
-                if param.valType == "device":
-                    # get value
-                    deviceName = param.val
-                    # make sure device name is in usages dict
-                    if deviceName not in usages:
-                        usages[deviceName] = []
-                    # add any new usages
-                    for cls in getattr(emt, "deviceClasses", []):
-                        if cls not in usages[deviceName]:
-                            usages[deviceName].append(cls) 
-        
-        # iterate through routines
-        for rt in self.routines.values():
-            if isinstance(rt, BaseStandaloneRoutine):
-                # for standalone routines, get device names from params
-                _process(rt)
-            else:
-                # for regular routines, get device names from each component
-                for comp in rt:
-                    _process(comp)
-        # process settings
-        _process(self.settings)
-        
-        return usages
-
 
     def getComponentFromName(self, name):
         """Searches all the Routines in the Experiment for a matching Comp name

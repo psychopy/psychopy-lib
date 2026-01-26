@@ -1,27 +1,18 @@
 from pathlib import Path
-from psychopy.experiment.devices import DeviceBackend
 from psychopy.experiment.components import BaseComponent, BaseDeviceComponent, Param, getInitVals
+from psychopy.experiment.plugins import PluginDevicesMixin, DeviceBackend
 from psychopy.localization import _translate
 
 
-class SoundSensorComponent(BaseDeviceComponent):
+class SoundSensorComponent(BaseDeviceComponent, PluginDevicesMixin):
     """
     Component for getting button presses from a button box device.
     """
     categories = ['Responses']  # which section(s) in the components panel
     targets = ['PsychoPy']
     iconFile = Path(__file__).parent / 'soundsensor.png'
-    iconSVG = Path(__file__).parent / 'SoundSensorComponent.svg'
     tooltip = _translate('Voice Key: Get input from a microphone as simple true/false values')
     beta = True
-    legacyParams = [
-        # old device setup params, no longer needed as this is handled by DeviceManager
-        "deviceBackend",
-        "meMicrophone",
-        "meThreshold",
-        "meRange",
-        "meSamplingWindow",
-    ]
 
     def __init__(
             self, exp, parentName,
@@ -120,6 +111,25 @@ class SoundSensorComponent(BaseDeviceComponent):
                 "$correctAns to compare to the response. "
             ),
             label=_translate("Correct answer"), direct=False)
+
+        # --- Device params ---
+        self.order += [
+            "deviceBackend",
+        ]
+
+        self.params['deviceBackend'] = Param(
+            deviceBackend, valType="str", inputType="choice", categ="Device",
+            allowedVals=self.getBackendKeys,
+            allowedLabels=self.getBackendLabels,
+            label=_translate("Device backend"),
+            hint=_translate(
+                "What kind of sound sensor is it? What package/plugin should be used to talk to it?"
+            ),
+            direct=False
+        )
+
+        # add params for any backends
+        self.loadBackends()
 
     def writeInitCode(self, buff):
         inits = getInitVals(self.params)
@@ -257,13 +267,17 @@ class SoundSensorComponent(BaseDeviceComponent):
         
 
 class MicrophoneSoundSensorBackend(DeviceBackend):
-    backendLabel = "Microphone Sound Sensor"
-    deviceClass = "psychopy.hardware.soundsensor.MicrophoneSoundSensor"
-    icon = "light/soundsensor.png"
+    """
+    Adds a basic microphone emulation backend for SoundSensorComponent, as well as acting as an example
+    for implementing other SoundSensorBackends.
+    """
 
-    def __init__(self, profile):
-        # init parent class
-        DeviceBackend.__init__(self, profile)
+    key = "microphone"
+    label = _translate("Microphone emulator")
+    component = SoundSensorComponent
+    deviceClasses = ['psychopy.hardware.soundsensor.MicrophoneSoundSensorEmulator']
+
+    def getParams(self: SoundSensorComponent):
         # define order
         order = [
             "meMicrophone",
@@ -272,8 +286,31 @@ class MicrophoneSoundSensorBackend(DeviceBackend):
             "meSamplingWindow",
         ]
         # define params
-        self.params['threshold'] = Param(
-            0.5, valType="code", inputType="single",
+        params = {}
+        def getDeviceIndices():
+            from psychopy.hardware.microphone import MicrophoneDevice
+            profiles = MicrophoneDevice.getAvailableDevices()
+
+            return [None] + [profile['index'] for profile in profiles]
+
+        def getDeviceNames():
+            from psychopy.hardware.microphone import MicrophoneDevice
+            profiles = MicrophoneDevice.getAvailableDevices()
+
+            return ["default"] + [profile['deviceName'] for profile in profiles]
+        
+        params['meMicrophone'] = Param(
+            None, valType="str", inputType="choice", categ="Device",
+            updates="constant", allowedUpdates=None,
+            allowedVals=getDeviceIndices,
+            allowedLabels=getDeviceNames,
+            label=_translate("Microphone"),
+            hint=_translate(
+                "What microphone device to take volume readings from?"
+            )
+        )
+        params['meThreshold'] = Param(
+            0.5, valType="code", inputType="single", categ="Device",
             updates="constant", allowedUpdates=None,
             label=_translate("Threshold (0-1)"),
             hint=_translate(
@@ -281,17 +318,17 @@ class MicrophoneSoundSensorBackend(DeviceBackend):
                 "register a sound sensor response"
             )
         )
-        self.params['dbRange'] = Param(
-            (0, 1), valType="list", inputType="single",
+        params['meRange'] = Param(
+            (0, 1), valType="list", inputType="single", categ="Device",
             updates="constant", allowedUpdates=None,
             label=_translate("Decibel range"),
             hint=_translate(
                 "What kind of values (dB) would you expect to receive from this device? In other "
-                "words, how many dB does a threshold of 0 and 1 correspond to?"
+                "words, how many dB does a threshold of 0 and of 255 correspond to?"
             )
         )
-        self.params['samplingWindow'] = Param(
-            0.03, valType="code", inputType="single",
+        params['meSamplingWindow'] = Param(
+            0.03, valType="code", inputType="single", categ="Device",
             updates="constant", allowedUpdates=None,
             label=_translate("Sampling window (s)"),
             hint=_translate(
@@ -299,27 +336,26 @@ class MicrophoneSoundSensorBackend(DeviceBackend):
                 "precise, but also less subject to random noise."
             )
         )
-    
-    def writeDeviceCode(self, buff):
-        """
-        Code to setup a device with this backend.
 
-        Parameters
-        ----------
-        buff : io.StringIO
-            Text buffer to write code to.
-        """
-        # write basic code
-        self.writeBaseDeviceCode(buff, close=False)
-        # add exclusive param and close
+        return params, order
+
+    def addRequirements(self: SoundSensorComponent):
+        self.exp.requireImport(
+            importName="microphone", importFrom="psychopy.hardware"
+        )
+
+    def writeDeviceCode(self: SoundSensorComponent, buff):
+        # get inits
+        inits = getInitVals(self.params)
+        # make ButtonGroup object
         code = (
-            "    threshold=%(threshold)s, \n"
-            "    dbRange=%(dbRange)s, \n"
-            "    samplingWindow=%(samplingWindow)s,\n"
+            "deviceManager.addDevice(\n"
+            "    deviceClass='psychopy.hardware.soundsensor.MicrophoneSoundSensorEmulator',\n"
+            "    deviceName=%(deviceLabel)s,\n"
+            "    device=%(meMicrophone)s,\n"
+            "    threshold=%(meThreshold)s, \n"
+            "    dbRange=%(meRange)s, \n"
+            "    samplingWindow=%(meSamplingWindow)s, \n"
             ")\n"
         )
-        buff.writeIndentedLines(code % self.params)
-
-
-# register backend with Component
-SoundSensorComponent.registerBackend(MicrophoneSoundSensorBackend)
+        buff.writeOnceIndentedLines(code % inits)

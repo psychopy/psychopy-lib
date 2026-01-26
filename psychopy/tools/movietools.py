@@ -5,15 +5,13 @@
 
 # Part of the PsychoPy library
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2025 Open Science Tools Ltd.
-# Distributed under the terms of the MIT License.
+# Distributed under the terms of the GNU General Public License (GPL).
 
 __all__ = [
     'MovieFileWriter',
     'closeAllMovieWriters',
     'addAudioToMovie',
-    'MOVIE_READER_FFPYPLAYER',
     'MOVIE_WRITER_FFPYPLAYER',
-    'MOVIE_READER_OPENCV',
     'MOVIE_WRITER_OPENCV',
     'MOVIE_WRITER_NULL',
     'VIDEO_RESOLUTIONS'
@@ -26,11 +24,10 @@ import queue
 import atexit
 import numpy as np
 import psychopy.logging as logging
-import sys
 
 # constants for specifying encoders for the movie writer
-MOVIE_WRITER_FFPYPLAYER = MOVIE_READER_FFPYPLAYER = u'ffpyplayer'
-MOVIE_WRITER_OPENCV = MOVIE_READER_OPENCV = u'opencv'
+MOVIE_WRITER_FFPYPLAYER = u'ffpyplayer'
+MOVIE_WRITER_OPENCV = u'opencv'
 MOVIE_WRITER_NULL = u'null'   # use prefs for default
 
 # Common video resolutions in pixels (width, height). Users should be able to
@@ -1067,44 +1064,6 @@ def addAudioToMovie(outputFile, videoFile, audioFile, useThreads=True,
               removeFiles,
               moviePyOpts))
     compositorThread.start()
-
-
-def extractAudioFromMovie(videoFile, audioFile, removeFiles=False):
-    """Extract the audio track from a video file.
-
-    This function will extract the audio track from a video file and save it to
-    a separate audio file. The audio file will be saved in the same format as
-    the audio track in the video file.
-
-    Parameters
-    ----------
-    videoFile : str
-        Path to the input video file.
-    audioFile : str
-        Path to the output audio file where the audio track will be saved.
-    removeFiles : bool
-        If `True`, the input video file (`videoFile`) will be removed (i.e.
-        deleted from disk) after the audio has been extracted. Defaults to
-        `False`.
-
-    Examples
-    --------
-    Extract the audio track from a video file::
-
-        from psychopy.tools.movietools import extractAudioFromMovie
-        extractAudioFromMovie('video.mp4', 'audio.mp3')
-
-    """
-    from moviepy.video.io.VideoFileClip import VideoFileClip
-
-    # extract the audio track from the video file
-    videoClip = VideoFileClip(videoFile)
-    audioClip = videoClip.audio
-    audioClip.write_audiofile(audioFile)
-
-    if removeFiles:
-        # remove the input video file
-        os.remove(videoFile)
 
 
 if __name__ == "__main__":

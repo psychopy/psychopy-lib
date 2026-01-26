@@ -3,7 +3,7 @@
 
 # Part of the PsychoPy library
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2025 Open Science Tools Ltd.
-# Distributed under the terms of the MIT License.
+# Distributed under the terms of the GNU General Public License (GPL).
 
 """Functions and classes related to file and directory handling
 """
@@ -167,26 +167,6 @@ def fromFile(filename, encoding='utf-8-sig'):
     else:
         msg = "Don't know how to handle this file type, aborting."
         raise ValueError(msg)
-
-
-def psydat2csv(file):
-    """
-    Convert a psydat file to csv
-    """
-    # pathify
-    filePsydat = Path(file)
-    # create exp from file
-    exp = fromFile(
-        str(filePsydat.absolute())
-    )
-    # create csv file path
-    fileCsv = filePsydat.parent / (filePsydat.stem + ".csv")
-    # save csv
-    exp.saveAsWideText(
-        str(fileCsv.absolute())
-    )
-
-    return str(fileCsv.absolute())
 
 
 def mergeFolder(src, dst, pattern=None):

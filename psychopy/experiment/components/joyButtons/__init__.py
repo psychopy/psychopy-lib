@@ -3,7 +3,7 @@
 
 # Part of the PsychoPy library
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2025 Open Science Tools Ltd.
-# Distributed under the terms of the MIT License.
+# Distributed under the terms of the GNU General Public License (GPL).
 
 from pathlib import Path
 
@@ -17,7 +17,6 @@ class JoyButtonsComponent(BaseComponent):
     categories = ['Responses']
     targets = ['PsychoPy']
     iconFile = Path(__file__).parent / 'joyButtons.png'
-    iconSVG = Path(__file__).parent / 'JoyButtonsComponent.svg'
     tooltip = _translate('JoyButtons: check and record joystick/gamepad button presses')
 
     def __init__(self, exp, parentName, name='button_resp',
@@ -133,7 +132,7 @@ class JoyButtonsComponent(BaseComponent):
         buff.writeIndentedLines(code % self.params)
 
         buff.setIndentLevel(+1, relative=True)
-        code = ("numJoysticks = len(joysticklib.Joystick.getAvailableDevices())\n"
+        code = ("numJoysticks = joysticklib.getNumJoysticks()\n"
                 "if numJoysticks > 0:\n")
         buff.writeIndentedLines(code % self.params)
 

@@ -3,7 +3,7 @@
 
 # Part of the PsychoPy library
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2025 Open Science Tools Ltd.
-# Distributed under the terms of the MIT License.
+# Distributed under the terms of the GNU General Public License (GPL).
 
 from pathlib import Path
 
@@ -17,7 +17,6 @@ class PolygonComponent(BaseVisualComponent):
     categories = ['Stimuli']
     targets = ['PsychoPy', 'PsychoJS']
     iconFile = Path(__file__).parent / 'polygon.png'
-    iconSVG = Path(__file__).parent / 'PolygonComponent.svg'
     tooltip = _translate('Polygon: any regular polygon (line, triangle, square'
                          '...circle)')
 

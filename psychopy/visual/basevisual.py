@@ -6,7 +6,7 @@
 
 # Part of the PsychoPy library
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2025 Open Science Tools Ltd.
-# Distributed under the terms of the MIT License.
+# Distributed under the terms of the GNU General Public License (GPL).
 
 from pathlib import Path
 from statistics import mean
@@ -1065,17 +1065,16 @@ class TextureMixin:
                 try:
                     im = Image.open(filename)
                     im = im.transpose(Image.FLIP_TOP_BOTTOM)
-                except IOError as err:
-                    msg = (
-                        "Found file '{}' ('{}'), but failed to load as an image. Reason: {}"
-                    ).format(filename, os.path.abspath(tex), err)
-                    logging.error(msg)
+                except IOError:
+                    msg = "Found file '%s', failed to load as an image"
+                    logging.error(msg % (filename))
                     logging.flush()
-                    raise IOError(msg)
-            elif hasattr(tex, 'getRecentVideoFrame'):  # camera or movie textures
+                    msg = "Found file '%s' [= %s], failed to load as an image"
+                    raise IOError(msg % (tex, os.path.abspath(tex)))
+            elif hasattr(tex, 'getVideoFrame'):  # camera or movie textures
                 # get an image to configure the initial texture store
                 if hasattr(tex, 'frameSize'):
-                    if tex.frameSize is None or tex.frameSize == (-1, -1):
+                    if tex.frameSize is None:
                         raise RuntimeError(
                             "`Camera.frameSize` is not yet specified, cannot "
                             "initialize texture!")

@@ -6,7 +6,7 @@
 
 # Part of the PsychoPy library
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2025 Open Science Tools Ltd.
-# Distributed under the terms of the MIT License.
+# Distributed under the terms of the GNU General Public License (GPL).
 
 __all__ = ['Microphone']
 
@@ -219,8 +219,6 @@ class Microphone:
         clear : bool
             If True, clips will be removed from this object once saved to files.
         """
-        # bank just in case there's any unfinished clips
-        self.bank(tag="unfinished", transcribe=False)
         # iterate through all clips
         for tag in self.clips:
             logging.info(f"Saving {len(self.clips[tag])} audio clips with tag {tag}")
@@ -348,9 +346,6 @@ class Microphone:
 
     def getRecording(self):
         return self.device.getRecording()
-
-    def getCurrentVolume(self):
-        return self.device.getCurrentVolume()
 
 
 if __name__ == "__main__":

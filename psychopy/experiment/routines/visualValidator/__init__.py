@@ -2,13 +2,11 @@
 # -*- coding: utf-8 -*-
 
 from pathlib import Path
-from psychopy.preferences import prefs
 from psychopy.alerts._alerts import alert
 from psychopy.experiment import Param
-from psychopy.experiment.plugins import PluginDevicesMixin
+from psychopy.experiment.plugins import PluginDevicesMixin, DeviceBackend
 from psychopy.experiment.components import getInitVals
 from psychopy.experiment.routines import Routine, BaseValidatorRoutine
-from psychopy.experiment.devices import DeviceBackend
 from psychopy.localization import _translate
 
 
@@ -20,16 +18,11 @@ class VisualValidatorRoutine(BaseValidatorRoutine, PluginDevicesMixin):
 
     categories = ['Validation']
     iconFile = Path(__file__).parent / 'visual_validator.png'
-    iconSVG = Path(__file__).parent / 'VisualValidatorRoutine.svg'
     tooltip = _translate(
         "Use a light sensor to confirm that visual stimuli are presented when they should be."
     )
     deviceClasses = []
     version = "2025.1.0"
-    legacyParams = [
-        # old device setup params, no longer needed as this is handled by DeviceManager
-        "deviceBackend"
-    ]
 
     def __init__(
             self,
@@ -77,10 +70,10 @@ class VisualValidatorRoutine(BaseValidatorRoutine, PluginDevicesMixin):
         )
         self.depends.append({
             "dependsOn": "findThreshold",  # if...
-            "condition": "==False",  # is...
+            "condition": "==True",  # is...
             "param": "threshold",  # then...
-            "true": "show",  # should...
-            "false": "hide",  # otherwise...
+            "true": "hide",  # should...
+            "false": "show",  # otherwise...
         })
         self.params['findSensor'] = Param(
             findSensor, valType="code", inputType="bool", categ="Basic",
@@ -116,10 +109,10 @@ class VisualValidatorRoutine(BaseValidatorRoutine, PluginDevicesMixin):
         for param in ("sensorPos", "sensorSize", "sensorUnits"):
             self.depends.append({
                 "dependsOn": "findSensor",  # if...
-                "condition": "==False",  # is...
+                "condition": "==True",  # is...
                 "param": param,  # then...
-                "true": "show",  # should...
-                "false": "hide",  # otherwise...
+                "true": "hide",  # should...
+                "false": "show",  # otherwise...
             })
 
         del self.params['stopType']
@@ -131,6 +124,24 @@ class VisualValidatorRoutine(BaseValidatorRoutine, PluginDevicesMixin):
             "deviceBackend",
             "channel",
         ]
+        self.params['deviceLabel'] = Param(
+            deviceLabel, valType="str", inputType="single", categ="Device",
+            label=_translate("Device name"),
+            hint=_translate(
+                "A name to refer to this Component's associated hardware device by. If using the "
+                "same device for multiple components, be sure to use the same name here."
+            )
+        )
+        self.params['deviceBackend'] = Param(
+            deviceBackend, valType="code", inputType="choice", categ="Device",
+            allowedVals=self.getBackendKeys,
+            allowedLabels=self.getBackendLabels,
+            label=_translate("Light sensor type"),
+            hint=_translate(
+                "Type of light sensor to use."
+            ),
+            direct=False
+        )
         self.params['channel'] = Param(
             channel, valType="code", inputType="single", categ="Device",
             label=_translate("Light sensor channel"),
@@ -139,35 +150,63 @@ class VisualValidatorRoutine(BaseValidatorRoutine, PluginDevicesMixin):
                 "from other light sensors on the same port. Leave blank to use the first light sensor "
                 "which can detect the Window."
             )
-        )     
-
-    def writeMainCode(self, buff):
-        inits = getInitVals(self.params)
-        # get Sensor
-        code = (
-            "# sensor object for %(name)s\n"
-            "%(name)sSensor = deviceManager.getDevice(%(deviceLabel)s)\n"
         )
-        buff.writeIndentedLines(code % inits)
+
+        self.loadBackends()
+
+    def writeDeviceCode(self, buff):
+        """
+        Code to setup the CameraDevice for this component.
+
+        Parameters
+        ----------
+        buff : io.StringIO
+            Text buffer to write code to.
+        """
+        # do usual backend-specific device code writing
+        PluginDevicesMixin.writeDeviceCode(self, buff)
+        # get inits
+        inits = getInitVals(self.params)
+        # get device handle
+        code = (
+            "%(deviceLabelCode)s = deviceManager.getDevice(%(deviceLabel)s)"
+        )
+        buff.writeOnceIndentedLines(code % inits)
         # find threshold if indicated
-        if self.params['findThreshold'] or not self.params['threshold']:
+        if self.params['findThreshold']:
             code = (
                 "# find threshold for light sensor\n"
-                "%(name)sSensor.findThreshold(win, channel=%(channel)s)\n"
+                "%(deviceLabelCode)s.findThreshold(win, channel=%(channel)s)\n"
             )
         else:
             code = (
-                "%(name)sSensor.setThreshold(%(threshold)s, channel=%(channel)s)"
+                "%(deviceLabelCode)s.setThreshold(%(threshold)s, channel=%(channel)s)"
             )
         buff.writeOnceIndentedLines(code % inits)
         # find pos if indicated
         if self.params['findSensor']:
             code = (
                 "# find position and size of the light sensor\n"
-                "%(name)sSensor.findSensor(win, channel=%(channel)s)\n"
+                "%(deviceLabelCode)s.findSensor(win, channel=%(channel)s)\n"
             )
             buff.writeOnceIndentedLines(code % inits)
-        else:
+
+    def writeMainCode(self, buff):
+        inits = getInitVals(self.params)
+        # get Sensor
+        code = (
+            "# Sensor object for %(name)s\n"
+            "%(name)sSensor = deviceManager.getDevice(%(deviceLabel)s)\n"
+        )
+        buff.writeIndentedLines(code % inits)
+
+        if self.params['threshold'] and not self.params['findThreshold']:
+            code = (
+                "%(name)sSensor.setThreshold(%(threshold)s, channel=%(channel)s)\n"
+            )
+            buff.writeIndentedLines(code % inits)
+        # find/set Sensor position
+        if not self.params['findSensor']:
             code = ""
             # set units (unless None)
             if self.params['sensorUnits']:
@@ -227,20 +266,10 @@ class VisualValidatorRoutine(BaseValidatorRoutine, PluginDevicesMixin):
             clockStr = "clock=routineTimer"
         # sync component start/stop timers with validator clocks
         code = (
-            f"%(name)s.status = NOT_STARTED\n"
             f"# synchronise device clock for %(name)s with Routine timer\n"
             f"%(name)s.resetTimer({clockStr})\n"
         )
         buff.writeIndentedLines(code % self.params)
-        # add blank entries for validation results
-        if stim.params['saveStartStop']:
-            code += (
-            "thisExp.addData('{name}.%(name)s.started', None)\n"
-            "thisExp.addData('%(name)s.startDelay', None)\n"
-            "thisExp.addData('{name}.%(name)s.stopped', None)\n"
-            "thisExp.addData('{name}.%(name)s.stopDelay', None)\n"
-            )
-        buff.writeIndentedLines(code.format(**stim.params) % self.params)
 
         # return change in indent level
         return buff.indentLevel - startIndent
@@ -286,9 +315,6 @@ class VisualValidatorRoutine(BaseValidatorRoutine, PluginDevicesMixin):
             )
         buff.writeIndentedLines(code.format(startAttr=startAttr, **stim.params) % self.params)
 
-        # if stimulus ends with the Routine, raise an alert
-        if stim.endsWithRoutine():
-            alert(4160, strFields={'name': stim.name})
         # validate stop time
         code = (
             "# validate {name} stop time\n"
@@ -307,15 +333,6 @@ class VisualValidatorRoutine(BaseValidatorRoutine, PluginDevicesMixin):
 
         # return change in indent level
         return buff.indentLevel - startIndent
-    
-    def writeRoutineEndValidationCode(self, buff, stim):
-        # end validator after Routine is finished
-        code = (
-            "%(name)s.status = FINISHED\n"
-        )
-        buff.writeIndentedLines(code % self.params)
-
-        return 0
 
     def findConnectedStimuli(self):
         # list of linked components
@@ -350,9 +367,10 @@ class ScreenBufferVisualValidatorBackend(DeviceBackend):
     example for implementing other light sensor device backends.
     """
 
-    backendLabel = "Screen Buffer Sampler (Debug)"
-    deviceClass = "psychopy.hardware.lightsensor.ScreenBufferSampler"
-    icon = "light/visual_validator.png"
+    key = "screenbuffer"
+    label = _translate("Screen Buffer (Debug)")
+    component = VisualValidatorRoutine
+    deviceClasses = ["psychopy.hardware.lightsensor.ScreenBufferSampler"]
 
     def getParams(self: VisualValidatorRoutine):
         # define order
@@ -379,7 +397,3 @@ class ScreenBufferVisualValidatorBackend(DeviceBackend):
             ")\n"
         )
         buff.writeOnceIndentedLines(code % inits)
-
-
-# register backend with Component
-VisualValidatorRoutine.registerBackend(ScreenBufferVisualValidatorBackend)
