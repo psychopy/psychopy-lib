@@ -85,7 +85,7 @@ elif platform == 'posix':
                   ('share/pixmaps',
                    ['psychopy/app/Resources/psychopy.png'])]
 
-setup(name='PsychoPy',
+setup(name='psychopy-lib',
       packages=packages,
       include_package_data=True,
       package_data={
