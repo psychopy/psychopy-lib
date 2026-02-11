@@ -2,7 +2,7 @@
 version = { source = "file", path = "psychopy/__init__.py" }
 
 [project]
-name = "psychopy"
+name = "psychopy-lib"
 dynamic = ["version"]
 requires-python = ">=3.8, <3.11"
 description = "PsychoPy provides easy, precise, flexible experiments in behavioural sciences"
@@ -25,7 +25,7 @@ classifiers = [
     ]
     
 dependencies = [
-    "arabic-reshaper==2.1.3",
+    "arabic-reshaper==2.1.4",
     "astunparse==1.6.3",
     "blosc2==2.0.0",
     "certifi==2021.10.8",
