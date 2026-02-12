@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
-# Distributed under the terms of the GNU General Public License (GPL).
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2025 Open Science Tools Ltd.
+# Distributed under the terms of the MIT License.
 
 """Extensible set of components for the PsychoPy Builder view.
 """
@@ -15,7 +15,7 @@ import copy
 import shutil
 from os.path import join, dirname, abspath, split
 from importlib import import_module  # helps python 2.7 -> 3.x migration
-from ._base import BaseVisualComponent, BaseComponent
+from ._base import BaseVisualComponent, BaseComponent, BaseDeviceComponent
 from ..params import Param
 from psychopy.localization import _translate
 from psychopy.experiment import py2js
@@ -24,7 +24,7 @@ import psychopy.logging as logging
 excludeComponents = [
     'BaseComponent',
     'BaseVisualComponent',
-    'BaseStandaloneRoutine'  # templates only
+    'BaseDeviceComponent',
 ]  # this one isn't ready yet
 
 # Plugin components are added dynamically at runtime, usually from plugin
@@ -63,10 +63,7 @@ def addComponent(compClass):
 
     # check type and attributes of the class
     if not issubclass(compClass, (BaseComponent, BaseVisualComponent)):
-        logging.warning(
-            "Component `{}` does not appear to be a subclass of "
-            "`psychopy.experiment.components._base.BaseComponent`. This may not"
-            " work correcty.".format(compName))
+        return
     elif not hasattr(compClass, 'categories'):
         logging.warning(
             "Component `{}` does not define a `.categories` attribute.".format(
@@ -163,6 +160,7 @@ def getComponents(folder=None, fetchIcons=True):
     importing from psychopy:
        `from psychopy.experiment.components import BaseComponent, Param`
     """
+
     if folder is None:
         pth = folder = dirname(__file__)
         pkg = 'psychopy.experiment.components'
@@ -238,8 +236,7 @@ def getComponents(folder=None, fetchIcons=True):
         for attrib in dir(module):
             name = None
             # fetch the attribs that end with 'Component'
-            if (attrib.endswith('omponent') and
-                    attrib not in excludeComponents):
+            if attrib.endswith('omponent') and attrib not in excludeComponents:
                 name = attrib
                 components[attrib] = getattr(module, attrib)
 
@@ -270,7 +267,7 @@ def getInitVals(params, target="PsychoPy"):
             "none"
     ):
         if target == "PsychoJS":
-            inits['units'].val = "psychoJS.window"
+            inits['units'].val = "psychoJS.window.units"
         else:
             inits['units'].val = "win.units"
 
@@ -299,7 +296,7 @@ def getInitVals(params, target="PsychoPy"):
                 inits[name].val = None
                 inits[name].valType = 'extendedStr'
             else:
-                inits[name].val = 'None'
+                inits[name].val = None
                 inits[name].valType = 'code'
 
         # is constant so don't touch the parameter value
@@ -323,6 +320,9 @@ def getInitVals(params, target="PsychoPy"):
                       'noiseBaseSf', 'noiseBW', 'noiseElementSize', 'noiseFilterOrder',
                       'noiseFractalPower', 'zoom']:
             inits[name].val = "1.0"
+            inits[name].valType = 'code'
+        elif name in ['progress']:
+            inits[name].val = "0.0"
             inits[name].valType = 'code'
         elif name in ['image']:
             inits[name].val = "default.png"
@@ -375,13 +375,21 @@ def getInitVals(params, target="PsychoPy"):
         elif name == 'vertices':
             inits[name].val = "[[-0.5,-0.5], [-0.5, 0.5], [0.5, 0.5], [0.5, -0.5]]"
             inits[name].valType = 'code'
-        elif name in ('movie', 'latitude', 'longitude', 'altitude', 'azimuth', 'speechPoint'):
+        elif name == 'shape':
+            inits[name].val = 'triangle'
+            inits[name].valType = 'str'
+        elif name in ('movie', 'latitude', 'longitude', 'elevation', 'azimuth', 'speechPoint'):
             inits[name].val = 'None'
             inits[name].valType = 'code'
+        elif name == 'allowedKeys':
+            inits[name].val = "[]"
+            inits[name].valType = 'code'
+        elif name == "deviceLabel":
+            inits[name].valType = "device"
         else:
-            print("I don't know the appropriate default value for a '%s' "
-                  "parameter. Please email the mailing list about this error" %
-                  name)
+            # if not explicitly handled, default to None
+            inits[name].val = "None"
+            inits[name].valType = "code"
 
     return inits
 

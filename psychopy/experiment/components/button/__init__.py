@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
-# Distributed under the terms of the GNU General Public License (GPL).
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2025 Open Science Tools Ltd.
+# Distributed under the terms of the MIT License.
 
 from os import path
 from pathlib import Path
@@ -11,35 +11,22 @@ from pathlib import Path
 from psychopy.alerts import alerttools
 from psychopy.experiment.components import BaseVisualComponent, Param, getInitVals, _translate
 from psychopy.experiment.py2js_transpiler import translatePythonToJavaScript
-from psychopy.localization import _localized as __localized
-_localized = __localized.copy()
-
-# only use _localized values for label values, nothing functional:
-_localized.update({'callback': _translate("Callback Function"),
-                   'forceEndRoutine': _translate('Force end of Routine'),
-                   'text': _translate('Button text'),
-                   'font': _translate('Font'),
-                   'letterHeight': _translate('Letter height'),
-                   'bold': _translate('Bold'),
-                   'italic': _translate('Italic'),
-                   'padding': _translate('Padding'),
-                   'anchor': _translate('Anchor'),
-                   'fillColor': _translate('Fill Colour'),
-                   'borderColor': _translate('Border Colour'),
-                   'borderWidth': _translate('Border Width'),
-                   'oncePerClick': _translate('Run once per click'),
-                   'save': _translate("Record clicks"),
-                   'timeRelativeTo': _translate("Time relative to")
-                   })
 
 
 class ButtonComponent(BaseVisualComponent):
     """
-    A component for presenting a clickable textbox with a programmable callback
+    This component allows you to show a static textbox which ends the routine and/or triggers
+    a "callback" (some custom code) when pressed. The nice thing about the button component is
+    that you can allow mouse/touch responses with a single component instead of needing 3 separate
+    components i.e. a textbox component (to display as a "clickable" thing), a mouse component
+    (to click the textbox) and a code component (not essential, but for example to check if a
+    clicked response was correct or incorrect).
     """
     categories = ['Responses']
     targets = ['PsychoPy', 'PsychoJS']
+    version = "2021.1.0"
     iconFile = Path(__file__).parent / 'button.png'
+    iconSVG = Path(__file__).parent / 'ButtonComponent.svg'
     tooltip = _translate('Button: A clickable textbox')
     beta = True
 
@@ -74,14 +61,14 @@ class ButtonComponent(BaseVisualComponent):
         ]
         # params
         _allow3 = ['constant', 'set every repeat', 'set every frame']  # list
-        self.params['color'].label = _translate("Text Color")
+        self.params['color'].label = _translate("Text color")
 
         self.params['forceEndRoutine'] = Param(
             forceEndRoutine, valType='bool', inputType="bool", categ='Basic',
             updates='constant', direct=False,
             hint=_translate("Should a response force the end of the Routine "
                             "(e.g end the trial)?"),
-            label=_localized['forceEndRoutine'])
+            label=_translate("Force end of Routine"))
 
         # If force end routine, then once per click doesn't make sense
         self.depends += [
@@ -98,44 +85,44 @@ class ButtonComponent(BaseVisualComponent):
             oncePerClick, valType='bool', inputType="bool", allowedTypes=[], categ='Basic',
             updates='constant',
             hint=_translate("Should the callback run once per click (True), or each frame until click is released (False)"),
-            label=_localized['oncePerClick']
+            label=_translate("Run once per click")
         )
         self.params['callback'] = Param(
-            callback, valType='extendedCode', inputType="multi", allowedTypes=[], categ='Basic',
+            callback, valType='extendedCode', inputType="code", allowedVals="python", categ='Basic',
             updates='constant',
             hint=_translate("Code to run when button is clicked"),
-            label=_localized['callback'])
+            label=_translate("Callback function"))
         self.params['text'] = Param(
             text, valType='str', inputType="single", allowedTypes=[], categ='Basic',
             updates='constant', allowedUpdates=_allow3[:],  # copy the list
             hint=_translate("The text to be displayed"),
-            label=_localized['text'])
+            label=_translate("Button text"))
         self.params['font'] = Param(
-            font, valType='str', inputType="single", allowedTypes=[], categ='Formatting',
+            font, valType='str', inputType="font", allowedTypes=[], categ='Formatting',
             updates='constant', allowedUpdates=_allow3[:],  # copy the list
             hint=_translate("The font name (e.g. Comic Sans)"),
-            label=_localized['font'])
+            label=_translate("Font"))
         self.params['letterHeight'] = Param(
             letterHeight, valType='num', inputType="single", allowedTypes=[], categ='Formatting',
             updates='constant', allowedUpdates=_allow3[:],  # copy the list
             hint=_translate("Specifies the height of the letter (the width"
                             " is then determined by the font)"),
-            label=_localized['letterHeight'])
+            label=_translate("Letter height"))
         self.params['italic'] = Param(
             italic, valType='bool', inputType="bool", allowedTypes=[], categ='Formatting',
             updates='constant',
             hint=_translate("Should text be italic?"),
-            label=_localized['italic'])
+            label=_translate("Italic"))
         self.params['bold'] = Param(
             bold, valType='bool', inputType="bool", allowedTypes=[], categ='Formatting',
             updates='constant',
             hint=_translate("Should text be bold?"),
-            label=_localized['bold'])
+            label=_translate("Bold"))
         self.params['padding'] = Param(
             padding, valType='num', inputType="single", allowedTypes=[], categ='Layout',
             updates='constant', allowedUpdates=_allow3[:],
             hint=_translate("Defines the space between text and the textbox border"),
-            label=_localized['padding'])
+            label=_translate("Padding"))
         self.params['anchor'] = Param(
             anchor, valType='str', inputType="choice", categ='Layout',
             allowedVals=['center',
@@ -150,19 +137,19 @@ class ButtonComponent(BaseVisualComponent):
                          ],
             updates='constant',
             hint=_translate("Should text anchor to the top, center or bottom of the box?"),
-            label=_localized['anchor'])
+            label=_translate("Anchor"))
         self.params['borderWidth'] = Param(
             borderWidth, valType='num', inputType="single", allowedTypes=[], categ='Appearance',
             updates='constant', allowedUpdates=_allow3[:],
             hint=_translate("Textbox border width"),
-            label=_localized['borderWidth'])
+            label=_translate("Border width"))
         self.params['save'] = Param(
             save, valType='str', inputType="choice", categ='Data',
             allowedVals=['first click', 'last click', 'every click', 'none'],
             hint=_translate(
                 "What clicks on this button should be saved to the data output?"),
             direct=False,
-            label=_localized['save'])
+            label=_translate("Record clicks"))
         self.params['timeRelativeTo'] = Param(
             timeRelativeTo, valType='str', inputType="choice", categ='Data',
             allowedVals=['button onset', 'experiment', 'routine'],
@@ -171,7 +158,7 @@ class ButtonComponent(BaseVisualComponent):
             hint=_translate(
                 "What should the values of mouse.time should be "
                 "relative to?"),
-            label=_localized['timeRelativeTo'])
+            label=_translate("Time relative to"))
 
 
     def writeInitCode(self, buff):
@@ -192,7 +179,9 @@ class ButtonComponent(BaseVisualComponent):
                     "text=%(text)s, font=%(font)s,\n"
                     "pos=%(pos)s," + unitsStr + "\n"
                     "letterHeight=%(letterHeight)s,\n"
-                    "size=%(size)s, borderWidth=%(borderWidth)s,\n"
+                    "size=%(size)s, \n"
+                    "ori=%(ori)s\n,"
+                    "borderWidth=%(borderWidth)s,\n"
                     "fillColor=%(fillColor)s, borderColor=%(borderColor)s,\n"
                     "color=%(color)s, colorSpace=%(colorSpace)s,\n"
                     "opacity=%(opacity)s,\n"
@@ -216,25 +205,26 @@ class ButtonComponent(BaseVisualComponent):
 
         code = (
             "%(name)s = new visual.ButtonStim({\n"
-        )
-        buff.writeIndentedLines(code % inits)
-        buff.setIndentLevel(1, relative=True)
-        code = (
-                "win: psychoJS.window,\n"
-                "name: '%(name)s',\n"
-                "text: %(text)s,\n"
-                "fillColor: %(fillColor)s,\n"
-                "borderColor: %(borderColor)s,\n"
-                "color: %(color)s,\n"
-                "colorSpace: %(colorSpace)s,\n"
-                "pos: %(pos)s,\n"
-                "letterHeight: %(letterHeight)s,\n"
-                "size: %(size)s,\n"
-                "depth: %(depth)s\n"
-        )
-        buff.writeIndentedLines(code % inits)
-        buff.setIndentLevel(-1, relative=True)
-        code = (
+            "  win: psychoJS.window,\n"
+            "  name: '%(name)s',\n"
+            "  text: %(text)s,\n"
+            "  font: %(font)s,\n"
+            "  pos: %(pos)s,\n"
+            "  size: %(size)s,\n"
+            "  padding: %(padding)s,\n"
+            "  anchor: %(anchor)s,\n"
+            "  ori: %(ori)s,\n"
+            "  units: %(units)s,\n"
+            "  color: %(color)s,\n"
+            "  fillColor: %(fillColor)s,\n"
+            "  borderColor: %(borderColor)s,\n"
+            "  colorSpace: %(colorSpace)s,\n"
+            "  borderWidth: %(borderWidth)s,\n"
+            "  opacity: %(opacity)s,\n"
+            "  depth: %(depth)s,\n"
+            "  letterHeight: %(letterHeight)s,\n"
+            "  bold: %(bold)s,\n"
+            "  italic: %(italic)s,\n"
             "});\n"
             "%(name)s.clock = new util.Clock();\n\n"
         )
@@ -286,6 +276,7 @@ class ButtonComponent(BaseVisualComponent):
         indented = self.writeStartTestCode(buff)
         if indented:
             code = (
+                "win.callOnFlip(%(name)s.buttonClock.reset)\n"
                 "%(name)s.setAutoDraw(True)\n"
             )
             buff.writeIndentedLines(code % self.params)
@@ -360,7 +351,7 @@ class ButtonComponent(BaseVisualComponent):
         # Get callback from params
         callback = inits['callback']
         if inits['callback'].val not in [None, "None", "none", "undefined"]:
-            callback = translatePythonToJavaScript(str(callback))
+            callback = translatePythonToJavaScript(str(callback), namespace=None)
         else:
             callback = ""
 
@@ -384,7 +375,6 @@ class ButtonComponent(BaseVisualComponent):
         code = (
                         "// store time of first click\n"
                         "%(name)s.timesOn.push(%(name)s.clock.getTime());\n"
-                        "%(name)s.numClicks += 1;\n"
                         "// store time clicked until\n"
                         "%(name)s.timesOff.push(%(name)s.clock.getTime());\n"
         )
@@ -502,7 +492,3 @@ class ButtonComponent(BaseVisualComponent):
             "psychoJS.experiment.addData('%(name)s.timesOff', %(name)s.timesOff);\n"
         )
         buff.writeIndentedLines(code % self.params)
-
-    def integrityCheck(self):
-        super().integrityCheck()  # run parent class checks first
-        alerttools.testFont(self) # Test whether font is available locally

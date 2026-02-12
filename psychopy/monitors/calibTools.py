@@ -5,11 +5,11 @@
 """
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
-# Distributed under the terms of the GNU General Public License (GPL).
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2025 Open Science Tools Ltd.
+# Distributed under the terms of the MIT License.
 
 from .calibData import wavelength_5nm, juddVosXYZ1976_5nm, cones_SmithPokorny
-from psychopy import __version__, logging, hardware
+from psychopy import __version__, logging
 
 try:
     import serial
@@ -142,8 +142,7 @@ class Monitor:
         thisGamma = self.getGamma()
         # run the test just on this
         array = np.array
-        return (thisGamma is None or
-                np.alltrue(array(thisGamma) == array([1, 1, 1])))
+        return (thisGamma is None or np.all(array(thisGamma) == array([1, 1, 1])))
 
 # functions to set params of current calibration
     def setSizePix(self, pixels):
@@ -285,8 +284,7 @@ class Monitor:
         """Returns just the gamma value (not the whole grid)
         """
         gridInCurrent = 'gammaGrid' in self.currentCalib
-        if (gridInCurrent and
-                not np.alltrue(self.getGammaGrid()[1:, 2] == 1)):
+        if (gridInCurrent and not np.all(self.getGammaGrid()[1:, 2] == 1)):
             return self.getGammaGrid()[1:, 2]
         elif 'gamma' in self.currentCalib:
             return self.currentCalib['gamma']
@@ -298,8 +296,15 @@ class Monitor:
         """
         if 'gammaGrid' in self.currentCalib:
             # Make sure it's an array, so you can look at the shape
-            grid = np.asarray(self.currentCalib['gammaGrid'])
-            if grid.shape != [4, 6]:
+            curGammaGrid = self.currentCalib['gammaGrid']
+            if isinstance(curGammaGrid, str):
+                curGammaGrid = curGammaGrid.replace('[', '').replace(']', '')
+                grid = np.fromstring(
+                    curGammaGrid, sep=' ', dtype='f').reshape((4, -1))
+            else:
+                grid = np.asarray(curGammaGrid, 'f')
+
+            if grid.shape != (4, 6):
                 newGrid = np.zeros([4, 6], 'f') * np.nan  # start as NaN
                 newGrid[:grid.shape[0], :grid.shape[1]] = grid
                 grid = self.currentCalib['gammaGrid'] = newGrid
@@ -409,6 +414,8 @@ class Monitor:
     def getNotes(self):
         """Notes about the calibration
         """
+        if 'notes' not in self.currentCalib:
+            self.currentCalib['notes'] = ''
         return self.currentCalib['notes']
 
     def getUseBits(self):
@@ -523,6 +530,16 @@ class Monitor:
         """Equivalent of :func:`~psychopy.monitors.Monitor.save`.
         """
         self.save()
+
+    def getJSON(self):
+        return {
+            'name': self.name,
+            'calibrations': self.calibs
+        }
+    
+    def fromJSON(self, node):
+        self.name = node['name']
+        self.calibs = node['calibrations']
 
     def _saveJSON(self):
         thisFileName = os.path.join(monitorFolder, self.name + ".json")
@@ -1118,6 +1135,7 @@ def getRGBspectra(stimSize=0.3, winSize=(800, 600), photometer='COM1'):
         photom = photometer
     else:
         # setup photom
+        from psychopy import hardware
         photom = hardware.Photometer(photometer)
     if photom != None:
         havephotom = 1
@@ -1297,6 +1315,7 @@ def gammaInvFun(yy, minLum, maxLum, gamma, b=None, eq=1):
 def strFromDate(date):
     """Simply returns a string with a std format from a date object
     """
-    if type(date) == float:
-        date = time.localtime(date)
+    if isinstance(date, (int, float)):
+        date = time.localtime(float(date))
+
     return time.strftime("%Y_%m_%d %H:%M", date)

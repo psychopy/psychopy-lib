@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
-# Distributed under the terms of the GNU General Public License (GPL).
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2025 Open Science Tools Ltd.
+# Distributed under the terms of the MIT License.
 
 """Software fMRI machine emulator.
 
@@ -18,20 +18,29 @@ These are optional components that can be obtained by installing the
 
 """
 
-import psychopy.logging as logging
 
-try:
-    from psychopy_mri_emulator import (
-        SyncGenerator, ResponseEmulator, launchScan)
-except (ModuleNotFoundError, ImportError):
-    logging.error(
-        "Support for software fMRI emulation is not available this session. "
-        "Please install `psychopy-mri-emulator` and restart the session to "
-        "enable support.")
-except Exception as e:
-    logging.error(
-        "Error encountered while loading `psychopy-mri-emulator`. Check logs "
-        "for more information.")
+from psychopy.plugins import PluginStub
 
-if __name__ == "__main__":
+
+class SyncGenerator(
+    PluginStub,
+    plugin="psychopy-mri-emulator",
+    docsHome="https://github.com/psychopy/psychopy-mri-emulator"
+):
+    pass
+
+
+class ResponseEmulator(
+    PluginStub,
+    plugin="psychopy-mri-emulator",
+    docsHome="https://github.com/psychopy/psychopy-mri-emulator"
+):
+    pass
+
+
+class launchScan(
+    PluginStub,
+    plugin="psychopy-mri-emulator",
+    docsHome="https://github.com/psychopy/psychopy-mri-emulator"
+):
     pass

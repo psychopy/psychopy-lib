@@ -1,14 +1,12 @@
 from pathlib import Path
 
 from psychopy import visual, colors, core
-from .test_basevisual import _TestUnitsMixin
+from .test_basevisual import _TestUnitsMixin, _TestSerializationMixin
 from psychopy.tests.test_experiment.test_component_compile_python import _TestBoilerplateMixin
-from .. import utils
+from psychopy.tests import utils
+import pytest
 
-from ..utils import TESTS_DATA_PATH
-
-
-class TestImage(_TestUnitsMixin, _TestBoilerplateMixin):
+class TestImage(_TestUnitsMixin, _TestBoilerplateMixin, _TestSerializationMixin):
     """
     Test that images render as expected. Note: In BaseVisual tests, image colors will look different than
     seems intuitive as foreColor will be set to `"blue"`.
@@ -17,7 +15,7 @@ class TestImage(_TestUnitsMixin, _TestBoilerplateMixin):
         self.win = visual.Window()
         self.obj = visual.ImageStim(
             self.win,
-            str(Path(TESTS_DATA_PATH) / 'testimage.jpg'),
+            str(Path(utils.TESTS_DATA_PATH) / 'testimage.jpg'),
             colorSpace='rgb1',
         )
 
@@ -187,6 +185,9 @@ class TestImageAnimation:
         """
         Check that images can be updated sufficiently fast to create frame animations
         """
+        # skip speed tests under vm
+        if utils.RUNNING_IN_VM:
+            pytest.skip()
         # Create clock
         clock = core.Clock()
         # Try at each size

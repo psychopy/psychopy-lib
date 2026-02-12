@@ -3,12 +3,13 @@ from pathlib import Path
 import numpy as np
 
 from psychopy import layout
+from psychopy.alerts import addAlertHandler
 from psychopy.alerts._errorHandler import _BaseErrorHandler
-from psychopy.tests.test_visual.test_basevisual import _TestColorMixin, _TestUnitsMixin
+from psychopy.tests.test_visual.test_basevisual import _TestColorMixin, _TestUnitsMixin, _TestSerializationMixin
 from psychopy.tests.test_experiment.test_component_compile_python import _TestBoilerplateMixin
 from psychopy.visual import Window
 from psychopy.visual import TextBox2
-from psychopy.visual.textbox2.fontmanager import FontManager
+from psychopy.tools.fontmanager import FontManager
 import pytest
 from psychopy.tests import utils
 
@@ -17,10 +18,11 @@ from psychopy.tests import utils
 
 
 @pytest.mark.textbox
-class Test_textbox(_TestColorMixin, _TestUnitsMixin, _TestBoilerplateMixin):
+class Test_textbox(_TestColorMixin, _TestUnitsMixin, _TestBoilerplateMixin, _TestSerializationMixin):
     def setup_method(self):
         self.win = Window((128, 128), pos=(50, 50), monitor="testMonitor", allowGUI=False, autoLog=False)
         self.error = _BaseErrorHandler()
+        addAlertHandler(self.error)
         self.textbox = TextBox2(self.win,
                                 "A PsychoPy zealot knows a smidge of wx, but JavaScript is the question.",
                                 placeholder="Placeholder text",
@@ -37,7 +39,7 @@ class Test_textbox(_TestColorMixin, _TestUnitsMixin, _TestBoilerplateMixin):
         # Textbox foreground is too unreliable due to fonts for pixel analysis
         self.foreUsed = False
 
-    def teardown(self):
+    def teardown_method(self):
         self.win.close()
 
     def test_glyph_rendering(self):
@@ -101,6 +103,42 @@ class Test_textbox(_TestColorMixin, _TestUnitsMixin, _TestBoilerplateMixin):
                 filename = "textbox_{}_{}".format(self.textbox._lineBreaking, case['screenshot'])
                 #self.win.getMovieFrame(buffer='back').save(Path(utils.TESTS_DATA_PATH) / filename)
                 utils.compareScreenshot(Path(utils.TESTS_DATA_PATH) / filename, self.win, crit=20)
+
+    def test_ori(self):
+        # setup textbox
+        self.textbox.color = "black"
+        self.textbox.fillColor = "white"
+        self.textbox.units = "pix"
+        self.textbox.size = (100, 50)
+        self.textbox.pos = (0, 0)
+        self.textbox.letterHeight = 5
+        # define params to use
+        orientations = [
+            0, 120, 180, 240,
+        ]
+        anchors = [
+            "top left", "center", "bottom right",
+        ]
+        # try each combination
+        for ori in orientations:
+            for anchor in anchors:
+                # flip
+                self.win.flip()
+                # set params
+                self.textbox.ori = ori
+                self.textbox.anchor = anchor
+                self.textbox._layout()
+                # draw
+                self.textbox.draw()
+                # construct exemplar filename
+                exemplar = f"test_ori_{ori}_{anchor}.png"
+                # check/make exemplar
+                # self.win.getMovieFrame(buffer='back').save(
+                #     Path(utils.TESTS_DATA_PATH) / "Test_textbox" / exemplar
+                # )
+                utils.compareScreenshot(
+                    Path(utils.TESTS_DATA_PATH) / "Test_textbox" / exemplar, self.win, crit=20
+                )
 
     def test_colors(self):
         # Do base tests
@@ -295,7 +333,7 @@ class Test_textbox(_TestColorMixin, _TestUnitsMixin, _TestBoilerplateMixin):
             # },  # https://discourse.psychopy.org/t/textbox2-crashes-when-korean-input-exceed-certain-length/22717/6
             {
                 "text": "i need a word which will go off the page, antidisestablishmentarianism is a very long word",
-                "font": "Open Sans",
+                "font": "Noto Sans",
                 "screenshot": "textbox_typing_longWord.png"
             },  # Check that lines wrap correctly when there's a very long word, rather than as described in https://github.com/psychopy/psychopy/issues/3892
         ]
@@ -406,17 +444,54 @@ class Test_textbox(_TestColorMixin, _TestUnitsMixin, _TestBoilerplateMixin):
         # Reset initial params
         for param, value in initParams.items():
             setattr(self.textbox, param, value)
-            
-    def test_alerts(self):
-        noFontTextbox = TextBox2(self.win, "", font="Raleway Dots", bold=True)
-        assert (self.error.alerts[0].code == 4325)
+
+    def test_speechpoint(self):
+        self.obj.size = (0.5, 0.5)
+        self.obj.fillColor = "red"
+
+        # Create list of points to test
+        cases = [
+            (-3/8, 0),
+            (3/8, 0),
+            (0, -3/8),
+            (0, 3/8)
+        ]
+
+        for x, y in cases:
+            # Prepare window
+            self.win.flip()
+            # Set from case
+            self.obj.speechPoint = (x, y)
+            # Draw
+            self.obj.draw()
+            # Compare screenshots
+            filename = f"{self.__class__.__name__}_testSpeechpoint_{int(x*8)}ovr8_{int(y*8)}ovr8.png"
+            # self.win.getMovieFrame(buffer='back').save(Path(utils.TESTS_DATA_PATH) / filename)
+            utils.compareScreenshot(filename, self.win, crit=8)
+
+        self.obj.speechPoint = None
+
+    def test_letter_spacing(self):
+        cases = (0.6, 0.8, 1, None, 1.2, 1.4, 1.6, 1.8, 2.0)
+
+        for case in cases:
+            self.win.flip()
+            # Set letter spacing
+            self.obj.letterSpacing = case
+            # Draw
+            self.obj.draw()
+            # Compare
+            nameSafe = str(case).replace(".", "p")
+            filename = Path(utils.TESTS_DATA_PATH) / f"TestTextbox_testLetterSpacing_{nameSafe}.png"
+            self.win.getMovieFrame(buffer='back').save(filename)
+            utils.compareScreenshot(filename, self.win, crit=20)
 
 
 def test_font_manager():
         # Create a font manager
         mgr = FontManager()
         # Check that it finds fonts which should be pre-packaged with PsychoPy in the resources folder
-        assert bool(mgr.getFontNamesSimilar("Open Sans"))
+        assert bool(mgr.getFontNamesSimilar("Noto Sans"))
         # Check that it doesn't find fonts which aren't installed as default
         assert not bool(mgr.getFontNamesSimilar("Dancing Script"))
         # Check that it can install fonts from Google

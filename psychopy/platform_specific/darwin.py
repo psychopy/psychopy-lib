@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
-# Distributed under the terms of the GNU General Public License (GPL).
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2025 Open Science Tools Ltd.
+# Distributed under the terms of the MIT License.
 
 from psychopy import logging
 try:
@@ -105,8 +105,6 @@ def getBusFreq():
 def rush(value=True, realtime=False):
     """Raise the priority of the current thread / process.
 
-    Win32 and macOS only so far - on linux use os.nice(niceIncrement)
-
     Set with rush(True) or rush(False).
 
     realtime arg is not used by osx implementation.
@@ -149,7 +147,7 @@ def rush(value=True, realtime=False):
                                       # send the address of the struct
                                       ctypes.byref(extendedPolicy),
                                       THREAD_STANDARD_POLICY_COUNT)
-    return True
+    return err == KERN_SUCCESS
 
 
 def getThreadPolicy(getDefault, flavour):

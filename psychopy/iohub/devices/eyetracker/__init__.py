@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
 # Part of the PsychoPy library
 # Copyright (C) 2012-2020 iSolver Software Solutions (C) 2021 Open Science Tools Ltd.
-# Distributed under the terms of the GNU General Public License (GPL).
+# Distributed under the terms of the MIT License.
 from .. import Device, ioDeviceError
 from ...constants import DeviceConstants, EyeTrackerConstants
 from . import hw
 from ...errors import print2err
+from psychopy.tools.stimulustools import serialize, actualize
 
 
 class EyeTrackerDevice(Device):
@@ -250,6 +251,43 @@ class EyeTrackerDevice(Device):
             None
         """
         return EyeTrackerConstants.EYETRACKER_INTERFACE_METHOD_NOT_SUPPORTED
+    
+    @staticmethod
+    def getCalibrationDict(calib):
+        """
+        Create a dict describing the given Calibration object, respecting this 
+        eyetracker's specific limitations. If not overloaded by a subclass, this 
+        will use the same fields and values as MouseGaze.
+
+        Parameters
+        ----------
+        calib : psychopy.hardware.eyetracker.EyetrackerCalibration
+            Object to create a dict from
+        
+        Returns
+        -------
+        dict
+            Dict describing the given Calibration object
+        """
+        targetAttributes = serialize(calib.target, includeClass=True)
+        # target animation
+        targetAttributes['animate'] = {
+            'enable': calib.movementAnimation,
+            'expansion_ratio': calib.expandScale,
+            'contract_only': calib.expandScale == 1,
+        }
+        
+        return {
+            'target_attributes': targetAttributes,
+            'type': calib.targetLayout,
+            'randomize': calib.randomisePos,
+            'auto_pace': calib.progressMode == "time",
+            'pacing_speed': calib.targetDelay,
+            'unit_type': calib.units,
+            'color_type': calib.colorSpace,
+            'text_color': calib.textColor if str(calib.textColor).lower() != "auto" else None,
+            'screen_background_color': getattr(calib.win._color, calib.colorSpace),
+        }
 
     def setRecordingState(self, recording):
         """The setRecordingState method is used to start or stop the recording

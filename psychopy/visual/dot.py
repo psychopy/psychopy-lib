@@ -6,8 +6,8 @@ determines how they change on every call to the .draw() method.
 """
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
-# Distributed under the terms of the GNU General Public License (GPL).
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2025 Open Science Tools Ltd.
+# Distributed under the terms of the MIT License.
 
 # Bugfix by Andrew Schofield.
 # Replaces out of bounds but still live dots at opposite edge of aperture 
@@ -35,6 +35,7 @@ from psychopy import logging
 # (JWP has no idea why!)
 from psychopy.tools.attributetools import attributeSetter, setAttribute
 from psychopy.tools.arraytools import val2array
+from psychopy.tools import gltools as gt
 from psychopy.visual.basevisual import (BaseVisualStim, ColorMixin,
                                         ContainerMixin, WindowMixin)
 from psychopy.layout import Size
@@ -47,9 +48,14 @@ _piOver180 = np.pi / 180.
 _2pi = 2 * np.pi
 
 
+USE_LEGACY_GL = pyglet.version < '2.0'
+
+
 class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
     """This stimulus class defines a field of dots with an update rule that
-    determines how they change on every call to the .draw() method.
+    determines how they change on every call to the .draw() method. This is
+    a lazy-imported class, therefore import using full path 
+    `from psychopy.visual.dot import DotStim` when inheriting from it.
 
     This single class can be used to generate a wide variety of dot motion
     types. For a review of possible types and their pros and cons see Scase,
@@ -64,7 +70,7 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
     identical velocity but random direction and signal dots remain the 'same'
     (once a signal dot, always a signal dot).
 
-    For further detail about the different configurations see :ref:`dots` in the
+    For further detail about the different configurations see :ref:`dotscomponent` in the
     Builder Components section of the documentation.
 
     If further customisation is required, then the DotStim should be subclassed
@@ -485,22 +491,9 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
         """
         setAttribute(self, 'speed', val, log, op)
 
-    def draw(self, win=None):
-        """Draw the stimulus in its relevant window. You must call this method
-        after every MyWin.flip() if you want the stimulus to appear on that
-        frame and then update the screen again.
-
-        Parameters
-        ----------
-        win : window.Window, optional
-            Window to draw dots to. If `None`, dots will be drawn to the parent
-            window.
-
+    def _drawLegacyGL(self, win):
+        """Legacy draw method for DotStim.
         """
-        if win is None:
-            win = self.win
-        self._selectWindow(win)
-
         self._update_dotsXY()
 
         GL.glPushMatrix()  # push before drawing, pop after
@@ -537,6 +530,81 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
             # reset depth before going to next frame
             self.element.setDepth(initialDepth)
         GL.glPopMatrix()
+
+    def draw(self, win=None):
+        """Draw the stimulus in its relevant window. You must call this method
+        after every MyWin.flip() if you want the stimulus to appear on that
+        frame and then update the screen again.
+
+        Parameters
+        ----------
+        win : window.Window, optional
+            Window to draw dots to. If `None`, dots will be drawn to the parent
+            window.
+
+        """
+        if win is None:
+            win = self.win
+        self._selectWindow(win)
+
+        self._update_dotsXY()
+
+        if win.USE_LEGACY_GL:
+            self._drawLegacyGL(win)
+            return
+
+        # draw the dots
+        if self.element is None:
+            win.setScale('pix')
+            win.setOrthographicView()
+
+            GL.glActiveTexture(GL.GL_TEXTURE0)
+            GL.glEnable(GL.GL_TEXTURE_2D)
+            GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
+            GL.glActiveTexture(GL.GL_TEXTURE1)
+            GL.glEnable(GL.GL_TEXTURE_2D)
+            GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
+
+            _prog = win._shaders['signedColor']
+            gt.useProgram(_prog)
+            
+            GL.glPointSize(self.dotSize)
+            projectionMatrix = win._projectionMatrix
+            modelViewMatrix = win._viewMatrix
+
+            gt.setUniformValue(
+                _prog, 
+                b'uColor', 
+                self._foreColor.render('rgba1'))
+            alphaThreshold = getattr(self, 'alphaThreshold', 1.0)
+            gt.setUniformValue(
+                _prog, b'uAlphaThreshold', alphaThreshold, ignoreNotDefined=True)
+            gt.setUniformMatrix(
+                _prog, 
+                b'uModelViewMatrix', 
+                modelViewMatrix,
+                transpose=True)
+            gt.setUniformMatrix(
+                _prog, 
+                b'uProjectionMatrix', 
+                projectionMatrix,
+                transpose=True)
+            gt.drawClientArrays(
+                {'gl_Vertex': self.verticesPix},
+                'GL_POINTS')
+
+            gt.useProgram(None)
+        else:
+            # we don't want to do the screen scaling twice so for each dot
+            # subtract the screen centre
+            initialDepth = self.element.depth
+            for pointN in range(0, self.nDots):
+                _p = self.verticesPix[pointN, :] + self.fieldPos
+                self.element.setPos(_p)
+                self.element.draw()
+
+            # reset depth before going to next frame
+            self.element.setDepth(initialDepth)
 
     def _newDotsXY(self, nDots):
         """Returns a uniform spread of dots, according to the `fieldShape` and

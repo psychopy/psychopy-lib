@@ -6,8 +6,8 @@ pygame to be installed).
 See demo_mouse.py and i{demo_joystick.py} for examples
 """
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
-# Distributed under the terms of the GNU General Public License (GPL).
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2025 Open Science Tools Ltd.
+# Distributed under the terms of the MIT License.
 
 # 01/2011 modified by Dave Britton to get mouse event timing
 
@@ -33,6 +33,8 @@ except ImportError:
     havePyglet = False
 try:
     import glfw
+    if not glfw.init():
+        raise ImportError
     haveGLFW = True
 except ImportError:
     haveGLFW = False
@@ -52,19 +54,15 @@ if haveGLFW:
 else:
     useGLFW = False
 
-
-if havePyglet:
-    # get the default display
-    if pyglet.version < '1.4':
-        _default_display_ = pyglet.window.get_platform().get_default_display()
-    else:
-        _default_display_ = pyglet.canvas.get_display()
-
-
 import psychopy.core
 from psychopy.tools.monitorunittools import cm2pix, deg2pix, pix2cm, pix2deg
 from psychopy import logging
 from psychopy.constants import NOT_STARTED
+
+
+# global variable to keep track of mouse buttons
+mouseButtons = [0, 0, 0]
+
 
 if havePyglet or haveGLFW:
     # importing from mouse takes ~250ms, so do it now
@@ -83,7 +81,6 @@ if havePyglet or haveGLFW:
         )
 
     _keyBuffer = []
-    mouseButtons = [0, 0, 0]
     mouseWheelRel = numpy.array([0.0, 0.0])
     # list of 3 clocks that are reset on mouse button presses
     mouseClick = [psychopy.core.Clock(), psychopy.core.Clock(),
@@ -300,7 +297,7 @@ def _onPygletMouseRelease(x, y, button, modifiers, emulated=False):
 
 def _onPygletMouseWheel(x, y, scroll_x, scroll_y):
     global mouseWheelRel
-    mouseWheelRel = mouseWheelRel + numpy.array([scroll_x, scroll_y])
+    mouseWheelRel +=  numpy.array([scroll_x, scroll_y])
     msg = "Mouse: wheel shift=(%i,%i), pos=(%i,%i)"
     logging.data(msg % (scroll_x, scroll_y, x, y))
 
@@ -403,11 +400,14 @@ def getKeys(keyList=None, modifiers=False, timeStamped=False):
         for evts in evt.get(locals.KEYDOWN):
             # pygame has no keytimes
             keys.append((pygame.key.name(evts.key), 0))
-    elif havePyglet:
+
+    global _keyBuffer
+
+    if havePyglet:
         # for each (pyglet) window, dispatch its events before checking event
         # buffer
         windowSystem = 'pyglet'
-        for win in _default_display_.get_windows():
+        for win in pyglet.app.windows:
             try:
                 win.dispatch_events()  # pump events on pyglet windows
             except ValueError as e:  # pragma: no cover
@@ -416,16 +416,14 @@ def getKeys(keyList=None, modifiers=False, timeStamped=False):
                 # specific to certain systems and versions of Python.
                 logging.error(u'Failed to handle keypress')
 
-        global _keyBuffer
         if len(_keyBuffer) > 0:
             # then pyglet is running - just use this
             keys = _keyBuffer
             # _keyBuffer = []  # DO /NOT/ CLEAR THE KEY BUFFER ENTIRELY
 
-    elif haveGLFW:
+    if haveGLFW:
         windowSystem = 'glfw'
-        # 'poll_events' is called when a window is flipped, all the callbacks
-        # populate the buffer
+        glfw.poll_events()
         if len(_keyBuffer) > 0:
             keys = _keyBuffer
 
@@ -526,11 +524,6 @@ def waitKeys(maxWait=float('inf'), keyList=None, modifiers=False,
     got_keypress = False
 
     while not got_keypress and timer.getTime() < maxWait:
-        # Pump events on pyglet windows if they exist.
-        if havePyglet:
-            for win in _default_display_.get_windows():
-                win.dispatch_events()
-
         # Get keypresses and return if anything is pressed.
         keys = getKeys(keyList=keyList, modifiers=modifiers,
                        timeStamped=timeStamped)
@@ -550,7 +543,7 @@ def xydist(p1=(0.0, 0.0), p2=(0.0, 0.0)):
     return numpy.sqrt(pow(p1[0] - p2[0], 2) + pow(p1[1] - p2[1], 2))
 
 
-class Mouse():
+class Mouse:
     """Easy way to track what your mouse is doing.
 
     It needn't be a class, but since Joystick works better
@@ -559,8 +552,8 @@ class Mouse():
     Create your `visual.Window` before creating a Mouse.
 
     :Parameters:
-        visible : **True** or False
-            makes the mouse invisible if necessary
+        visible : bool or None
+            Show the mouse if True, hide it if False, leave it as is if None (default)
         newPos : **None** or [x,y]
             gives the mouse a particular starting position
             (pygame `Window` only)
@@ -570,11 +563,11 @@ class Mouse():
     """
 
     def __init__(self,
-                 visible=True,
+                 visible=None,
                  newPos=None,
                  win=None):
         super(Mouse, self).__init__()
-        self.visible = visible
+        self._visible = visible
         self.lastPos = None
         self.prevPos = None  # used for motion detection and timing
         if win:
@@ -590,6 +583,13 @@ class Mouse():
                 logging.error('Mouse: failed to get a default visual.Window'
                               ' (need to create one first)')
                 self.win = None
+
+        # get the scaling factors for the display
+        if self.win is not None:
+            self._winScaleFactor = self.win.getContentScaleFactor()
+        else:
+            self._winScaleFactor = 1.0
+
         # for builder: set status to STARTED, NOT_STARTED etc
         self.status = None
         self.mouseClock = psychopy.core.Clock()
@@ -598,10 +598,8 @@ class Mouse():
         global usePygame
         if havePygame and not pygame.display.get_init():
             usePygame = False
-        if not usePygame:
-            global mouseButtons
-            mouseButtons = [0, 0, 0]
-        self.setVisible(visible)
+        if visible is not None:
+            self.setVisible(visible)
         if newPos is not None:
             self.setPos(newPos)
 
@@ -630,7 +628,9 @@ class Mouse():
                 if self.win.useRetina:
                     newPosPix = numpy.array(self.win.size) / 4 + newPosPix / 2
                 else:
-                    newPosPix = numpy.array(self.win.size) / 2 + newPosPix
+                    wsf = self._winScaleFactor 
+                    newPosPix = \
+                        numpy.array(self.win.size) / (2 * wsf) + newPosPix / wsf
                 x, y = int(newPosPix[0]), int(newPosPix[1])
                 self.win.winHandle.set_mouse_position(x, y)
                 self.win.winHandle._mouse_x = x
@@ -659,8 +659,12 @@ class Mouse():
             if self.win:
                 w = self.win.winHandle
             else:
-                defDisplay = _default_display_
-                w = defDisplay.get_windows()[0]
+
+                if psychopy.core.openWindows:
+                    w = psychopy.core.openWindows[0]()
+                else:
+                    logging.warning("Called event.Mouse.getPos() for the mouse with no Window being opened")
+                    return None
 
             # get position in window
             lastPosPix[:] = w._mouse_x, w._mouse_y
@@ -669,11 +673,12 @@ class Mouse():
             if self.win.useRetina:
                 lastPosPix = lastPosPix * 2 - numpy.array(self.win.size) / 2
             else:
-                lastPosPix = lastPosPix - numpy.array(self.win.size) / 2
+                wsf = self._winScaleFactor 
+                lastPosPix = lastPosPix * wsf - numpy.array(self.win.size) / 2
 
         self.lastPos = self._pix2windowUnits(lastPosPix)
 
-        return copy.copy(self.lastPos)
+        return self.lastPos
 
     def mouseMoved(self, distance=None, reset=False):
         """Determine whether/how far the mouse has moved.
@@ -784,7 +789,8 @@ class Mouse():
         mouseWheelRel = numpy.array([0.0, 0.0])
         return rel
 
-    def getVisible(self):
+    @property
+    def visible(self):
         """Gets the visibility of the mouse (1 or 0)
         """
         if usePygame:
@@ -792,6 +798,24 @@ class Mouse():
         else:
             print("Getting the mouse visibility is not supported under"
                   " pyglet, but you can set it anyway")
+    
+    @visible.setter
+    def visible(self, visible):
+        """Sets the visibility of the mouse to 1 or 0
+
+        NB when the mouse is not visible its absolute position is held
+        at (0, 0) to prevent it from going off the screen and getting lost!
+        You can still use getRel() in that case.
+        """
+        self.setVisible(visible)
+
+    def getVisible(self):
+        """Gets the visibility of the mouse (1 or 0)
+        """
+        if usePygame:
+            return mouse.get_visible()
+        
+        return self._visible
 
     def setVisible(self, visible):
         """Sets the visibility of the mouse to 1 or 0
@@ -804,10 +828,18 @@ class Mouse():
             self.win.setMouseVisible(visible)
         elif usePygame:
             mouse.set_visible(visible)
-        else:  # try communicating with window directly?
-            plat = _default_display_
-            w = plat.get_windows()[0]
-            w.set_mouse_visible(visible)
+        else:
+            from psychopy.visual import openWindows
+            if openWindows:
+                w = openWindows[0]()  # type: psychopy.visual.Window
+            else:
+                logging.warning(
+                    "Called event.Mouse.getPos() for the mouse with no Window " 
+                    "being opened")
+                return None
+            w.setMouseVisible(visible)
+            
+        self._visible = visible  # set internal state
 
     def clickReset(self, buttons=(0, 1, 2)):
         """Reset a 3-item list of core.Clocks use in timing button clicks.
@@ -842,21 +874,28 @@ class Mouse():
 
         """
         global mouseButtons, mouseTimes
-        if usePygame:
-            return mouse.get_pressed()
-        else:
-            # False:  # havePyglet: # like in getKeys - pump the events
+
+        if self.win is None:  # no backend specified
+            return None
+
+        if havePyglet and self.win.winType == 'pyglet':
             # for each (pyglet) window, dispatch its events before checking
             # event buffer
-
-            for win in _default_display_.get_windows():
+            for win in pyglet.app.windows:
                 win.dispatch_events()  # pump events on pyglet windows
+        elif haveGLFW and self.win.winType == 'glfw':
+            glfw.poll_events()
+        elif havePygame and self.win.winType == 'pygame':
+            return mouse.get_pressed()
+        else:
+            raise RuntimeError(
+                "Mouse.getPressed() is only supported for the pyglet, "
+                                      "pygame and glfw backends.")  
 
-            # else:
-            if not getTime:
-                return copy.copy(mouseButtons)
-            else:
-                return copy.copy(mouseButtons), copy.copy(mouseTimes)
+        if not getTime:
+            return copy.copy(mouseButtons)
+        else:
+            return copy.copy(mouseButtons), copy.copy(mouseTimes)
 
     def isPressedIn(self, shape, buttons=(0, 1, 2)):
         """Returns `True` if the mouse is currently inside the shape and
@@ -954,8 +993,12 @@ def clearEvents(eventType=None):
     if not havePygame or not display.get_init():  # pyglet
         # For each window, dispatch its events before
         # checking event buffer.
-        for win in _default_display_.get_windows():
-            win.dispatch_events()  # pump events on pyglet windows
+        if havePyglet:
+            for win in pyglet.app.windows:
+                win.dispatch_events()  # pump events on pyglet windows
+
+        if haveGLFW:
+            glfw.poll_events()
 
         if eventType == 'mouse':
             pass
@@ -1181,6 +1224,11 @@ def _onGLFWKey(*args, **kwargs):
 
     # TODO - support for key emulation
     win_ptr, key, scancode, action, modifiers = args
+
+    # only send events for PRESS and REPEAT to match pyglet behavior
+    if action == glfw.RELEASE:
+        return
+
     global useText
     
     if key == glfw.KEY_UNKNOWN:

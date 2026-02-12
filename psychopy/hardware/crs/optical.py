@@ -21,26 +21,13 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-import psychopy.logging as logging
+from psychopy.plugins import PluginStub
 
-try:
-    from psychopy_crs.optical import OptiCAL
-except (ModuleNotFoundError, ImportError):
-    logging.error(
-        "Support for Cambridge Research Systems OptiCAL is not available this "
-        "session. Please install `psychopy-crs` and restart the session to "
-        "enable support.")
-except Exception as e:
-    logging.error(
-        "Error encountered while loading `psychopy-crs`. Check logs for more "
-        "information.")
-else:
-    # Monkey-patch our metadata into CRS class if missing required attributes
-    if not hasattr(OptiCAL, "longName"):
-        setattr(OptiCAL, "longName", "CRS OptiCal")
 
-    if not hasattr(OptiCAL, "driverFor"):
-        setattr(OptiCAL, "driverFor", ["optical"])
-
-if __name__ == "__main__":
+class OptiCAL(
+    PluginStub, 
+    plugin="psychopy-crs", 
+    docsHome="https://psychopy.github.io/psychopy-crs",
+    docsRef="/coder/optical"
+):
     pass

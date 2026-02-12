@@ -7,7 +7,7 @@ import pickle
 import copy
 import warnings
 import numpy as np
-from pkg_resources import parse_version
+from packaging.version import Version
 
 import psychopy
 from psychopy import logging
@@ -26,7 +26,7 @@ except ImportError:
 try:
     # import openpyxl
     import openpyxl
-    if parse_version(openpyxl.__version__) >= parse_version('2.4.0'):
+    if Version(openpyxl.__version__) >= Version('2.4.0'):
         # openpyxl moved get_column_letter to utils.cell
         from openpyxl.utils.cell import get_column_letter
     else:
@@ -55,23 +55,26 @@ class StairHandler(_BaseTrialHandler):
 
     """
 
-    def __init__(self,
-                 startVal,
-                 nReversals=None,
-                 stepSizes=4,  # dB stepsize
-                 nTrials=0,
-                 nUp=1,
-                 nDown=3,  # correct responses before stim goes down
-                 applyInitialRule=True,
-                 extraInfo=None,
-                 method='2AFC',
-                 stepType='db',
-                 minVal=None,
-                 maxVal=None,
-                 originPath=None,
-                 name='',
-                 autoLog=True,
-                 **kwargs):
+    def __init__(
+        self,
+        startVal,
+        nReversals=None,
+        stepSizes=4,  # dB stepsize
+        nTrials=0,
+        nUp=1,
+        nDown=3,  # correct responses before stim goes down
+        applyInitialRule=True,
+        extraInfo=None,
+        method='2AFC',
+        stepType='db',
+        minVal=None,
+        maxVal=None,
+        originPath=None,
+        isTrials=True,
+        name='',
+        autoLog=True,
+        **kwargs
+    ):
         """
         :Parameters:
 
@@ -84,6 +87,8 @@ class StairHandler(_BaseTrialHandler):
                 reversals to perform, `nReversals`, is less than the
                 length of this list, PsychoPy will automatically increase
                 the minimum number of reversals and emit a warning.
+                This minimum number of reversals is always set to be
+                greater than 0.
 
             stepSizes:
                 The size of steps as a single value or a list (or array).
@@ -134,6 +139,10 @@ class StairHandler(_BaseTrialHandler):
                 The largest legal value for the staircase, which can be
                 used to prevent it reaching impossible contrast values,
                 for instance.
+            
+            isTrials : bool
+                Is this controlling trials, or created for another purpose (e.g. iterating a 
+                stimulus within a trial)?
 
             Additional keyword arguments will be ignored.
 
@@ -153,6 +162,7 @@ class StairHandler(_BaseTrialHandler):
         self.extraInfo = extraInfo
         self.method = method
         self.stepType = stepType
+        self.isTrials = isTrials
 
         try:
             self.stepSizes = list(stepSizes)
@@ -403,9 +413,7 @@ class StairHandler(_BaseTrialHandler):
             self._nextIntensity *= 10.0**self.stepSizeCurrent
         elif self.stepType == 'lin':
             self._nextIntensity += self.stepSizeCurrent
-        # check we haven't gone out of the legal range
-        if (self.maxVal is not None) and (self._nextIntensity > self.maxVal):
-            self._nextIntensity = self.maxVal
+        self._clampIntensity()
         self.correctCounter = 0
 
     def _intensityDec(self):
@@ -417,10 +425,15 @@ class StairHandler(_BaseTrialHandler):
             self._nextIntensity /= 10.0**self.stepSizeCurrent
         elif self.stepType == 'lin':
             self._nextIntensity -= self.stepSizeCurrent
+        self._clampIntensity()
         self.correctCounter = 0
-        # check we haven't gone out of the legal range
+
+    def _clampIntensity(self):
+        """Clamp the next intensity to min/max bounds regardless of step direction."""
         if (self.minVal is not None) and (self._nextIntensity < self.minVal):
             self._nextIntensity = self.minVal
+        if (self.maxVal is not None) and (self._nextIntensity > self.maxVal):
+            self._nextIntensity = self.maxVal
 
     def saveAsText(self, fileName,
                    delim=None,
@@ -718,7 +731,7 @@ class QuestHandler(StairHandler):
                                      pos=[0,0], units='deg')
         ...
         # create staircase object
-        # trying to find out the point where subject's response is 50 / 50
+        # trying to find out the contrast where subject gets 63% correct
         # if wanted to do a 2AFC then the defaults for pThreshold and gamma
         # are good. As start value, we'll use 50% contrast, with SD = 20%
         staircase = data.QuestHandler(0.5, 0.2,
@@ -1443,7 +1456,7 @@ class QuestPlusHandler(StairHandler):
         paramEstimationMethod : {'mean', 'mode'}
             How to calculate the final parameter estimate. `mean` returns the
             mean of each parameter, weighted by their respective posterior
-            probabilities. `mode` returns the the parameters at the peak of
+            probabilities. `mode` returns the parameters at the peak of
             the posterior distribution.
 
         extraInfo : dict
@@ -1607,7 +1620,8 @@ class QuestPlusHandler(StairHandler):
 
         # if needed replace the existing intensity with this custom one
         if intensity is not None:
-            self.intensities.pop()
+            if len(self.intensities) != 0: # avoid error during the first trial where self.intensities will be of length 0, so pop does not work
+                self.intensities.pop()  # remove the auto-generated one
             self.intensities.append(intensity)
         # add the current data to experiment if possible
         if self.getExp() is not None:
@@ -1733,9 +1747,18 @@ class QuestPlusHandler(StairHandler):
 
 class MultiStairHandler(_BaseTrialHandler):
 
-    def __init__(self, stairType='simple', method='random',
-                 conditions=None, nTrials=50, randomSeed=None,
-                 originPath=None, name='', autoLog=True):
+    def __init__(
+        self, 
+        stairType='simple', 
+        method='random',
+        conditions=None, 
+        nTrials=50, 
+        randomSeed=None,
+        originPath=None, 
+        isTrials=True,
+        name='', 
+        autoLog=True,
+    ):
         """A Handler to allow easy interleaved staircase procedures
         (simple or QUEST).
 
@@ -1787,6 +1810,10 @@ class MultiStairHandler(_BaseTrialHandler):
                 The seed with which to initialize the random number generator
                 (RNG). If `None` (default), do not initialize the RNG with
                 a specific value.
+            
+            isTrials : bool
+                Is this controlling trials, or created for another purpose (e.g. iterating a 
+                stimulus within a trial)?
 
         Example usage::
 
@@ -1826,6 +1853,7 @@ class MultiStairHandler(_BaseTrialHandler):
         self.nTrials = nTrials
         self.finished = False
         self.totalTrials = 0
+        self.isTrials = isTrials
         self._checkArguments()
         # create staircases
         self.staircases = []  # all staircases
@@ -1965,6 +1993,8 @@ class MultiStairHandler(_BaseTrialHandler):
                     exp.addData(self.name + '.stepType', stair.stepType)
 
                 exp.addData(self.name + '.intensity', self._nextIntensity)
+
+            self._trialAborted = False  # reset this flag
             return self._nextIntensity, self.currentStaircase.condition
         else:
             raise StopIteration
@@ -2002,6 +2032,45 @@ class MultiStairHandler(_BaseTrialHandler):
     def intensity(self, intensity):
         """The intensity (level) of the current staircase"""
         self.currentStaircase._nextIntensity = intensity
+
+    def abortCurrentTrial(self, action='random'):
+        """Abort the current trial (staircase).
+
+        Calling this during an experiment abort the current staircase used this
+        trial. The current staircase will be reshuffled into available 
+        staircases depending on the `action` parameter.
+
+        Parameters
+        ----------
+        action : str
+            Action to take with the aborted trial. Can be either of `'random'`,
+            or `'append'`. The default action is `'random'`.
+
+        Notes
+        -----
+        * When using `action='random'`, the RNG state for the trial handler is
+          not used.
+
+        """
+        # check if value for parameter `action` is valid
+        if not isinstance(action, str):  # type checks for params
+            raise TypeError(
+                "Parameter `action` specified incorrect type, must be `str`.")
+        
+        # reinsert the current staircase into the list of running staircases
+        if action == 'append':
+            self.thisPassRemaining.append(self.currentStaircase)
+        elif action == 'random':
+            self.thisPassRemaining.append(self.currentStaircase)
+            # shuffle using the numpy RNG to preserve state
+            np.random.shuffle(self.thisPassRemaining)
+        else:
+            raise ValueError(
+                "Value for parameter `action` must be either 'random' or "
+                "'append'.")
+
+        # set flag to indicate that the trial was aborted
+        self._trialAborted = True  
 
     def addResponse(self, result, intensity=None):
         """Add a 1 or 0 to signify a correct / detected or
@@ -2198,3 +2267,7 @@ class MultiStairHandler(_BaseTrialHandler):
             label = thisStair.condition['label']
             thisStair.saveAsText(fileName='stdout', delim=delim,
                                  matrixOnly=thisMatrixOnly)
+
+
+if __name__ == "__main__":
+    pass

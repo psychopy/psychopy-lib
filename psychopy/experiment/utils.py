@@ -2,12 +2,13 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
-# Distributed under the terms of the GNU General Public License (GPL).
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2025 Open Science Tools Ltd.
+# Distributed under the terms of the MIT License.
 
 """Utility functions to support Experiment classes
 """
 import re
+from pathlib import Path
 
 # this needs to be accessed from __str__ method of Param
 scriptTarget = "PsychoPy"
@@ -17,6 +18,13 @@ unescapedDollarSign_re = re.compile(r"^\$|[^\\]\$")  # detect "code wanted"
 valid_var_re = re.compile(r"^[a-zA-Z_][\w]*$")  # filter for legal var names
 nonalphanumeric_re = re.compile(r'\W')  # will match all bad var name chars
 list_like_re = re.compile(r"(?<!\\),")  # will match for strings which could be a list
+
+
+def getBlankTemplate():
+    """
+    Returns the filepath of the blank Excel template.
+    """
+    return Path(__file__).parent / "blankTemplate.xltx"
 
 
 class CodeGenerationException(Exception):
@@ -31,3 +39,14 @@ class CodeGenerationException(Exception):
 
     def __str__(self):
         return "{}: ".format(self.source, self.message)
+
+
+def canBeNumeric(inStr):
+    """Determines whether the input can be converted to a float
+    (using a try: float(instr))
+    """
+    try:
+        float(inStr)
+        return True
+    except Exception:
+        return False

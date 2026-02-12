@@ -8,7 +8,7 @@ import warnings
 from psychopy import constants
 from psychopy.experiment import getAllComponents, Param, utils
 from psychopy import experiment
-from pkg_resources import parse_version
+from packaging.version import Version
 
 # use "python genComponsTemplate.py --out" to generate a new profile to test against
 #   = analogous to a baseline image to compare screenshots
@@ -44,7 +44,7 @@ class TestComponents():
             cls.allComp = getAllComponents(fetchIcons=False)
         except Exception:
             import wx
-            if parse_version(wx.__version__) < parse_version('2.9'):
+            if Version(wx.__version__) < Version('2.9'):
                 tmpApp = wx.PySimpleApp()
             else:
                 tmpApp = wx.App(False)
@@ -59,11 +59,11 @@ class TestComponents():
         """
         pass
 
-    def teardown(self):
+    def teardown_method(self):
         pass
 
     def test_component_attribs(self):
-        with io.open(self.baselineProfile, 'r', encoding='utf-8-sig') as f:
+        with io.open(self.baselineProfile, 'r', encoding='utf-8-sig', errors='ignore') as f:
             target = f.read()
         targetLines = target.splitlines()
         targetTag = {}

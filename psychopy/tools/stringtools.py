@@ -6,12 +6,10 @@
 
 # Part of the PsychoPy library
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
-# Distributed under the terms of the GNU General Public License (GPL).
+# Distributed under the terms of the MIT License.
 
 import re
 import ast
-
-__all__ = ["prettyname"]
 
 # Regex for identifying a valid Pavlovia project name
 import urllib
@@ -50,7 +48,243 @@ def is_file(source):
     except ValueError:
         return False
     # If creates successfully, return True if is_file
-    return path.is_file()
+    try:
+        isFile = path.is_file()
+    except OSError:
+        isFile = False
+    return isFile
+
+
+class RegexSearchable(str):
+    """
+    Like a string, but uses `re.search` for `in` comparisons
+
+    Example
+    -------
+    ```
+    r".*" in RegexSearchable("any text!")
+    ```
+    is the same as 
+    ```
+    bool(re.search(r".*", "any text!"))
+    ```
+    """
+    def __contains__(self, item):
+        return bool(
+            re.search(pattern=item, string=self)
+        )
+
+
+class CaseSwitcher:
+    """
+    Collection of static methods for switching case in strings. Can currently convert between:
+    - camelCase
+    - PascalCase
+    - Title Case
+    """
+
+    @staticmethod
+    def camel2pascal(value):
+        """
+        Convert from camelCase to PascalCase
+        """
+        # capitalise first letter
+        value = value[0].upper() + value[1:]
+
+        return value
+
+    @staticmethod
+    def camel2title(value):
+        """
+        Convert from camelCase to Title Case
+        """
+        # convert to pascal
+        value = CaseSwitcher.camel2pascal(value)
+        # convert to title
+        value = CaseSwitcher.pascal2title(value)
+
+        return value
+
+    @staticmethod
+    def camel2snake(value):
+        """
+        Convert from camelCase to snake_case
+        """
+        # convert to title
+        value = CaseSwitcher.camel2title(value)
+        # convert to snake
+        value = CaseSwitcher.title2snake(value)
+
+        return value
+
+    @staticmethod
+    def pascal2camel(value):
+        """
+        Convert from PascalCase to camelCase
+        """
+        # decapitalise first letter
+        value = value[0].lower() + value[1:]
+
+        return value
+
+    @staticmethod
+    def pascal2title(value):
+        """
+        Convert from PascalCase to Title Case
+        """
+        def _titleize(match):
+            """
+            Replace a regex match for a lowercase letter followed by an uppercase letter with the same two letters, in
+            uppercase, with a space inbetween.
+            """
+            # get matching text (should be a lower case letter then an upper case letter)
+            txt = match[0]
+            # add a space
+            txt = txt[0] + " " + txt[1]
+
+            return txt
+        # make regex substitution
+        value = re.sub(
+            pattern=r"([a-z][A-Z])",
+            repl=_titleize,
+            string=value
+        )
+
+        return value
+
+    @staticmethod
+    def pascal2snake(value):
+        """
+        Convert from PascalCase to snake_case
+        """
+        # convert to title
+        value = CaseSwitcher.pascal2title(value)
+        # convert to snake
+        value = CaseSwitcher.title2snake(value)
+
+        return value
+
+    @staticmethod
+    def title2camel(value):
+        """
+        Convert from Title Case to camelCase
+        """
+        # convert to pascal
+        value = CaseSwitcher.title2pascal(value)
+        # convert to camel
+        value = CaseSwitcher.pascal2camel(value)
+
+        return value
+
+    @staticmethod
+    def title2pascal(value):
+        """
+        Convert from Title Case to PascalCase
+        """
+        # remove spaces
+        value = value.replace(" ", "")
+
+        return value
+
+    @staticmethod
+    def title2snake(value):
+        """
+        Convert from Title Case to snake_case
+        """
+        # lowercase
+        value = value.lower()
+        # replace spaces with underscores
+        value = value.replace(" ", "_")
+
+        return value
+
+    @staticmethod
+    def snake2camel(value):
+        """
+        Convert from snake_case to camelCase
+        """
+        # convert to pascal
+        value = CaseSwitcher.snake2pascal(value)
+        # convert to camel
+        value = CaseSwitcher.pascal2camel(value)
+
+        return value
+
+    @staticmethod
+    def snake2pascal(value):
+        """
+        Convert from snake_case to PascalCase
+        """
+        # convert to title
+        value = CaseSwitcher.snake2title(value)
+        # convert to pascal
+        value = CaseSwitcher.title2pascal(value)
+
+        return value
+
+    @staticmethod
+    def snake2title(value):
+        """
+        Convert from snake_case to Title Case
+        """
+        def _titleize(match):
+            """
+            Replace a regex match for a lowercase letter followed by an uppercase letter with the same two letters, in
+            uppercase, with a space inbetween.
+            """
+            # get matching text (should be a lower case letter then an upper case letter)
+            txt = match[0]
+            # add a space and capitalise
+            txt = " " + txt[1].upper()
+
+            return txt
+        # make regex substitution
+        value = re.sub(
+            pattern=r"(_[a-z])",
+            repl=_titleize,
+            string=value
+        )
+        # capitalise first letter
+        value = value[0].upper() + value[1:]
+
+        return value
+
+
+def wrap(value, chars, delim=r"\s|-"):
+    r"""
+    Wrap a string at a number of characters.
+
+    Parameters
+    ----------
+    value : str
+        String to wrap
+    chars : int
+        Number of characters to split at
+    delim : str
+        Regex string delimeter to split words at, default is a space or a hyphen (r"\\s|\-")
+
+    Returns
+    -------
+    str
+        Wrapped string
+    """
+    newValue = ""
+    letter = 0
+    # iterate through each word
+    for n, word in enumerate(re.split(pattern=r"(" + delim + r")", string=value)):
+        # count its letters
+        letter += len(word)
+        # split word if it's very long
+        if len(word) > chars:
+            word = word[:chars] + "-\n" + word[chars:]
+        # if this brings the current letters this line to more than the wrap limit, insert a line break
+        if letter > chars and n > 0 and not re.match(pattern=delim, string=word):
+            newValue += "\n"
+            letter = len(word)
+        # insert word
+        newValue += word
+
+    return newValue
 
 
 def makeValidVarName(name, case="camel"):
@@ -141,39 +375,6 @@ def makeValidVarName(name, case="camel"):
     return name
 
 
-
-def prettyname(name, wrap=False):
-    """Convert a camelCase, TitleCase or underscore_delineated title to Full Title Case"""
-    # Replace _ with space
-    name = name.replace("_", " ")
-    # Put a space before any capital letter, apart from at the beginning, or already after a space
-    name = name[0] + re.sub('(?<![ -.])([A-Z])', r' \1', name[1:])
-    # Capitalise first letter of each word
-    name = name.title()
-    # Treat the word "PsychoPy" as a special case
-    name = name.replace("Psycho Py", "PsychoPy")
-    # Split into multiple lines if wrap is requested
-    if wrap:
-        sentence = []
-        letter = 0
-        # Iterate through each word
-        for n, word in enumerate(name.split(" ")):
-            # Count its letters
-            letter += len(word)
-            if letter > wrap and n > 0:
-                # If this brings the current letters this line to more than the wrap limit, insert a line break
-                sentence.append("\n")
-                letter = len(word)
-            # Insert word
-            sentence.append(word)
-        # Recombine name
-        name = " ".join(sentence)
-        # Remove spaces after line
-        name = re.sub(r" *\n *", "\n", name)
-
-    return name
-
-
 def _actualizeAstValue(item):
     """
     Convert an AST value node to a usable Python object
@@ -192,25 +393,50 @@ def _actualizeAstValue(item):
         return tuple(_actualizeAstValue(i) for i in item.elts)
 
 
-def getVariables(code):
+def getVariableDefs(code):
     """
-    Use AST tree parsing to convert a string of valid Python code to a dict containing each variable created and its
-    value.
+    Returns a dict of variables defined in the given code, and their values.
+
+    Parameters
+    ----------
+    code : str
+        Code to parse for variable defs
     """
-    assert isinstance(code, str), "First input to `getArgs()` must be a string"
-    # Make blank output dict
+    assert isinstance(code, str), "First input to `getVariableDefs()` must be a string"
+    # make blank output dict
     vars = {}
-    # Construct tree
+    # construct tree
     tree = compile(code, '', 'exec', flags=ast.PyCF_ONLY_AST)
-    # Iterate through each line
+    # iterate through each node
     for line in tree.body:
         if hasattr(line, "targets") and hasattr(line, "value"):
-            # Append targets and values this line to arguments dict
+            # append targets and values this line to arguments dict
             for target in line.targets:
                 if hasattr(target, "id"):
                     vars[target.id] = _actualizeAstValue(line.value)
 
     return vars
+
+def getVariables(code):
+    """
+    Returns a list of variables referenced in the given code.
+
+    Parameters
+    ----------
+    code : str
+        Code to parse for variables
+    """
+    assert isinstance(code, str), "First input to `getVariables()` must be a string"
+    # make blank output list
+    vars = set()
+    # construct tree
+    tree = compile(code, '', 'exec', flags=ast.PyCF_ONLY_AST)
+    # iterate through each node
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Name):
+            vars.add(node.id)
+    
+    return list(vars)
 
 
 def getArgs(code):

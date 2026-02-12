@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
 # Part of the PsychoPy library
 # Copyright (C) 2012-2020 iSolver Software Solutions (C) 2021 Open Science Tools Ltd.
-# Distributed under the terms of the GNU General Public License (GPL).
+# Distributed under the terms of the MIT License.
 
 from ctypes import cdll
 
 from . import MouseDevice
-from .. import Keyboard, Computer, Device, xlib
+from .. import Computer, Device, xlib
+from ..keyboard import Keyboard
 from ...constants import MouseConstants
 from ...errors import print2err, printExceptionDetailsToStdErr
 
@@ -89,6 +90,10 @@ class Mouse(MouseDevice):
             if self.isReportingEvents():
                 logged_time = currentSec()
                 event_array = event[0]
+
+                if self._iohub_server is None or self._iohub_server._psychopy_windows is None:
+                    # Do not report event if no ioHub server is running or no psychopy window is open
+                    return True
 
                 psychowins = self._iohub_server._psychopy_windows.keys()
                 report_all = self.getConfiguration().get('report_system_wide_events', True)

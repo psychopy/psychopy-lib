@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
-# Distributed under the terms of the GNU General Public License (GPL).
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2025 Open Science Tools Ltd.
+# Distributed under the terms of the MIT License.
 
 """Experiment classes:
     Experiment, Flow, Routine, Param, Loop*, *Handlers, and NameSpace
@@ -15,14 +15,14 @@ The code that writes out a *_lastrun.py experiment file is (in order):
         which will call the .writeBody() methods from each component
     settings.SettingsComponent.writeEndCode()
 """
-
+import collections
 import os
 import codecs
 import xml.etree.ElementTree as xml
 from xml.dom import minidom
 from copy import deepcopy, copy
 from pathlib import Path
-from pkg_resources import parse_version
+from packaging.version import Version
 
 import psychopy
 from psychopy import data, __version__, logging
@@ -31,13 +31,12 @@ from .components.resourceManager import ResourceManagerComponent
 from .components.static import StaticComponent
 from .exports import IndentingBuffer, NameSpace
 from .flow import Flow
-from .loops import TrialHandler, LoopInitiator, \
-    LoopTerminator, StairHandler, MultiStairHandler
+from .loops import getAllLoopTypes, TrialHandler, LoopInitiator, LoopTerminator, StairHandler, MultiStairHandler
 from .params import _findParam, Param, legacyParams
 from psychopy.experiment.routines._base import Routine, BaseStandaloneRoutine
 from psychopy.experiment.routines import getAllStandaloneRoutines
 from . import utils, py2js
-from .components import getComponents, getAllComponents
+from .components import getComponents, getAllComponents, getInitVals
 
 from psychopy.localization import _translate
 import locale
@@ -52,7 +51,8 @@ RequiredImport = namedtuple('RequiredImport',
                                          'importAs'))
 
 
-# Some params have previously had types which cause errors compiling in new versions, so we need to keep track of them and force them to the new type if needed
+# some params have previously had types which cause errors compiling in new versions, so we need to keep track of
+# them and force them to the new type if needed
 forceType = {
     'pos': 'list',
     'size': 'list',
@@ -80,6 +80,18 @@ forceType = {
     ('SliderComponent', 'styleTweaks'): 'list'
 }
 
+# some components in plugins used to be in the main lib, keep track of which plugins they're in
+pluginComponents = {
+    'QmixPumpComponent': "psychopy-qmix",
+    'PeristalticPumpComponent': "psychopy-labeotech",
+    'ioLabsButtonBoxComponent': "psychopy-iolabs",
+    'cedrusButtonBoxComponent': "psychopy-cedrus",
+    'EmotivRecordingComponent': "psychopy-emotiv",
+    'EmotivMarkingComponent': "psychopy-emotiv",
+    'EnvGratingComponent': "psychopy-visionscience",
+    'NoiseStimComponent': "psychopy-visionscience",
+}
+
 # # Code to generate force list
 # comps = experiment.components.getAllComponents()
 # exp = experiment._experiment.Experiment()
@@ -104,13 +116,13 @@ class Experiment:
     Routine. The Flow controls how Routines are organised
     e.g. the nature of repeats and branching of an experiment.
     """
+    
 
     def __init__(self, prefs=None):
         super(Experiment, self).__init__()
-        self.name = ''
         self.filename = ''  # update during load/save xml
         self.flow = Flow(exp=self)  # every exp has exactly one flow
-        self.routines = {}
+        self.routines = collections.OrderedDict()
         # get prefs (from app if poss or from cfg files)
         if prefs is None:
             prefs = psychopy.prefs
@@ -134,6 +146,9 @@ class Experiment:
         self.requireImport(importName='keyboard',
                            importFrom='psychopy.hardware')
 
+        # what online resources are needed? (PsychoJS only)
+        self.requiredResources = []
+
         _settingsComp = getComponents(fetchIcons=False)['SettingsComponent']
         self.settings = _settingsComp(parentName='', exp=self)
         # this will be the xml.dom.minidom.doc object for saving
@@ -150,6 +165,43 @@ class Experiment:
         self._expHandler = TrialHandler(exp=self, name='thisExp')
         self._expHandler.type = 'ExperimentHandler'  # true at run-time
 
+        # get a local reference of all Components and Routines (refreshed on loading a new file)
+        self.allCompons = getAllComponents(
+            self.prefsBuilder['componentsFolders'], fetchIcons=False)
+        self.allRoutines = getAllStandaloneRoutines(fetchIcons=False)
+
+    def __eq__(self, other):
+        if isinstance(other, Experiment):
+            # if another experiment, compare filenames
+            return other.filename == self.filename
+        elif isinstance(other, (str, Path)):
+            # if a string or path, compare against filename
+            return other == self.filename
+        else:
+            # if neither, it's not the same
+            return False
+    
+    def requireOnlineResource(self, url, name=None):
+        """
+        Add a link to an online resource to be loaded at experiment start in PsychoJS.
+
+        Parameters
+        ----------
+        url : str
+            Link to the necessary resource
+        name : str
+            Name with which to refer to the resource later in the experiment. Leave as None to use 
+            the url as its name.
+        """
+        # use url for name if none given
+        if name is None:
+            name = url
+        # add resource
+        self.requiredResources.append({
+            'name': name,
+            'rel': url,
+        })
+
     def requirePsychopyLibs(self, libs=()):
         """Add a list of top-level psychopy libs that the experiment
         will need. e.g. [visual, event]
@@ -163,9 +215,32 @@ class Experiment:
                                importFrom='psychopy')
 
     @property
+    def name(self):
+        return self.settings.params['expName'].val
+
+    @name.setter
+    def name(self, value):
+        self.settings.params['expName'].val = value
+
+    @property
     def eyetracking(self):
         """What kind of eyetracker this experiment is set up for"""
         return self.settings.params['eyetracker']
+
+    @property
+    def legacyFilename(self):
+        """
+        Variant of this experiment's filename with "_legacy" on the end
+        """
+        return ft.constructLegacyFilename(self.filename)
+
+    @property
+    def runMode(self):
+        return int(self.settings.params['runMode'].val)
+
+    @runMode.setter
+    def runMode(self, value):
+        self.settings.params['runMode'].val = value
 
     def requireImport(self, importName, importFrom='', importAs=''):
         """Add a top-level import to the experiment.
@@ -217,12 +292,24 @@ class Experiment:
     def writeScript(self, expPath=None, target="PsychoPy", modular=True):
         """Write a PsychoPy script for the experiment
         """
-        # self.integrityCheck()
-
-        self.psychopyVersion = psychopy.__version__  # make sure is current
+        # sanitize and store expPath
+        if expPath is not None:
+            # if there is an expPath, convert it to a Path
+            expPath = Path(expPath)
+            # transform expPath from psyexp to py/js if needed
+            if expPath.suffix == ".psyexp":
+                if target == "PsychoPy":
+                    expPath = expPath.parent / (expPath.stem + ".py")
+                if target == "PsychoJS":
+                    expPath = expPath.parent / (expPath.stem + ".js")
+            # turn back into a string for actual writing
+            self.expPath = str(expPath)
+        else:
+            self.expPath = None
+        # make sure is current
+        self.psychopyVersion = psychopy.__version__
         # set this so that params write for approp target
         utils.scriptTarget = target
-        self.expPath = expPath
         script = IndentingBuffer(target=target)  # a string buffer object
 
         # get date info, in format preferred by current locale as set by app:
@@ -255,30 +342,63 @@ class Experiment:
                             alert(alertCode, strFields={'comp': type(component).__name__})
 
         if target == "PsychoPy":
-            self_copy.settings.writeInitCode(script, self_copy.psychopyVersion,
-                                             localDateTime)
-
+            # Imports
+            self_copy.settings.writeInitCode(script, self_copy.psychopyVersion, localDateTime)
             # Write "run once" code sections
             for entry in self_copy.flow:
                 # NB each entry is a routine or LoopInitiator/Terminator
                 self_copy._currentRoutine = entry
-                if hasattr(entry, 'writeRunOnceInitCode'):
-                    entry.writeRunOnceInitCode(script)
                 if hasattr(entry, 'writePreCode'):
                     entry.writePreCode(script)
-            script.write("\n\n")
-
-            # present info, make logfile
-            self_copy.settings.writeStartCode(script, self_copy.psychopyVersion)
-            # writes any components with a writeStartCode()
-            self_copy.flow.writeStartCode(script)
+            # global variables
+            self_copy.settings.writeGlobals(script, version=self_copy.psychopyVersion)
+            # present info
+            self_copy.settings.writeExpInfoDlgCode(script)
+            # setup data and saving
+            self_copy.settings.writeDataCode(script)
+            # make logfile
+            self_copy.settings.writeLoggingCode(script)
+            # setup window
             self_copy.settings.writeWindowCode(script)  # create our visual.Window()
-            self_copy.settings.writeIohubCode(script)
-            # for JS the routine begin/frame/end code are funcs so write here
-
-            # write the rest of the code for the components
+            # setup devices
+            self_copy.settings.writeDevicesCode(script)
+            # pause experiment
+            self_copy.settings.writePauseCode(script)
+            # write the bulk of the experiment code
             self_copy.flow.writeBody(script)
-            self_copy.settings.writeEndCode(script)  # close log file
+            # save data
+            self_copy.settings.writeSaveDataCode(script)
+            # end experiment
+            self_copy.settings.writeEndCode(script)
+
+            # to do if running as main
+            code = (
+                "\n"
+                "# if running this experiment as a script...\n"
+                "if __name__ == '__main__':\n"
+                "    # call all functions in order\n"
+            )
+            if self_copy.settings.params['Show info dlg'].val:
+                # Only show exp info dlg if indicated to by settings
+                code += (
+                "    expInfo = showExpInfoDlg(expInfo=expInfo)\n"
+                )
+            code += (
+                "    thisExp = setupData(expInfo=expInfo)\n"
+                "    logFile = setupLogging(filename=thisExp.dataFileName)\n"
+                "    win = setupWindow(expInfo=expInfo)\n"
+                "    setupDevices(expInfo=expInfo, thisExp=thisExp, win=win)\n"
+                "    run(\n"
+                "        expInfo=expInfo, \n"
+                "        thisExp=thisExp, \n"
+                "        win=win,\n"
+                "        globalClock=%(clockFormat)s\n"
+                "    )\n"
+                "    saveData(thisExp=thisExp)\n"
+                "    quit(thisExp=thisExp, win=win)\n"
+            )
+            script.writeIndentedLines(code % self.settings.params)
+
             script = script.getvalue()
 
         elif target == "PsychoJS":
@@ -373,24 +493,88 @@ class Experiment:
 
         return experimentNode
 
-    def saveToXML(self, filename):
-        self.psychopyVersion = psychopy.__version__  # make sure is current
+    def sanitizeForVersion(self, targetVersion):
+        """
+        Create a copy of this experiment with components/routines added after the given version removed.
+
+        Parameters
+        ----------
+        version : packaging.Version, str
+            Version of PsychoPy to sanitize for.
+
+        Returns
+        -------
+        Experiment
+            Sanitized copy of this experiment
+        """
+        # copy self
+        exp = deepcopy(self)
+        # parse version
+        targetVersion = Version(targetVersion)
+        # change experiment version
+        exp.psychopyVersion = targetVersion
+        # iterate through Routines
+        for rtName, rt in copy(exp.routines).items():
+            # if Routine was added after the target version, remove it
+            if hasattr(type(rt), "version") and Version(rt.version) > targetVersion:
+                exp.routines.pop(rtName)
+            # if Routine is a standalone, we're done
+            if isinstance(rt, BaseStandaloneRoutine):
+                continue
+            # iterate through Components
+            for comp in copy(rt):
+                # if Component was added after target version, remove it
+                if hasattr(type(comp), "version") and Version(comp.version) > targetVersion:
+                    i = rt.index(comp)
+                    rt.pop(i)
+
+        return exp
+
+    def saveToXML(self, filename, makeLegacy=True):
+        """
+        Save this experiment to a `.psyexp` file (under the hood, this is XML)
+        Parameters
+        ----------
+        filename : str, Path
+            Filename to save to.
+        makeLegacy : bool
+            If True, and useVersion is lower than the current version, a legacy-safe version of this experiment is also
+            saved.
+
+        Returns
+        -------
+        filename : str
+            The filename which was eventually saved to
+        """
+        # get current version
+        self.psychopyVersion = psychopy.__version__
+        # make path object
+        filename = Path(filename)
         # create the dom object
         self.xmlRoot = self._xml
-        # convert to a pretty string
         # update our document to use the new root
         self._doc._setroot(self.xmlRoot)
         simpleString = xml.tostring(self.xmlRoot, 'utf-8')
+        # convert to a pretty string
         pretty = minidom.parseString(simpleString).toprettyxml(indent="  ")
-        # then write to file
-        if not filename.endswith(".psyexp"):
-            filename += ".psyexp"
-
-        with codecs.open(filename, 'wb', encoding='utf-8-sig') as f:
+        # make sure we have the correct extension
+        if filename.suffix != ".psyexp":
+            filename = filename.parent / (filename.stem + ".psyexp")
+        # write to file
+        with codecs.open(str(filename), 'wb', encoding='utf-8-sig') as f:
             f.write(pretty)
+        # if useVersion is less than current version, create a sanitized legacy variant
+        if self.settings.params['Use version'].val and makeLegacy:
+            # create sanitized legacy experiment object
+            legacy = self.sanitizeForVersion(self.settings.params['Use version'].val)
+            # construct a legacy variant of the filename
+            legacyFilename = ft.constructLegacyFilename(filename)
+            # call save method from that experiment
+            legacy.saveToXML(filename=str(legacyFilename), makeLegacy=False)
+        # update internal reference to filename
+        self.filename = str(filename)
 
-        self.filename = filename
-        return filename  # this may have been updated to include an extension
+        return str(filename)  # this may have been updated to include an extension
 
     def _getShortName(self, longName):
         return longName.replace('(', '').replace(')', '').replace(' ', '')
@@ -400,10 +584,24 @@ class Experiment:
         (e.g. stimulus) into which the parameters will be inserted
         (so the object to store the params should be created first)
         paramNode is the parameter node fetched from the xml file
+
+        Returns
+        -------
+        bool
+            True if the param is recognised by this version of PsychoPy, False otherwise
         """
+        recognised = True
         name = paramNode.get('name')
         valType = paramNode.get('valType')
         val = paramNode.get('val')
+        # 
+        # get knowwn legacy params for the current Component
+        componentLegacyParams = []
+        if componentNode is not None:
+            if componentNode.tag in self.allCompons:
+                componentLegacyParams = self.allCompons[componentNode.tag].legacyParams
+            if componentNode.tag in self.allRoutines:
+                componentLegacyParams = self.allRoutines[componentNode.tag].legacyParams
         # many components need web char newline replacement
         if not name == 'advancedParams':
             val = val.replace("&#10;", "\n")
@@ -415,7 +613,7 @@ class Experiment:
             except NameError:  # if val is a single string it will look like variable
                 params[name].val = [val]
         elif name == 'storeResponseTime':
-            return  # deprecated in v1.70.00 because it was redundant
+            return recognised  # deprecated in v1.70.00 because it was redundant
         elif name == 'nVertices':  # up to 1.85 there was no shape param
             # if no shape param then use "n vertices" only
             if _findParam('shape', componentNode) is None:
@@ -431,30 +629,30 @@ class Experiment:
         elif name == 'startTime':  # deprecated in v1.70.00
             params['startType'].val = "{}".format('time (s)')
             params['startVal'].val = "{}".format(val)
-            return  # times doesn't need to update its type or 'updates' rule
+            return recognised  # times doesn't need to update its type or 'updates' rule
         elif name == 'forceEndTrial':  # deprecated in v1.70.00
             params['forceEndRoutine'].val = bool(val)
-            return  # forceEndTrial doesn't need to update type or 'updates'
+            return recognised  # forceEndTrial doesn't need to update type or 'updates'
         elif name == 'forceEndTrialOnPress':  # deprecated in v1.70.00
             params['forceEndRoutineOnPress'].val = bool(val)
-            return  # forceEndTrial doesn't need to update  type or 'updates'
+            return recognised  # forceEndTrial doesn't need to update  type or 'updates'
         elif name == 'forceEndRoutineOnPress':
             if val == 'True':
                 val = "any click"
             elif val == 'False':
                 val = "never"
             params['forceEndRoutineOnPress'].val = val
-            return
+            return recognised
         elif name == 'trialList':  # deprecated in v1.70.00
             params['conditions'].val = eval(val)
-            return  # forceEndTrial doesn't need to update  type or 'updates'
+            return recognised  # forceEndTrial doesn't need to update  type or 'updates'
         elif name == 'trialListFile':  # deprecated in v1.70.00
             params['conditionsFile'].val = "{}".format(val)
-            return  # forceEndTrial doesn't need to update  type or 'updates'
+            return recognised  # forceEndTrial doesn't need to update  type or 'updates'
         elif name == 'duration':  # deprecated in v1.70.00
             params['stopType'].val = u'duration (s)'
             params['stopVal'].val = "{}".format(val)
-            return  # times doesn't need to update its type or 'updates' rule
+            return recognised  # times doesn't need to update its type or 'updates' rule
         elif name == 'allowedKeys' and valType == 'str':  # changed v1.70.00
             # ynq used to be allowed, now should be 'y','n','q' or
             # ['y','n','q']
@@ -488,7 +686,7 @@ class Experiment:
             params['startVal'].val = "{}".format(times[0])
             params['stopType'].val = "{}".format('time (s)')
             params['stopVal'].val = "{}".format(times[1])
-            return  # times doesn't need to update its type or 'updates' rule
+            return recognised  # times doesn't need to update its type or 'updates' rule
         elif name in ('Before Experiment', 'Begin Experiment', 'Begin Routine', 'Each Frame',
                       'End Routine', 'End Experiment',
                       'Before JS Experiment', 'Begin JS Experiment', 'Begin JS Routine', 'Each JS Frame',
@@ -496,7 +694,7 @@ class Experiment:
             # up to version 1.78.00 and briefly in 2021.1.0-1.1 these were 'code'
             params[name].val = val
             params[name].valType = 'extendedCode'
-            return  # so that we don't update valType again below
+            return recognised  # so that we don't update valType again below
         elif name == 'Saved data folder':
             # deprecated in 1.80 for more complete data filename control
             params[name] = Param(
@@ -517,7 +715,7 @@ class Experiment:
                           'highAnchorText'):
                 # not handled, just ignored; want labels=[lowAnchor,
                 # highAnchor]
-                return
+                return recognised
             elif name == 'customize_everything':
                 # Try to auto-update the code:
                 v = val  # python code, not XML
@@ -534,7 +732,7 @@ class Experiment:
                 # when run the script
                 params[name].val = v
             elif name == 'storeResponseTime':
-                return  # deprecated in v1.70.00 because it was redundant
+                return recognised  # deprecated in v1.70.00 because it was redundant
             elif name == 'Resources':
                 # if the xml import hasn't automatically converted from string?
                 if type(val) == str:
@@ -554,10 +752,15 @@ class Experiment:
             else:
                 if name in params:
                     params[name].val = val
+                elif name in legacyParams + componentLegacyParams:
+                    # don't warn people if we know it's OK (e.g. for params
+                    # that have been removed
+                    return recognised
                 else:
                     # we found an unknown parameter (probably from the future)
                     params[name] = Param(
                         val, valType=paramNode.get('valType'), inputType="inv",
+                        categ="Unknown",
                         allowedTypes=[], label=_translate(name),
                         hint=_translate(
                             "This parameter is not known by this version "
@@ -566,33 +769,204 @@ class Experiment:
                     params[name].allowedTypes = paramNode.get('allowedTypes')
                     if params[name].allowedTypes is None:
                         params[name].allowedTypes = []
-                    if name not in legacyParams + ['JS libs', 'OSF Project ID']:
-                        # don't warn people if we know it's OK (e.g. for params
-                        # that have been removed
-                        msg = _translate(
-                            "Parameter %r is not known to this version of "
-                            "PsychoPy but has come from your experiment file "
-                            "(saved by a future version of PsychoPy?). This "
-                            "experiment may not run correctly in the current "
-                            "version.")
-                        logging.warn(msg % name)
-                        logging.flush()
+                    if componentNode is not None and componentNode.get("plugin", False) not in (False, "", "None", None):
+                        # is param unrecognised because it's from a plugin?
+                        params[name].categ = "Plugin"
+                        params[name].plugin = componentNode.get("plugin", False)
+                    elif paramNode.get('plugin', False):
+                        # load plugin name if param is from a plugin
+                        params[name].plugin = paramNode.get('plugin')
+                    else:
+                        # if param not recognised, mark as such
+                        recognised = False
 
         # get the value type and update rate
         if 'valType' in list(paramNode.keys()):
-            params[name].valType = paramNode.get('valType')
+            valType = paramNode.get('valType')
+            setValType = True
             # compatibility checks:
             if name in ['allowedKeys'] and paramNode.get('valType') == 'str':
                 # these components were changed in v1.70.00
-                params[name].valType = 'code'
+                valType = 'code'
             elif name == 'Selected rows':
                 # changed in 1.81.00 from 'code' to 'str': allow string or var
-                params[name].valType = 'str'
+                valType = 'str'
             # conversions based on valType
             if params[name].valType == 'bool':
                 params[name].val = eval("%s" % params[name].val)
+            # "device" valType was introduced in 2025.2.0 and should always override saved valType
+            if params[name].valType == "device":
+                setValType = False
+            # do actual setting
+            if setValType:
+                params[name].valType = valType
         if 'updates' in list(paramNode.keys()):
             params[name].updates = paramNode.get('updates')
+
+        return recognised
+
+    @staticmethod
+    def fromFile(filename):
+        """
+        Creates a new Experiment object and loads a Builder Experiment from file.
+
+        Parameters
+        ----------
+        filename : pathlike
+            `.psyexp` file to load.
+
+        Returns
+        -------
+        Experiment
+            Loaded Experiment object
+        """
+        # make new Experiment
+        exp = Experiment()
+        # load file
+        exp.loadFromXML(filename)
+
+        return exp
+
+    def _getValidRoutineName(self, routineNode, modifiedNames):
+        """
+        Find valid routine name
+        
+        Parameters
+        ----------
+        routineNode : Routine
+            Routine, Standalone Routine, or Unknown Routine node being read
+            from XML file
+        modifiedNames : List[str]
+            Names that have been modified within the XML file
+
+        Modifies:
+        -------
+        modifiedNames : List[str]
+            Appends name (str) if name was changed
+
+        Returns
+        -------
+        routineGoodName : str
+            Validated name of routine being added, meaning no duplicate names
+        """
+        routineGoodName = self.namespace.makeValid(routineNode.get('name'))
+        if routineGoodName != routineNode.get('name'):
+            modifiedNames.append(routineNode.get('name'))
+        self.namespace.add(routineGoodName)
+        return routineGoodName
+    
+    def getJSON(self):
+        return {
+            'filename': self.filename,
+            'version': self.psychopyVersion,
+            'settings': self.settings.getJSON(),
+            'routines': [rt.getJSON() for rt in self.routines],
+            'flow': self.flow.getJSON()
+        }
+    
+    @staticmethod
+    def fromJSON(filename, data):
+        # make new Experiment
+        exp = Experiment()
+        # load file
+        exp.applyJSON(data)
+
+        return exp
+
+    def applyJSON(self, data):
+        # get all element classes
+        standaloneRoutines = getAllStandaloneRoutines()
+        components = getAllComponents()
+        from psychopy.experiment.components.unknown import UnknownComponent
+        from psychopy.experiment.components.unknownPlugin import UnknownPluginComponent
+        from psychopy.experiment.routines.unknown import UnknownRoutine
+        # start off blank
+        self.flow = Flow(exp=self)
+        self.routines = {}
+        self.namespace = NameSpace(self)
+        # apply basics
+        self.filename = data['filename']
+        self.psychopyVersion = data['version']
+        # apply settings
+        for paramName, param in self.settings.params.items():
+            param.applyJSON(data['settings']['params'][paramName])
+        # create routines
+        for rtName, rtProfile in data['routines'].items():
+            # for a regular Routine...
+            if rtProfile['tag'] == "Routine":
+                # make Routine
+                rt = Routine(
+                    name=rtName,
+                    exp=self
+                )
+                # apply settings
+                for paramName, param in rt.settings.params.items(): 
+                    param.applyJSON(rtProfile['settings']['params'][paramName])
+                # make each Component
+                for compProfile in rtProfile['components']:
+                    # get comp class if possible
+                    if compProfile['tag'] in components:
+                        cls = components[compProfile['tag']]
+                    else:
+                        # if not possible, use UnknownPluginComponent or UnknownComponent depending
+                        # on whether profile specifies a plugin
+                        if compProfile['plugin']:
+                            cls = UnknownPluginComponent
+                        else:
+                            cls = UnknownComponent
+                    # make component
+                    comp = cls(
+                        exp=self,
+                        parentName=rtName
+                    )
+                    comp.plugin = compProfile['plugin']
+                    # apply params
+                    for paramName, param in comp.params.items():
+                        param.applyJSON(compProfile['params'][paramName])
+                    # append to Routine
+                    rt.append(comp)
+            else:
+                # get rt class if possible
+                if rtProfile['tag'] in standaloneRoutines:
+                    cls = standaloneRoutines[rtProfile['tag']]
+                else:
+                    # if not possible, use UnknownRoutine
+                    cls = UnknownRoutine
+                # make rt
+                rt = cls(
+                    exp=self, 
+                    name=rtName
+                )
+                # apply params
+                for paramName, param in rt.params.items():
+                    param.applyJSON(rtProfile['params'][paramName])
+            # append to experiment
+            self.routines[rtName] = rt
+        # array to store loops in
+        loops = {}
+        # populate flow
+        for nodeProfile in data['flow']:
+            if "ref" in nodeProfile:
+                # if node is a reference, get routine
+                node = self.routines.get(nodeProfile['ref'], None)
+            elif nodeProfile['tag'] == "LoopTerminator":
+                # if node is a loop terminator, make it
+                node = LoopTerminator(
+                    loop=loops[nodeProfile['name']]
+                )
+            else:
+                # anything else, assume it's a loop
+                cls = getAllLoopTypes().get(nodeProfile['tag'], TrialHandler)
+                # make loop object
+                loops[nodeProfile['params']['name']['val']] = cls.fromJSON(
+                    self, nodeProfile
+                )
+                # make initiator
+                node = LoopInitiator(
+                    loop=loops[nodeProfile['params']['name']['val']]
+                )
+            # append node
+            self.flow.append(node)
 
     def loadFromXML(self, filename):
         """Loads an xml file and parses the builder Experiment from it
@@ -604,6 +978,8 @@ class Experiment:
         # .psyexp)?
         filenameBase = os.path.basename(filename)
 
+        unknownParams = []
+
         if root.tag != "PsychoPy2experiment":
             logging.error('%s is not a valid .psyexp file, "%s"' %
                           (filenameBase, root.tag))
@@ -611,10 +987,10 @@ class Experiment:
             return
         self.psychopyVersion = root.get('version')
         # If running an experiment from a future version, send alert to change "Use Version"
-        if parse_version(psychopy.__version__) < parse_version(self.psychopyVersion):
+        if Version(psychopy.__version__) < Version(self.psychopyVersion):
             alert(code=4051, strFields={'version': self.psychopyVersion})
         # If versions are either side of 2021, send alert
-        if parse_version(psychopy.__version__) >= parse_version("2021.1.0") > parse_version(self.psychopyVersion):
+        if Version(psychopy.__version__) >= Version("2021.1.0") > Version(self.psychopyVersion):
             alert(code=4052, strFields={'version': self.psychopyVersion})
 
         # Parse document nodes
@@ -628,34 +1004,42 @@ class Experiment:
         # fetch exp settings
         settingsNode = root.find('Settings')
         for child in settingsNode:
-            self._getXMLparam(params=self.settings.params, paramNode=child,
-                              componentNode=settingsNode)
+            recognised = self._getXMLparam(
+                params=self.settings.params,
+                paramNode=child,
+                componentNode=settingsNode
+            )
+            # append unknown params to warning array
+            if not recognised:
+                unknownParams.append(child.get("name"))
         # name should be saved as a settings parameter (only from 1.74.00)
         if self.settings.params['expName'].val in ['', None, 'None']:
             shortName = os.path.splitext(filenameBase)[0]
             self.setExpName(shortName)
         # fetch routines
         routinesNode = root.find('Routines')
-        allCompons = getAllComponents(
+        self.allCompons = allCompons = getAllComponents(
             self.prefsBuilder['componentsFolders'], fetchIcons=False)
-        allRoutines = getAllStandaloneRoutines(fetchIcons=False)
+        self.allRoutines = allRoutines = getAllStandaloneRoutines(fetchIcons=False)
         # get each routine node from the list of routines
         for routineNode in routinesNode:
             if routineNode.tag == "Routine":
-                routineGoodName = self.namespace.makeValid(
-                    routineNode.get('name'))
-                if routineGoodName != routineNode.get('name'):
-                    modifiedNames.append(routineNode.get('name'))
-                self.namespace.user.append(routineGoodName)
+                routineGoodName = self._getValidRoutineName(routineNode, modifiedNames)
                 routine = Routine(name=routineGoodName, exp=self)
                 # self._getXMLparam(params=routine.params, paramNode=routineNode)
                 self.routines[routineNode.get('name')] = routine
                 for componentNode in routineNode:
 
                     componentType = componentNode.tag
+                    # get plugin, if any
                     plugin = componentNode.get('plugin')
+                    if plugin in ("None", None) and componentNode.tag in pluginComponents:
+                        plugin = pluginComponents[componentNode.tag]
 
-                    if componentType in allCompons:
+                    if componentType == "RoutineSettingsComponent":
+                        # if settings, use existing component
+                        component = routine.settings
+                    elif componentType in allCompons:
                         # create an actual component of that type
                         component = allCompons[componentType](
                             name=componentNode.get('name'),
@@ -663,13 +1047,13 @@ class Experiment:
                     elif plugin:
                         # create UnknownPluginComponent instead
                         component = allCompons['UnknownPluginComponent'](
-                            name=componentNode.get('name'),
+                            name=componentNode.get('name'), compType=componentType,
                             parentName=routineNode.get('name'), exp=self)
                         alert(7105, strFields={'name': componentNode.get('name'), 'plugin': plugin})
                     else:
                         # create UnknownComponent instead
                         component = allCompons['UnknownComponent'](
-                            name=componentNode.get('name'),
+                            name=componentNode.get('name'), compType=componentType,
                             parentName=routineNode.get('name'), exp=self)
                     component.plugin = plugin
                     # check for components that were absent in older versions of
@@ -688,28 +1072,43 @@ class Experiment:
                         #    component.params['choiceLabelsAboveLine'].val=True
                     # populate the component with its various params
                     for paramNode in componentNode:
-                        self._getXMLparam(params=component.params,
-                                          paramNode=paramNode,
-                                          componentNode=componentNode)
-                    compGoodName = self.namespace.makeValid(
-                        componentNode.get('name'))
-                    if compGoodName != componentNode.get('name'):
-                        modifiedNames.append(componentNode.get('name'))
-                    self.namespace.add(compGoodName)
-                    component.params['name'].val = compGoodName
-                    routine.append(component)
+                        recognised = self._getXMLparam(
+                            params=component.params,
+                            paramNode=paramNode,
+                            componentNode=componentNode
+                        )
+                        # append unknown params to warning array
+                        if not recognised:
+                            unknownParams.append(paramNode.get("name"))
+                    # sanitize name (unless this comp is settings)
+                    compName = componentNode.get('name')
+                    if compName != routineNode.get('name'):
+                        compGoodName = self.namespace.makeValid(compName)
+                        if compGoodName != compName:
+                            modifiedNames.append(compName)
+                        self.namespace.add(compGoodName)
+                        component.params['name'].val = compGoodName
+                    # Add to routine
+                    if component not in routine:
+                        routine.append(component)
             else:
+                routineGoodName = self._getValidRoutineName(routineNode, modifiedNames)
                 if routineNode.tag in allRoutines:
                     # If not a routine, may be a standalone routine
-                    routine = allRoutines[routineNode.tag](exp=self, name=routineNode.get('name'))
+                    routine = allRoutines[routineNode.tag](exp=self, name=routineGoodName)
                 else:
                     # Otherwise treat as unknown
-                    routine = allRoutines['UnknownRoutine'](exp=self, name=routineNode.get('name'))
+                    routine = allRoutines['UnknownRoutine'](exp=self, name=routineGoodName)
                 # Apply all params
                 for paramNode in routineNode:
                     if paramNode.tag == "Param":
                         for key, val in paramNode.items():
-                            setattr(routine.params[paramNode.get("name")], key, val)
+                            name = paramNode.get("name")
+                            # "device" valType was introduced in 2025.2.0 and should always override saved valType
+                            if key == "valType" and name in routine.params and routine.params[name].valType == "device":
+                                continue
+                            if name in routine.params:
+                                setattr(routine.params[name], key, val)
                 # Add routine to experiment
                 self.addStandaloneRoutine(routine.name, routine)
         # for each component that uses a Static for updates, we need to set
@@ -750,23 +1149,37 @@ class Experiment:
                 if loopName != elementNode.get('name'):
                     modifiedNames.append(elementNode.get('name'))
                 self.namespace.add(loopName)
-                loop = eval('%s(exp=self,name="%s")' % (loopType, loopName))
+                # make loop
+                cls = getAllLoopTypes().get(loopType, TrialHandler)
+                loop = cls(
+                    exp=self,
+                    name=loopName
+                )
                 loops[loopName] = loop
                 for paramNode in elementNode:
-                    self._getXMLparam(paramNode=paramNode, params=loop.params)
+                    recognised = self._getXMLparam(paramNode=paramNode, params=loop.params)
                     # for conditions convert string rep to list of dicts
                     if paramNode.get('name') == 'conditions':
                         param = loop.params['conditions']
                         # e.g. param.val=[{'ori':0},{'ori':3}]
                         try:
                             param.val = eval('%s' % (param.val))
-                        except SyntaxError:
-                            # This can occur if Python2.7 conditions string
-                            # contained long ints (e.g. 8L) and these can't be
-                            # parsed by Py3. But allow the file to carry on
-                            # loading and the conditions will still be loaded
-                            # from the xlsx file
+                        except (NameError, SyntaxError):
+                            """
+                            Catches
+                            -------
+                            SyntaxError
+                                This can occur if Python2.7 conditions string contained long ints (e.g. 8L) and these 
+                                can't be parsed by Py3. But allow the file to carry on loading and the conditions will 
+                                still be loaded from the xlsx file
+                            NameError
+                                Happens when a cell in the conditions file contains a reserved JSON keyword which isn't 
+                                a reserved Python keyword (e.g. nan), as it's read in as literal but can't be evaluated.
+                            """
                             pass
+                    # append unknown params to warning array
+                    if not recognised:
+                        unknownParams.append(paramNode.get("name"))
                 # get condition names from within conditionsFile, if any:
                 try:
                     # psychophysicsstaircase demo has no such param
@@ -822,6 +1235,47 @@ class Experiment:
 
         # if we succeeded then save current filename to self
         self.filename = filename
+        # warn about any unknown params
+        if len(unknownParams):
+            # construct message
+            msg = _translate(
+                "Parameters not known to this version of PsychoPy have come from your experiment "
+                "file: %s. This experiment may not run correctly in the current version."
+            )
+            # log message
+            logging.warn(msg % ", ".join(unknownParams))
+            logging.flush()
+
+    @staticmethod
+    def getRunModeFromFile(file):
+        """
+        Get the run mode stored in an experiment file without fully loading the experiment.
+
+        Parameters
+        ----------
+        file : Path or str
+            Path of the file to read
+
+        Returns
+        -------
+        int
+            0 for piloting mode, 1 for running mode
+        """
+        file = str(file)
+        # make and populate xml root element
+        tree = xml.ElementTree()
+        tree.parse(file)
+        # get root
+        root = tree.getroot()
+        # find settings node
+        settings = root.find("Settings")
+        # find param for runMode
+        for child in settings:
+            if child.attrib['name'] == "runMode":
+                # get value
+                return int(child.attrib['val'])
+
+        return 1
 
     def setExpName(self, name):
         self.settings.params['expName'].val = name
@@ -832,6 +1286,58 @@ class Experiment:
     @property
     def htmlFolder(self):
         return self.settings.params['HTML path'].val
+
+    def getRequiredDeviceNames(self):
+        """
+        Get the device names which need to be defined for this experiment to run, along with a list 
+        of possible types for each one.
+
+        Returns
+        -------
+        dict[str: list[str]]
+            Device names and a list of possible types for each one
+        """
+        # dict in which to store usages
+        usages = {}
+
+        def _process(emt):
+            """
+            Process an element (Component or Routine) for device names and append them to the
+            usages dict.
+
+            Parameters
+            ----------
+            emt : Component or Routine
+                Element to process
+            """
+            # iterate through param's inita values
+            for param in getInitVals(emt.params).values():
+                # if it's a device...
+                if param.valType == "device":
+                    # get value
+                    deviceName = param.val
+                    # make sure device name is in usages dict
+                    if deviceName not in usages:
+                        usages[deviceName] = []
+                    # add any new usages
+                    for cls in getattr(emt, "deviceClasses", []):
+                        if cls not in usages[deviceName]:
+                            usages[deviceName].append(cls) 
+        
+        # iterate through routines
+        for rt in self.routines.values():
+            if isinstance(rt, BaseStandaloneRoutine):
+                # for standalone routines, get device names from params
+                _process(rt)
+            else:
+                # for regular routines, get device names from each component
+                for comp in rt:
+                    _process(comp)
+        # process settings
+        _process(self.settings)
+        
+        return usages
+
 
     def getComponentFromName(self, name):
         """Searches all the Routines in the Experiment for a matching Comp name
@@ -897,10 +1403,6 @@ class Experiment:
             else:
                 thisFile['rel'] = filePath
                 thisFile['abs'] = os.path.normpath(join(srcRoot, filePath))
-                if "/" in filePath:
-                    thisFile['name'] = filePath.split("/")[-1]
-                else:
-                    thisFile['name'] = filePath
                 if len(thisFile['abs']) <= 256 and os.path.isfile(thisFile['abs']):
                     return thisFile
 
@@ -960,7 +1462,7 @@ class Experiment:
         # Get resources for components
         compResources = []
         handled = False
-        for thisEntry in self.flow:
+        for thisEntry in self.flow.getUniqueEntries():
             if thisEntry.getType() == 'Routine':
                 # find all params of all compons and check if valid filename
                 for thisComp in thisEntry:
@@ -980,6 +1482,13 @@ class Experiment:
                         # then check if it's a valid path and not yet included
                         if thisFile and thisFile not in compResources:
                             compResources.append(thisFile)
+                        # if param updates on frame/repeat, check its init val too
+                        if hasattr(thisParam, "updates") and thisParam.updates != "constant":
+                            inits = getInitVals({paramName: thisParam})
+                            thisFile = getPaths(inits[paramName].val)
+                            # then check if it's a valid path and not yet included
+                            if thisFile and thisFile not in compResources:
+                                compResources.append(thisFile)
             elif isinstance(thisEntry, BaseStandaloneRoutine):
                 for paramName in thisEntry.params:
                     thisParam = thisEntry.params[paramName]
@@ -994,14 +1503,30 @@ class Experiment:
                     # then check if it's a valid path and not yet included
                     if thisFile and thisFile not in compResources:
                         compResources.append(thisFile)
+                    # if param updates on frame/repeat, check its init val too
+                    if hasattr(thisParam, "updates") and thisParam.updates != "constant":
+                        inits = getInitVals({paramName: thisParam})
+                        thisFile = getPaths(inits[paramName].val)
+                        # then check if it's a valid path and not yet included
+                        if thisFile and thisFile not in compResources:
+                            compResources.append(thisFile)
             elif thisEntry.getType() == 'LoopInitiator' and "Stair" in thisEntry.loop.type:
                 url = 'https://lib.pavlovia.org/vendors/jsQUEST.min.js'
                 compResources.append({
                     'rel': url, 'abs': url,
                 })
         if handled:
-            # If resources are handled, clear all component resources
+            # if resources are handled, clear all component resources
+            handledResources = compResources
             compResources = []
+            # exceptions to the rule...
+            for thisFile in handledResources:
+                # still add default stim
+                if thisFile.get('name', False) in list(ft.defaultStim):
+                    compResources.append(thisFile)
+                # still add survey ID
+                if 'surveyId' in thisFile:
+                    compResources.append(thisFile)
 
         # Get resources for loops
         loopResources = []
@@ -1034,7 +1559,7 @@ class Experiment:
                 chosenResources.append(thisFile)
 
         # Check for any resources not in experiment path
-        resources = loopResources + compResources + chosenResources
+        resources = loopResources + compResources + chosenResources + self.requiredResources
         resources = [res for res in resources if res is not None]
         for res in resources:
             if res in list(ft.defaultStim):

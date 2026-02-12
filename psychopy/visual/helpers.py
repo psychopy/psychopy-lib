@@ -5,12 +5,12 @@
 """
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
-# Distributed under the terms of the GNU General Public License (GPL).
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2025 Open Science Tools Ltd.
+# Distributed under the terms of the MIT License.
 
 import os
 import copy
-from pkg_resources import parse_version
+from packaging.version import Version
 from pathlib import Path
 from psychopy import logging, colors, prefs
 
@@ -31,7 +31,7 @@ _nImageResizes = 0
 
 try:
     import matplotlib
-    if parse_version(matplotlib.__version__) > parse_version('1.2'):
+    if Version(matplotlib.__version__) > Version('1.2'):
         from matplotlib.path import Path as mplPath
     else:
         from matplotlib import nxutils
@@ -61,7 +61,7 @@ def pointInPolygon(x, y, poly):
 
     # faster if have matplotlib tools:
     if haveMatplotlib:
-        if parse_version(matplotlib.__version__) > parse_version('1.2'):
+        if Version(matplotlib.__version__) > Version('1.2'):
             return mplPath(poly).contains_point([x, y])
         else:
             try:
@@ -133,7 +133,7 @@ def polygonsOverlap(poly1, poly2):
 
     # faster if have matplotlib tools:
     if haveMatplotlib:
-        if parse_version(matplotlib.__version__) > parse_version('1.2'):
+        if Version(matplotlib.__version__) > Version('1.2'):
             if any(mplPath(poly1_vert_pix).contains_points(poly2_vert_pix)):
                 return True
             return any(mplPath(poly2_vert_pix).contains_points(poly1_vert_pix))
@@ -216,7 +216,9 @@ def setColor(obj, color, colorSpace=None, operation='',
     raw = color
     color = colors.Color(raw, colorSpace)
     assert color.valid, f"Could not create valid Color object from value {raw} in space {colorSpace}"
-
+    # set opacity from object if not given by color
+    if hasattr(obj, "opacity") and not hasattr(color, "_alpha"):
+        color.alpha = obj.opacity
     # Apply new value
     if operation in ('=', '', None):
         # If no operation, just set color from object
@@ -281,7 +283,7 @@ def findImageFile(filename, checkResources=False):
 
     # try doing the same in the Resources folder
     if checkResources:
-        return findImageFile(Path(prefs.paths['resources'])/orig, checkResources=False)
+        return findImageFile(Path(prefs.paths['assets']) / orig, checkResources=False)
 
 
 def groupFlipVert(flipList, yReflect=0):

@@ -1,3 +1,4 @@
+
 import psychopy.hardware as hw
 import pytest
 try:
@@ -109,17 +110,6 @@ def test_getCRSPhotometers():
         photoms = list(hw.getAllPhotometers())
         assert faked in photoms
 
-def test_getPhotometers():
-    photoms = hw.getAllPhotometers()
-
-    # Always iterable
-    assert isinstance(photoms, Iterable)
-
-    photoms = list(photoms)
-
-    assert len(photoms) > 0
-
-
 # I wish our PR650 would behave like this ;-)
 _MockPhotometer = type("MockPhotometer",(),{"OK": True,"type": "MockPhotometer"})
 
@@ -135,17 +125,5 @@ def test_findPhotometer():
     assert (hw.findPhotometer(device=[]) is None)
     # even when both are empty
     assert (hw.findPhotometer(device=[],ports=[]) is None)
-
     # non-existent photometers return None, for now
     assert (hw.findPhotometer(device="thisIsNotAPhotometer!") is None)
-
-    # if the photometer raises an exception don't crash, return None
-    assert (hw.findPhotometer(device=[_exceptionRaisingPhotometer],ports="foobar") is None)
-
-    # specifying a photometer should work
-    assert hw.findPhotometer(device=[_workingPhotometer],ports="foobar") == _MockPhotometer
-
-
-    # one broken, one working
-    device = [_exceptionRaisingPhotometer,_workingPhotometer]
-    assert hw.findPhotometer(device=device,ports="foobar") == _MockPhotometer

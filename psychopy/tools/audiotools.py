@@ -24,11 +24,12 @@ __all__ = [
     'SAMPLE_RATE_96kHz',
     'SAMPLE_RATE_192kHz',
     'AUDIO_SUPPORTED_CODECS',
+    'knownNoteNames', 'stepsFromA'
 ]
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
-# Distributed under the terms of the GNU General Public License (GPL).
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2025 Open Science Tools Ltd.
+# Distributed under the terms of the MIT License.
 
 import os
 import numpy as np
@@ -41,6 +42,29 @@ from scipy import signal
 #     import pydub
 # except (ImportError, ModuleNotFoundError):
 #     _has_pydub = False
+
+
+# note names mapped to steps from A, used in Sound stimulus and Component
+stepsFromA = {
+    'C': -9,
+    'Csh': -8, 'C#': -8,
+    'Dfl': -8, 'D♭': -8,
+    'D': -7,
+    'Dsh': -6, 'D#': -6,
+    'Efl': -6, 'E♭': -6,
+    'E': -5,
+    'F': -4,
+    'Fsh': -3, 'F#': -3,
+    'Gfl': -3, 'G♭': -3,
+    'G': -2,
+    'Gsh': -1, 'G#': -1,
+    'Afl': -1, 'A♭': -1,
+    'A': +0,
+    'Ash': +1, 'A#': +1,
+    'Bfl': +1, 'B♭': +1,
+    'B': +2,
+    'Bsh': +2, 'B#': +2}
+knownNoteNames = sorted(stepsFromA.keys())
 
 # Constants for common sample rates. Some are aliased to give the programmer an
 # idea to the quality they would expect from each. It is recommended to only use
@@ -73,6 +97,9 @@ sampleRateQualityLevels = {
     3: (SAMPLE_RATE_48kHz, 'DVD Audio (48kHz)'),  # <<< usually system default
     4: (SAMPLE_RATE_96kHz, 'High-Def (96kHz)'),
     5: (SAMPLE_RATE_192kHz, 'Ultra High-Def (192kHz)')
+}
+sampleRateLabels = {
+    r[1]: r[0] for r in sampleRateQualityLevels.values()
 }
 
 # supported formats for loading and saving audio samples to file

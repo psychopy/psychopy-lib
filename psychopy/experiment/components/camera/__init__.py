@@ -1,22 +1,55 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
+import copy
+import functools
 from pathlib import Path
-from psychopy.experiment.components import BaseComponent, Param, _translate, getInitVals
-from psychopy import prefs
+from psychopy.alerts import alert
+from psychopy import logging
+from psychopy.experiment.components import (
+    BaseComponent, BaseDeviceComponent, Param, _translate, getInitVals
+)
+from psychopy.preferences import prefs
+from psychopy.experiment.components.microphone import MicrophoneDeviceBackend
+from psychopy.experiment.devices import DeviceBackend
+from psychopy.tools import stringtools as st, systemtools as syst, audiotools as at
 
-mics = ["default"]
 
+class CameraComponent(BaseDeviceComponent):
+    """
+    This component provides a way to use the webcam to record participants during an experiment.
 
-class CameraComponent(BaseComponent):
+    **Note: For online experiments, the browser will notify participants to allow use of webcam before the start of the task.**
+
+    When recording via webcam, specify the starting time relative to the start of the routine (see `start` below) and a stop time (= duration in seconds).
+    A blank duration evaluates to recording for 0.000s.
+
+    The resulting video files are saved in .mp4 format if recorded locally and saved in .webm if recorded online. There will be one file per recording. The files appear in a new folder within the data directory in a folder called data_cam_recorded. The file names include the unix (epoch) time of the onset of the recording with milliseconds, e.g., `recording_cam_2022-06-16_14h32.42.064.mp4`.
+
+    **Note: For online experiments, the recordings can only be downloaded from the "Download results" button from the study's Pavlovia page.**
     """
 
-    """
     categories = ['Responses']
     targets = ["PsychoPy", "PsychoJS"]
+    version = "2022.2.0"
     iconFile = Path(__file__).parent / 'webcam.png'
+    iconSVG = Path(__file__).parent / 'CameraComponent.svg'
     tooltip = _translate('Webcam: Record video from a webcam.')
-    beta = True
+    beta = False
+    deviceClasses = ["psychopy.hardware.camera.CameraDevice"]
+    legacyParams = [
+        # old device setup params, no longer needed as this is handled by DeviceManager
+        "cameraLib",
+        "device",
+        "deviceManual",
+        "frameRate",
+        "frameRateManual",
+        "mic",
+        "micChannels",
+        "micMaxRecSize",
+        "micSampleRate",
+        "resolution",
+        "resolutionManual"
+    ]
 
     def __init__(
             # Basic
@@ -24,15 +57,29 @@ class CameraComponent(BaseComponent):
             name='cam',
             startType='time (s)', startVal='0', startEstim='',
             stopType='duration (s)', stopVal='', durationEstim='',
-            device="default", mic="default",
-            # Hardware
-            resolution="", frameRate="",
+            # Device
+            deviceLabel="",
+            # audio
+            micDeviceLabel="",
             # Data
             saveFile=True,
-            outputFileType="mp4", codec="h263",
             saveStartStop=True, syncScreenRefresh=False,
             # Testing
             disabled=False,
+            # legacy
+            outputFileType="mp4", 
+            codec="h263",
+            mic=None,
+            channels='auto', 
+            sampleRate='DVD Audio (48kHz)', 
+            maxSize=24000,
+            cameraLib="ffpyplayer", 
+            device="default", 
+            resolution="", 
+            frameRate="",
+            deviceManual="", 
+            resolutionManual="", 
+            frameRateManual="",
     ):
         # Initialise superclass
         super(CameraComponent, self).__init__(
@@ -40,6 +87,8 @@ class CameraComponent(BaseComponent):
             name=name,
             startType=startType, startVal=startVal, startEstim=startEstim,
             stopType=stopType, stopVal=stopVal, durationEstim=durationEstim,
+            # Device
+            deviceLabel=deviceLabel,
             # Data
             saveStartStop=saveStartStop, syncScreenRefresh=syncScreenRefresh,
             # Testing
@@ -53,91 +102,40 @@ class CameraComponent(BaseComponent):
         # Add requirement
         self.exp.requireImport(importName="camera", importFrom="psychopy.hardware")
         self.exp.requireImport(importName="microphone", importFrom="psychopy.sound")
-
-        # Get list of camera specs
-        try:
-            from psychopy.hardware.camera import getCameraDescriptions
-            cams = getCameraDescriptions(collapse=True)
-        except:
-            cams = []
-
-        # Basic
-        msg = _translate("What device would you like to use to record video? This will only affect local "
-                         "experiments - online experiments ask the participant which device to use.")
-        self.params['device'] = Param(
-            device, valType='str', inputType="choice", categ="Basic",
-            allowedVals=["default"] + cams,
-            allowedLabels=["default"] + cams,
-            hint=msg,
-            label=_translate("Video Device")
+        
+        # --- Audio params ---
+        # --- Device params ---
+        self.order += [
+            "deviceLabel"
+        ]
+        # label to refer to device by
+        self.params['micDeviceLabel'] = Param(
+            micDeviceLabel, valType="device", inputType="device", categ="Device",
+            allowedVals=[MicrophoneDeviceBackend],
+            label=_translate("Microphone device"),
+            hint=_translate(
+                "The named device from Device Manager to use for this Component."
+            )
         )
 
-        msg = _translate("What device would you like to use to record audio? This will only affect local "
-                         "experiments - online experiments ask the participant which device to use.")
-        self.params['mic'] = Param(
-            mic, valType='str', inputType="choice", categ="Basic",
-            allowedVals=list(range(len(mics))),
-            allowedLabels=[d.title() for d in list(mics)],
-            hint=msg,
-            label=_translate("Audio Device")
-        )
-
-
-        # Not implemented (yet!)
-        # # Hardware
-        # msg = _translate("Resolution (w x h) to record to, leave blank to use device default.")
-        # self.params['resolution'] = Param(
-        #     resolution, valType='list', inputType="single", categ="Hardware",
-        #     hint=msg,
-        #     label=_translate("Resolution")
-        # )
-        #
-        # msg = _translate("Frame rate (frames per second) to record at, leave blank to use device default.")
-        # self.params['frameRate'] = Param(
-        #     frameRate, valType='int', inputType="num", categ="Hardware",
-        #     hint=msg,
-        #     label=_translate("Frame Rate")
-        # )
-
-        # Data
+        # --- Data params ---
         msg = _translate("Save webcam output to a file?")
         self.params['saveFile'] = Param(
             saveFile, valType='bool', inputType="bool", categ="Data",
             hint=msg,
-            label=_translate("Save File?")
+            label=_translate("Save file?")
         )
 
-        # msg = _translate("What kind of video codec should the output file be encoded as?")
-        # self.params['codec'] = Param(
-        #     codec, valType='str', inputType="choice", categ="Data",
-        #     allowedVals=['a64multi', 'a64multi5', 'alias_pix', 'amv', 'apng', 'asv1', 'asv2', 'avrp', 'avui', 'ayuv', 'bmp', 'cinepak', 'cljr', 'dnxhd', 'dpx', 'dvvideo', 'ffv1', 'ffvhuff', 'fits', 'flashsv', 'flashsv2', 'flv', 'gif', 'h261', 'h263', 'h263_v4l2m2m', 'h263p', 'h264_nvenc', 'h264_omx', 'h264_v4l2m2m', 'h264_vaapi', 'hap', 'hevc_nvenc', 'hevc_v4l2m2m', 'hevc_vaapi', 'huffyuv', 'jpeg2000', 'jpegls', 'libaom-av1', 'libopenjpeg', 'libtheora', 'libvpx', 'libvpx-vp9', 'libwebp', 'libwebp_anim', 'libx264', 'libx264rgb', 'libx265', 'libxvid', 'ljpeg', 'magicyuv', 'mjpeg', 'mjpeg_vaapi', 'mpeg1video', 'mpeg2_vaapi', 'mpeg2video', 'mpeg4', 'mpeg4_v4l2m2m', 'msmpeg4', 'msmpeg4v2', 'msvideo1', 'nvenc', 'nvenc_h264', 'nvenc_hevc', 'pam', 'pbm', 'pcx', 'pgm', 'pgmyuv', 'png', 'ppm', 'prores', 'prores_aw', 'prores_ks', 'qtrle', 'r10k', 'r210', 'rawvideo', 'roqvideo', 'rv10', 'rv20', 'sgi', 'snow', 'sunrast', 'svq1', 'targa', 'tiff', 'utvideo', 'v210', 'v308', 'v408', 'v410', 'vc2', 'vp8_v4l2m2m', 'vp8_vaapi', 'vp9_vaapi', 'wmv1', 'wmv2', 'wrapped_avframe', 'xbm', 'xface', 'xwd', 'y41p', 'yuv4', 'zlib', 'zmbv'],
-        #     hint=msg,
-        #     label=_translate("Output Codec")
-        # )
-        #
-        # self.depends.append({
-        #     "dependsOn": "saveFile",
-        #     "condition": "==True",
-        #     "param": 'codec',
-        #     "true": "show",  # what to do with param if condition is True
-        #     "false": "hide",  # permitted: hide, show, enable, disable
-        # })
-        #
-        # msg = _translate("What file format would you like the video to be saved as?")
-        # self.params['outputFileType'] = Param(
-        #     outputFileType, valType='code', inputType="choice", categ="Data",
-        #     allowedVals=["mp4", "mov", "mpeg", "mkv"],
-        #     hint=msg,
-        #     label=_translate("Output File Extension")
-        # )
-        #
-        # self.depends.append({
-        #     "dependsOn": "saveFile",
-        #     "condition": "==True",
-        #     "param": 'outputFileType',
-        #     "true": "show",  # what to do with param if condition is True
-        #     "false": "hide",  # permitted: hide, show, enable, disable
-        # })
+    @staticmethod
+    def setupMicNameInInits(inits):
+        # substitute component name + "Microphone" for mic device name if blank
+        if not inits['micDeviceLabel']:
+            # if deviceName exists but is blank, use component name
+            inits['micDeviceLabel'].val = inits['name'].val + "Microphone"
+            inits['micDeviceLabel'].valType = 'str'
+        # make a code version of mic device name
+        inits['micDeviceLabelCode'] = copy.copy(inits['micDeviceLabel'])
+        inits['micDeviceLabelCode'].valType = "code"
 
     def writeRoutineStartCode(self, buff):
         pass
@@ -146,7 +144,7 @@ class CameraComponent(BaseComponent):
         inits = getInitVals(self.params)
         # Use filename with a suffix to store recordings
         code = (
-            "# Make folder to store recordings from %(name)s\n"
+            "# make folder to store recordings from %(name)s\n"
             "%(name)sRecFolder = filename + '_%(name)s_recorded'\n"
             "if not os.path.isdir(%(name)sRecFolder):\n"
             "    os.mkdir(%(name)sRecFolder)\n"
@@ -156,15 +154,21 @@ class CameraComponent(BaseComponent):
     def writeInitCode(self, buff):
         inits = getInitVals(self.params, "PsychoPy")
 
+        # if specified, get camera from device manager
         code = (
             "%(name)s = camera.Camera(\n"
-            "    device=%(device)s, name='%(name)s', mic=microphone.Microphone(device=%(mic)s),\n"
-            ")\n"
-            "# Switch on %(name)s\n"
-            "%(name)s.open()\n"
-            "\n"
+            "    win=win,\n"
+            "    device=%(deviceLabel)s,\n"
+            "    mic=%(micDeviceLabel)s,\n"
+            ")"
         )
         buff.writeIndentedLines(code % inits)
+        if self.params['saveFile']:
+            code = (
+                "# connect camera save method to experiment handler so it's called when data saves\n"
+                "thisExp.connectSaveMethod(%(name)s.save, os.path.join(%(name)sRecFolder, '_recovered.mp4'))\n"
+            )
+            buff.writeIndentedLines(code % inits)
 
     def writeInitCodeJS(self, buff):
         inits = getInitVals(self.params, target="PsychoJS")
@@ -184,25 +188,31 @@ class CameraComponent(BaseComponent):
         buff.writeIndentedLines(code % inits)
 
     def writeFrameCode(self, buff):
-        # Start webcam at component start
+        # start webcam at component start
         indented = self.writeStartTestCode(buff)
         if indented:
             code = (
-                "# Start %(name)s recording\n"
+                "# start %(name)s recording\n"
                 "%(name)s.record()\n"
             )
             buff.writeIndentedLines(code % self.params)
         buff.setIndentLevel(-indented, relative=True)
 
-        # Update any params while active
+        # update any params while active
         indented = self.writeActiveTestCode(buff)
+        if indented:
+            code = (
+                "# get current frame data from camera\n"
+                "%(name)s.poll()\n"
+            )
+            buff.writeIndentedLines(code % self.params)
         buff.setIndentLevel(-indented, relative=True)
 
-        # Stop webcam at component stop
+        # stop webcam at component stop
         indented = self.writeStopTestCode(buff)
         if indented:
             code = (
-                "# Stop %(name)s recording\n"
+                "# stop %(name)s recording\n"
                 "%(name)s.stop()\n"
             )
             buff.writeIndentedLines(code % self.params)
@@ -210,28 +220,30 @@ class CameraComponent(BaseComponent):
 
     def writeFrameCodeJS(self, buff):
         # Start webcam at component start
-        self.writeStartTestCodeJS(buff)
-        code = (
-            "await %(name)s.record()\n"
-        )
-        buff.writeIndentedLines(code % self.params)
-        buff.setIndentLevel(-1, relative=True)
-        code = (
-            "};\n"
-        )
-        buff.writeIndentedLines(code)
+        indent = self.writeStartTestCodeJS(buff)
+        if indent:
+            code = (
+                "await %(name)s.record()\n"
+            )
+            buff.writeIndentedLines(code % self.params)
+            buff.setIndentLevel(-indent, relative=True)
+            code = (
+                "};\n"
+            )
+            buff.writeIndentedLines(code)
 
         # Stop webcam at component stop
-        self.writeStopTestCodeJS(buff)
-        code = (
-            "await %(name)s.stop()\n"
-        )
-        buff.writeIndentedLines(code % self.params)
-        buff.setIndentLevel(-1, relative=True)
-        code = (
-            "};\n"
-        )
-        buff.writeIndentedLines(code)
+        indent = self.writeStopTestCodeJS(buff)
+        if indent:
+            code = (
+                "await %(name)s.stop()\n"
+            )
+            buff.writeIndentedLines(code % self.params)
+            buff.setIndentLevel(-indent, relative=True)
+            code = (
+                "};\n"
+            )
+            buff.writeIndentedLines(code)
 
     def writeRoutineEndCode(self, buff):
         code = (
@@ -287,3 +299,67 @@ class CameraComponent(BaseComponent):
             "%(name)s.close()\n"
         )
         buff.writeIndentedLines(code % self.params)
+
+
+class CameraDeviceBackend(DeviceBackend):
+    # name of this backend to display in Device Manager
+    backendLabel = "Camera"
+    # class of the device which this backend corresponds to
+    deviceClass = "psychopy.hardware.camera.CameraDevice"
+    # icon to show in device manager
+    icon = "light/webcam.png"
+
+    def writeDeviceCode(self, buff):
+        # write base setup
+        self.writeBaseDeviceCode(buff, close=False)
+        # add params
+        code = (
+            "    frameRate=%(frameRate)s,\n"
+            "    frameSize=%(frameSize)s\n"
+            ")"
+        )
+        buff.writeIndentedLines(code % self.params)
+    
+    def getParams(self):
+        from psychopy.hardware.camera import CameraDevice
+
+        # get supported resolutions and framerates
+        resolutions = set()
+        frameRates = set()
+        for profile in CameraDevice.getAvailableDevices(best=False):
+            if profile['deviceName'] == self.profile['deviceName']:
+                resolutions.add(profile['frameSize'])
+                frameRates.add(profile['frameRate'])
+        
+        order = [
+            'frameSize',
+            'frameRate',
+        ]
+        params = {}
+        
+        self.params['frameSize'] = Param(
+            "", valType='list', inputType="choice",
+            allowedVals=[""] + list(sorted(resolutions)), allowedLabels=["Default"] + list(sorted(resolutions)),
+            hint=_translate(
+                "Resolution (w x h) to record to, leave blank to use device default."
+            ),
+            label=_translate("Resolution")
+        )
+        params['frameRate'] = Param(
+            None, valType='int', inputType="choice",
+            allowedVals=[""] + list(frameRates), allowedLabels=["Default"] + list(frameRates),
+            hint=_translate(
+                "Frame rate (frames per second) to record at, leave blank to use device default."
+            ),
+            label=_translate("Frame rate")
+        )
+
+        return params, order
+
+
+# register backend with Component
+CameraComponent.registerBackend(CameraDeviceBackend)
+
+
+if __name__ == "__main__":
+    pass

@@ -6,7 +6,10 @@ class UnknownRoutine(BaseStandaloneRoutine):
     categories = ['Other']
     targets = []
     iconFile = Path(__file__).parent / "unknown.png"
+    iconSVG = Path(__file__).parent / 'UnknownRoutine.svg'
     tooltip = "Unknown routine"
+    # hide from the Components panel
+    hidden = True
 
     def __init__(self, exp, name=''):
         BaseStandaloneRoutine.__init__(self, exp, name=name)

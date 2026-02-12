@@ -11,6 +11,7 @@ class ResourceManagerComponent(BaseComponent):
     categories = ['Custom']
     targets = ['PsychoJS']
     iconFile = Path(__file__).parent / "resource_manager.png"
+    iconSVG = Path(__file__).parent / 'ResourceManagerComponent.svg'
     tooltip = _translate("Pre-load some resources into memory so that components using them can start without having "
                          "to load first")
     beta = True
@@ -44,13 +45,13 @@ class ResourceManagerComponent(BaseComponent):
         self.params['checkAll'] = Param(resources,
             valType='bool', inputType="bool", categ='Basic',
             hint=_translate("When checking these resources, also check for all currently downloading?"),
-            label=_translate("Check All"))
+            label=_translate("Check all"))
 
         self.params['actionType'] = Param(actionType,
             valType='str', inputType='choice', categ='Basic',
             allowedVals=["Start and Check", "Start Only", "Check Only"],
-            hint=_translate("Should this component start an / or check resource preloading?"),
-            label=_translate("Preload Actions")
+            hint=_translate("Should this Component start an / or check resource preloading?"),
+            label=_translate("Preload actions")
         )
 
         msg = _translate("Should we end the Routine when the resource download is complete?")
@@ -58,32 +59,24 @@ class ResourceManagerComponent(BaseComponent):
             forceEndRoutine, valType='bool', inputType="bool", allowedTypes=[], categ='Basic',
             updates='constant',
             hint=msg,
-            label=_translate('forceEndRoutine'))
+            label=_translate("Force end Routine"))
 
         self.params['stopVal'].label = _translate("Check")
 
         self.depends.append(
              {"dependsOn": "actionType",  # must be param name
-              "condition": "=='Start Only'",  # val to check for
+              "condition": "in ['Start and Stop', 'Stop Only']",  # val to check for
               "param": "stop",  # param property to alter
-              "true": "hide",  # what to do with param if condition is True
-              "false": "show",  # permitted: hide, show, enable, disable
+              "true": "show",  # what to do with param if condition is True
+              "false": "hide",  # permitted: hide, show, enable, disable
               }
-        )
+         )
         self.depends.append(
              {"dependsOn": "actionType",  # must be param name
-              "condition": "=='Check Only'",  # val to check for
+              "condition": "in ['Start and Stop', 'Start Only']",  # val to check for
               "param": "start",  # param property to alter
-              "true": "hide",  # what to do with param if condition is True
-              "false": "show",  # permitted: hide, show, enable, disable
-              }
-        )
-        self.depends.append(
-             {"dependsOn": "actionType",  # must be param name
-              "condition": "=='Check Only'",  # val to check for
-              "param": "start",  # param property to alter
-              "true": "hide",  # what to do with param if condition is True
-              "false": "show",  # permitted: hide, show, enable, disable
+              "true": "show",  # what to do with param if condition is True
+              "false": "hide",  # permitted: hide, show, enable, disable
               }
         )
 

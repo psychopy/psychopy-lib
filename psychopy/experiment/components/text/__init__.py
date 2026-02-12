@@ -2,22 +2,12 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
-# Distributed under the terms of the GNU General Public License (GPL).
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2025 Open Science Tools Ltd.
+# Distributed under the terms of the MIT License.
 
 from pathlib import Path
 from psychopy.alerts import alerttools
 from psychopy.experiment.components import BaseVisualComponent, Param, getInitVals, _translate
-from psychopy.localization import _localized as __localized
-_localized = __localized.copy()
-
-# only use _localized values for label values, nothing functional:
-_localized.update({'text': _translate('Text'),
-                   'font': _translate('Font'),
-                   'letterHeight': _translate('Letter height'),
-                   'wrapWidth': _translate('Wrap width'),
-                   'flip': _translate('Flip (mirror)'),
-                   'languageStyle': _translate('Language style')})
 
 
 class TextComponent(BaseVisualComponent):
@@ -27,14 +17,16 @@ class TextComponent(BaseVisualComponent):
     categories = ['Stimuli']
     targets = ['PsychoPy', 'PsychoJS']
     iconFile = Path(__file__).parent / 'text.png'
+    iconSVG = Path(__file__).parent / 'TextComponent.svg'
     tooltip = _translate('Text: present text stimuli')
 
     def __init__(self, exp, parentName, name='text',
                  # effectively just a display-value
                  text=_translate('Any text\n\nincluding line breaks'),
-                 font='Open Sans', units='from exp settings',
+                 font='Arial', units='from exp settings',
                  color='white', colorSpace='rgb',
-                 pos=(0, 0), letterHeight=0.05, ori=0,
+                 pos=(0, 0), letterHeight=0.05,
+                 ori=0, draggable=False,
                  startType='time (s)', startVal=0.0,
                  stopType='duration (s)', stopVal=1.0,
                  flip='None', startEstim='', durationEstim='', wrapWidth='',
@@ -61,40 +53,64 @@ class TextComponent(BaseVisualComponent):
             updates='constant', allowedUpdates=_allow3[:],  # copy the list
             hint=_translate("The text to be displayed"),
             canBePath=False,
-            label=_localized['text'])
+            label=_translate("Text"))
         self.params['font'] = Param(
-            font, valType='str', inputType="single", allowedTypes=[], categ='Formatting',
+            font, valType='str', inputType="font", allowedTypes=[], categ='Formatting',
             updates='constant', allowedUpdates=_allow3[:],  # copy the list
             hint=_translate("The font name (e.g. Comic Sans)"),
-            label=_localized['font'])
+            label=_translate("Font"))
         del self.params['size']  # because you can't specify width for text
+        self.params['draggable'] = Param(
+            draggable, valType="code", inputType="bool", categ="Layout",
+            updates="constant",
+            label=_translate("Draggable?"),
+            hint=_translate(
+                "Should this stimulus be moveble by clicking and dragging?"
+            )
+        )
         self.params['letterHeight'] = Param(
             letterHeight, valType='num', inputType="single", allowedTypes=[], categ='Formatting',
             updates='constant', allowedUpdates=_allow3[:],  # copy the list
             hint=_translate("Specifies the height of the letter (the width"
                             " is then determined by the font)"),
-            label=_localized['letterHeight'])
+            label=_translate("Letter height"))
 
         self.params['wrapWidth'] = Param(
             wrapWidth, valType='num', inputType="single", allowedTypes=[], categ='Layout',
             updates='constant', allowedUpdates=['constant'],
             hint=_translate("How wide should the text get when it wraps? (in"
                             " the specified units)"),
-            label=_localized['wrapWidth'])
+            label=_translate("Wrap width"))
         self.params['flip'] = Param(
             flip, valType='str', inputType="single", allowedTypes=[], categ='Layout',
             allowedVals=["horiz", "vert", "None"], updates='constant', allowedUpdates=_allow3[:],  # copy the list
             hint=_translate("horiz = left-right reversed; vert = up-down"
                             " reversed; $var = variable"),
-            label=_localized['flip'])
+            label=_translate("Flip (mirror)"))
         self.params['languageStyle'] = Param(
             languageStyle, valType='str', inputType="choice", categ='Formatting',
             allowedVals=['LTR', 'RTL', 'Arabic'],
             hint=_translate("Handle right-to-left (RTL) languages and Arabic reshaping"),
-            label=_localized['languageStyle'])
+            label=_translate("Language style"))
 
         del self.params['fillColor']
         del self.params['borderColor']
+
+    def _getParamCaps(self, paramName):
+        """
+        TEMPORARY FIX
+
+        TextStim in JS doesn't accept `letterHeight` as a param. Ideally this needs to be fixed
+        in JS, but in the meantime overloading this function in Python to write `setHeight`
+        rather than `setLetterHeight` means it stops biting users.
+        """
+        # call base function
+        paramName = BaseVisualComponent._getParamCaps(self, paramName)
+        # replace letterHeight
+        if paramName == "LetterHeight":
+            paramName = "Height"
+
+        return paramName
 
     def writeInitCode(self, buff):
         # do we need units code?
@@ -113,7 +129,7 @@ class TextComponent(BaseVisualComponent):
                 "    text=%(text)s,\n"
                 "    font=%(font)s,\n"
                 "    " + unitsStr +
-                "pos=%(pos)s, height=%(letterHeight)s, "
+                "pos=%(pos)s, draggable=%(draggable)s, height=%(letterHeight)s, "
                 "wrapWidth=%(wrapWidth)s, ori=%(ori)s, \n"
                 "    color=%(color)s, colorSpace=%(colorSpace)s, "
                 "opacity=%(opacity)s, \n"
@@ -151,7 +167,7 @@ class TextComponent(BaseVisualComponent):
                 "  name: '%(name)s',\n"
                 "  text: %(text)s,\n"
                 "  font: %(font)s,\n" + unitsStr +
-                "  pos: %(pos)s, height: %(letterHeight)s,"
+                "  pos: %(pos)s, draggable: %(draggable)s, height: %(letterHeight)s,"
                 "  wrapWidth: %(wrapWidth)s, ori: %(ori)s,\n"
                 "  languageStyle: %(languageStyle)s,\n"
                 "  color: new util.Color(%(color)s),"
@@ -173,7 +189,3 @@ class TextComponent(BaseVisualComponent):
         code = ("  %sdepth: %.1f \n"
                 "});\n\n" % (flipStr, depth))
         buff.writeIndentedLines(code)
-
-    def integrityCheck(self):
-        super().integrityCheck()  # run parent class checks first
-        alerttools.testFont(self)  # Test whether font is available locally

@@ -5,8 +5,8 @@
 """
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
-# Distributed under the terms of the GNU General Public License (GPL).
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2025 Open Science Tools Ltd.
+# Distributed under the terms of the MIT License.
 
 __all__ = [
     'AudioClip',
@@ -24,10 +24,12 @@ __all__ = [
 ]
 
 from pathlib import Path
-
+import shutil
+import tempfile
 import numpy as np
 import soundfile as sf
 from psychopy import prefs
+from psychopy import logging
 from psychopy.tools.audiotools import *
 from psychopy.tools import filetools as ft
 from .exceptions import *
@@ -41,6 +43,11 @@ AUDIO_CHANNELS_STEREO = 2
 AUDIO_CHANNEL_LEFT = AUDIO_EAR_LEFT = 0
 AUDIO_CHANNEL_RIGHT = AUDIO_EAR_RIGHT = 1
 AUDIO_CHANNEL_COUNT = AUDIO_EAR_COUNT = 2
+
+
+class AudioSynthesisError(Exception):
+    """Error raised when an issue occurs during audio synthesis."""
+    pass
 
 
 class AudioClip:
@@ -70,7 +77,7 @@ class AudioClip:
     the :class:`~psychopy.sound.Sound` class::
 
         import psychopy.core as core
-        import psyhcopy.sound as sound
+        import psychopy.sound as sound
 
         myTone = AudioClip.sine(duration=5.0)  # generate a tone
 
@@ -202,12 +209,16 @@ class AudioClip:
         """
         if codec is not None:
             AudioClip._checkCodecSupported(codec, raiseError=True)
-
+        # write file
         sf.write(
             filename,
             data=self._samples,
             samplerate=self._sampleRateHz,
             format=codec)
+        # log
+        logging.info(
+            f"Saved audio data to {filename}"
+        )
 
     # --------------------------------------------------------------------------
     # Tone and noise generation methods
@@ -403,6 +414,145 @@ class AudioClip:
         return AudioClip(samples, sampleRateHz=sampleRateHz)
 
     # --------------------------------------------------------------------------
+    # Speech synthesis methods
+    #
+    # These static methods are used to generate audio samples from text using
+    # text-to-speech (TTS) engines.
+    #
+
+    @staticmethod
+    def synthesizeSpeech(text, engine='gtts', synthConfig=None, outFile=None):
+        """Synthesize speech from text using a text-to-speech (TTS) engine.
+
+        This method is used to generate audio samples from text using a
+        text-to-speech (TTS) engine. The synthesized speech can be used for
+        various purposes, such as generating audio cues for experiments or
+        creating audio instructions for participants. 
+
+        This method returns an `AudioClip` object containing the synthesized
+        speech. The quality and format of the retured audio may vary depending 
+        on the TTS engine used.
+
+        Please note that online TTS engines may require an active internet
+        connection to work. This also may send the text to a remote server for
+        processing, so be mindful of privacy concerns.
+
+        Parameters
+        ----------
+        text : str
+            Text to synthesize into speech.
+        engine : str
+            TTS engine to use for speech synthesis. Default is 'gtts'.
+        synthConfig : dict or None
+            Additional configuration options for the specified engine. These
+            are specified using a dictionary (ex. 
+            `synthConfig={'slow': False}`). These paramters vary depending on 
+            the engine in use. Default is `None` which uses the default
+            configuration for the engine.
+        outFile : str or None
+            File name to save the synthesized speech to. This can be used to 
+            save the audio to a file for later use. If `None`, the audio clip 
+            will be returned in memory. If you plan on using the same audio 
+            clip multiple times, it is recommended to save it to a file and load
+            it later.
+
+        Returns
+        -------
+        AudioClip
+            Audio clip containing the synthesized speech.
+
+        Examples
+        --------
+        Synthesize speech using the default gTTS engine::
+
+            import psychopy.sound as sound
+            voiceClip = sound.AudioClip.synthesizeSpeech(
+                'How are you doing today?')
+
+        Save the synthesized speech to a file for later use::
+
+            voiceClip = sound.AudioClip.synthesizeSpeech(
+                'How are you doing today?', outFile='/path/to/speech.mp3')
+
+        Synthesize speech using the gTTS engine with a specific language, 
+        timeout, and top-level domain::
+
+            voiceClip = sound.AudioClip.synthesizeSpeech(
+                'How are you doing today?', 
+                engine='gtts', 
+                synthConfig={'lang': 'en', 'timeout': 10, 'tld': 'us'})
+
+        """
+        if engine not in ['gtts']:
+            raise ValueError('Unsupported TTS engine specified.')
+
+        synthConfig = {} if synthConfig is None else synthConfig
+
+        if engine == 'gtts':  # google's text-to-speech engine
+            logging.info('Using Google Text-to-Speech (gTTS) engine.')
+
+            try:
+                import gtts
+            except ImportError:
+                raise ImportError(
+                    'The gTTS package is required for speech synthesis.')
+
+            # set defaults for parameters if not specified
+            if 'timeout' not in synthConfig:
+                synthConfig['timeout'] = None
+                logging.warning(
+                    'The gTTS speech-to-text engine has been configured with '
+                    'an infinite timeout. The application may stall if the '
+                    'server is unresponsive. To set a timeout, specify the '
+                    '`timeout` key in `synthConfig`.')
+            
+            if 'lang' not in synthConfig:  # language
+                synthConfig['lang'] = 'en'
+                logging.info(
+                    "Language not specified, defaulting to '{}' for speech "
+                    "synthesis engine.".format(synthConfig['lang']))
+            else:
+                # check if the value is a valid language code
+                if synthConfig['lang'] not in gtts.lang.tts_langs():
+                    raise ValueError('Unsupported language code specified.')
+
+            if 'tld' not in synthConfig:  # top-level domain
+                synthConfig['tld'] = 'us'
+                logging.info(
+                    "Top-level domain (TLD) not specified, defaulting to '{}' "
+                    "for synthesis engine.".format(synthConfig['tld']))
+
+            if 'slow' not in synthConfig:  # slow mode
+                synthConfig['slow'] = False
+                logging.info(
+                    "Slow mode not specified, defaulting to '{}' for synthesis "
+                    "engine.".format(synthConfig['slow']))
+
+            try:
+                handle = gtts.gTTS(
+                    text=text, 
+                    **synthConfig)
+            except gtts.gTTSError as e:
+                raise AudioSynthesisError(
+                    'Error occurred during speech synthesis: {}'.format(e))
+
+            # this is online and needs a download, so we'll save it to a file
+            with tempfile.TemporaryDirectory() as tmpdir:
+                # always returns an MP3 file
+                tmpfile = str(Path(tmpdir) / 'psychopy_tts_output.mp3')
+                handle.save(tmpfile)
+
+                # load audio clip samples to memory
+                toReturn = AudioClip.load(tmpfile)
+
+                # copy the file if we want to save it
+                import shutil
+                if outFile is not None:
+                    shutil.copy(tmpfile, outFile)
+                    
+        return toReturn
+
+    # --------------------------------------------------------------------------
     # Audio editing methods
     #
     # Methods related to basic editing of audio samples (operations such as
@@ -432,6 +582,8 @@ class AudioClip:
         self._samples = np.ascontiguousarray(
             np.vstack((self._samples, other.samples)),
             dtype=np.float32)
+        
+        self._duration = len(self.samples) / float(self.sampleRateHz)
 
         return self
 
@@ -513,6 +665,312 @@ class AudioClip:
         arrview *= float(factor)
         arrview.clip(-1, 1)
 
+    def resample(self, targetSampleRateHz, resampleType='default', 
+            equalEnergy=False, copy=False):
+        """Resample audio to another sample rate.
+
+        This method will resample the audio clip to a new sample rate. The
+        method used for resampling can be specified using the `method` parameter.
+
+        Parameters
+        ----------
+        targetSampleRateHz : int
+            New sample rate.
+        resampleType : str
+            Fitler (or method) to use for resampling. The methods available
+            depend on the packages installed. The 'default' method uses 
+            `scipy.signal.resample` to resample the audio. Other methods require 
+            the user to install `librosa` or `resampy`. Default is 'default'.
+        equalEnergy : bool
+            Make the output have similar energy to the input. Option not
+            available for the 'default' method. Default is `False`.
+        copy : bool
+            Return a copy of the resampled audio clip at the new sample rate.
+            If `False`, the audio clip will be resampled inplace. Default is
+            `False`.
+        
+        Returns
+        -------
+        AudioClip
+            Resampled audio clip.
+
+        Notes
+        -----
+        * Resampling audio clip may result in distortion which is exacerbated by
+          successive resampling.
+        * When using `librosa` for resampling, the `fix` parameter is set to
+          `False`.
+        * The resampling types 'linear', 'zero_order_hold', 'sinc_best', 
+          'sinc_medium' and 'sinc_fastest' require the `samplerate` package to
+          be installed in addition to `librosa`.
+        * Specifying either the 'fft' or 'scipy' method will use the same
+          resampling method as the 'default' method, howwever it will allow for 
+          the `equalEnergy` option to be used.
+
+        Examples
+        --------
+        Resample an audio clip to 44.1kHz::
+
+            snd.resample(44100)
+
+        Use the 'soxr_vhq' method for resampling::
+
+            snd.resample(44100, resampleType='soxr_vhq')
+
+        Create a copy of the audio clip resampled to 44.1kHz::
+
+            sndResampled = snd.resample(44100, copy=True)
+
+        Resample the audio clip to be playable on a certain device::
+
+            import psychopy.sound as sound
+            from psychopy.sound.audioclip import AudioClip
+
+            audioClip = sound.AudioClip.load('/path/to/audio.wav')
+            
+            deviceSampleRateHz = sound.Sound().sampleRate
+            audioClip.resample(deviceSampleRateHz)
+
+        """
+        targetSampleRateHz = int(targetSampleRateHz)  # ensure it's an integer
+
+        # sample rate is the same, return self
+        if targetSampleRateHz == self._sampleRateHz:
+            if copy:
+                return AudioClip(
+                    self._samples.copy(), 
+                    sampleRateHz=self._sampleRateHz)
+
+            logging.info('No resampling needed, sample rate is the same.')
+
+            return self  # no need to resample
+
+        if resampleType == 'default':  # scipy
+            import scipy.signal  # hard dep, so we'll import here
+
+            # the simplest method to resample audio using the libraries we have
+            # already
+            nSamp = round(
+                len(self._samples) * float(targetSampleRateHz) / 
+                self.sampleRateHz)
+            newSamples = scipy.signal.resample(
+                self._samples, nSamp, axis=0)
+
+            if equalEnergy:
+                logging.warning(
+                    'The `equalEnergy` option is not available for the '
+                    'default resampling method.')
+
+        elif resampleType in ('kaiser_best', 'kaiser_fast'):  # resampy
+            try:
+                import resampy
+            except ImportError:
+                raise ImportError(
+                    'The `resampy` package is required for this resampling '
+                    'method ({}).'.format(resampleType))
+
+            newSamples = resampy.resample(
+                self._samples, 
+                self._sampleRateHz, 
+                targetSampleRateHz,
+                filter=resampleType,
+                scale=equalEnergy,
+                axis=0)
+
+        elif resampleType in ('soxr_vhq', 'soxr_hq', 'soxr_mq', 'soxr_lq', 
+                'soxr_qq', 'polyphase', 'linear', 'zero_order_hold', 'fft',
+                'scipy', 'sinc_best', 'sinc_medium', 'sinc_fastest'):  # librosa
+            try:
+                import librosa
+            except ImportError:
+                raise ImportError(
+                    'The `librosa` package is required for this resampling '
+                    'method ({}).'.format(resampleType))
+
+            newSamples = librosa.resample(
+                self._samples, 
+                orig_sr=self._sampleRateHz, 
+                target_sr=targetSampleRateHz,
+                res_type=resampleType,
+                scale=equalEnergy, 
+                fix=False,
+                axis=0)
+
+        else:
+            raise ValueError('Unsupported resampling method specified.')
+
+        logging.info(
+            "Resampled audio from {}Hz to {}Hz using method '{}'.".format(
+                self._sampleRateHz, targetSampleRateHz, resampleType))
+
+        if copy:  # return a new object
+            return AudioClip(newSamples, sampleRateHz=targetSampleRateHz)
+
+        # inplace resampling, need to clear the old array since the shape may
+        # have changed
+        self._samples = newSamples
+        self._sampleRateHz = targetSampleRateHz
+
+        return self
+    
+    def pad(self, direction='start', duration=1.0, units='seconds'):
+        """Pad the audio clip with silence at the start or end.
+
+        This method will modify the audio clip inplace, adding samples of
+        silence to the specified location.
+
+        Parameters
+        ----------
+        direction : str
+            Where to add the padding. Can be 'start' or 'end'. Default is 'start'.
+        duration : float or int
+            Duration of the padding in seconds. Default is `1.0`.
+        units : str
+            Units to interpret the `duration` parameter as. Can be 'seconds' or
+            'samples'. Default is 'seconds'.
+
+        Returns
+        -------
+        AudioClip
+            This audio clip object with padding added at the specified location.
+        
+        """
+        # convert duration to samples
+        if units == 'seconds':
+            padSamples = int(duration * self.sampleRateHz)
+        elif units == 'samples':
+            padSamples = int(duration)
+        else:
+            raise ValueError(
+                "Invalid value for `units`. Must be 'seconds' or 'samples'.")
+
+        # create padding samples
+        padding = np.zeros((padSamples, self.channels), dtype=np.float32)
+
+        if direction == 'start':
+            self._samples = np.vstack((padding, self._samples))
+        elif direction == 'end':
+            self._samples = np.vstack((self._samples, padding))
+        else:
+            raise ValueError(
+                "Invalid value for `direction`. Must be 'start' or 'end'.")
+        
+        # ensure the samples are contiguous and right dtype
+        self._samples = np.ascontiguousarray(self._samples, dtype=np.float32)
+
+        # recompute the duration of the new clip
+        self._duration = len(self.samples) / float(self.sampleRateHz)
+
+        return self
+    
+    def padded(self, direction='start', duration=1.0, units='seconds'):
+        """Return a new audio clip with padding added at the start or end.
+
+        This method will return a new audio clip with samples of silence added
+        to the specified location. The original audio clip will not be modified.
+
+        Parameters
+        ----------
+        direction : str
+            Where to add the padding. Can be 'start' or 'end'. Default is 'start'.
+        duration : float or int
+            Duration of the padding in seconds. Default is `1.0`.
+        units : str
+            Units to interpret the `duration` parameter as. Can be 'seconds' or
+            'samples'. Default is 'seconds'.
+
+        Returns
+        -------
+        AudioClip
+            A new audio clip with padding added at the specified location.
+        
+        """
+        # create a copy of the audio clip
+        newClip = self.copy()
+
+        # pad the copy
+        return newClip.pad(direction, duration, units)
+
+    def trim(self, direction='start', duration=1.0, units='seconds'):
+        """Trim the audio clip by removing samples from the start or end.
+
+        This method will modify the audio clip inplace, trimming off samples 
+        from the specfied direction.
+
+        Parameters
+        ----------
+        direction : str
+            Where to remove audio samples from. Can be 'start' or 'end'. Default
+            is 'start'.
+        duration : float or int
+            How many samples to remove from the start or end of the audio clip.
+        units : str
+            Units to interpret the `duration` parameter as. Can be 'seconds' or
+            'samples'. Default is 'seconds'.
+
+        Returns
+        -------
+        AudioClip
+            This audio clip object with padding removed at the specified 
+            location.
+        
+        """
+        # convert duration to samples
+        if units == 'seconds':
+            trimSamples = int(duration * self.sampleRateHz)
+        elif units == 'samples':
+            trimSamples = int(duration)
+        else:
+            raise ValueError(
+                "Invalid value for `units`. Must be 'seconds' or 'samples'.")
+
+        if direction == 'start':
+            self._samples = self._samples[trimSamples:, :]
+        elif direction == 'end':
+            self._samples = self._samples[:-trimSamples, :]
+        else:
+            raise ValueError(
+                "Invalid value for `direction`. Must be 'start' or 'end'.")
+        
+        # ensure the samples are contiguous and right dtype
+        self._samples = np.ascontiguousarray(self._samples, dtype=np.float32)
+
+        # recompute the duration of the new clip
+        self._duration = len(self.samples) / float(self.sampleRateHz)
+
+        return self
+    
+    def trimmed(self, direction='start', duration=1.0, units='seconds'):
+        """Return a new audio clip with samples removed from the start or end.
+
+        This method will return a new audio clip with samples of silence removed
+        from the specified location. The original audio clip will not be 
+        modified.
+
+        Parameters
+        ----------
+        direction : str
+            Where to remove audio samples from. Can be 'start' or 'end'. Default
+            is 'start'.
+        duration : float or int
+            How many samples to remove from the start or end of the audio clip.
+        units : str
+            Units to interpret the `duration` parameter as. Can be 'seconds' or
+            'samples'. Default is 'seconds'.
+
+        Returns
+        -------
+        AudioClip
+            A new audio clip with padding removed at the specified location.
+        
+        """
+        # create a copy of the audio clip
+        newClip = self.copy()
+
+        # trim the copy
+        return newClip.trim(direction, duration, units)
+
+    
     # --------------------------------------------------------------------------
     # Audio analysis methods
     #
@@ -541,9 +999,10 @@ class AudioClip:
         """
         if channel is not None:
             assert 0 < channel < self.channels
-
+        # get samples
         arr = self._samples if channel is None else self._samples[:, channel]
-        rms = np.sqrt(np.mean(np.square(arr), axis=0))
+        # calculate rms
+        rms = np.nan_to_num(np.sqrt(np.nanmean(np.square(arr), axis=0)), nan=0)
 
         return rms if len(rms) > 1 else rms[0]
 
@@ -582,6 +1041,12 @@ class AudioClip:
         self._sampleRateHz = int(value)
         # recompute duration after updating sample rate
         self._duration = len(self._samples) / float(self._sampleRateHz)
+
+    @property
+    def totalSamples(self):
+        """Total number of audio samples stored in this object (`int`).
+        """
+        return self._samples.shape[0]  # number of rows
 
     @property
     def duration(self):
@@ -665,7 +1130,7 @@ class AudioClip:
         copy : bool
             If `True` an :class:`~psychopy.sound.AudioClip` containing a copy
             of the samples will be returned. If `False`, channels will be
-            mixed inplace resulting a the same object being returned. User data
+            mixed inplace resulting in the same object being returned. User data
             is not copied.
 
         Returns
@@ -674,58 +1139,95 @@ class AudioClip:
             Mono version of this object.
 
         """
-        samples = np.atleast_2d(self._samples)  # enforce 2D
+        if self.channels == 1:
+            return self
+        # log
+        logging.debug(
+            "Converted audio clip from stereo to mono"
+        )
+        # enforce 2D
+        samples = np.atleast_2d(self._samples)
+        # reduce to mono
         if samples.shape[1] > 1:
             samplesMixed = np.atleast_2d(
                 np.sum(samples, axis=1, dtype=np.float32) / np.float32(2.)).T
         else:
             samplesMixed = samples.copy()
-
+        # create copy if requested
         if copy:
             return AudioClip(samplesMixed, self.sampleRateHz)
+        # otherwise change self
+        self._samples = samplesMixed
+        return self
+    
+    def asStereo(self, copy=True):
+        """Convert the audio clip to stereo (two channel audio).
 
-        self._samples = samplesMixed  # overwrite
+        Parameters
+        ----------
+        copy : bool
+            If `True` an :class:`~psychopy.sound.AudioClip` containing a copy
+            of the samples will be returned. If `False`, channels will be
+            mixed inplace resulting in the same object being returned. User data
+            is not copied.
 
+        Returns
+        -------
+        :class:`~psychopy.sound.AudioClip`
+            Stereo version of this object.
+
+        """
+        if self.channels == 2:
+            return self
+        # log
+        logging.debug(
+            "Converted audio clip from mono to stereo"
+        )
+        # enforce 2D
+        samples = np.atleast_2d(self._samples) 
+        # expand to stereo
+        samples = np.hstack((samples, samples))
+        # create copy if requested
+        if copy:
+            return AudioClip(samples, self.sampleRateHz)
+        # otherwise change self
+        self._samples = samples
         return self
 
-    def transcribe(self, engine='sphinx', language='en-US', expectedWords=None,
+    def transcribe(self, engine='whisper', language='en-US', expectedWords=None,
                    config=None):
         """Convert speech in audio to text.
 
-        This feature passes the audio clip samples to a specified text-to-speech
-        engine which will attempt to transcribe any speech within. The efficacy
-        of the transcription depends on the engine selected, audio quality, and
-        language support. By default, Pocket Sphinx is used which provides
-        decent transcription capabilities offline for English and a few other
-        languages. For more robust transcription capabilities with a greater
-        range of language support, online providers such as Google may be used.
+        This function accepts an audio clip and returns a transcription of the
+        speech in the clip. The efficacy of the transcription depends on the 
+        engine selected, audio quality, and language support.
 
-        Speech-to-text conversion blocks the main application thread when used
+        Speech-to-text conversion blocks the main application thread when used 
         on Python. Don't transcribe audio during time-sensitive parts of your
-        experiment! This issue is known to the developers and will be fixed in a
-        later release.
+        experiment! Instead, initialize the transcriber before the experiment
+        begins by calling this function with `audioClip=None`.
 
         Parameters
         ----------
         engine : str
-            Speech-to-text engine to use. Can be one of 'sphinx' for CMU Pocket
-            Sphinx or 'google' for Google Cloud.
+            Speech-to-text engine to use.
         language : str
             BCP-47 language code (eg., 'en-US'). Note that supported languages
             vary between transcription engines.
         expectedWords : list or tuple
             List of strings representing expected words or phrases. This will
-            constrain the possible output words to the ones specified. Note not
-            all engines support this feature (only Sphinx and Google Cloud do at
-            this time). A warning will be logged if the engine selected does not
-            support this feature. CMU PocketSphinx has an additional feature
-            where the sensitivity can be specified for each expected word. You
-            can indicate the sensitivity level to use by putting a ``:`` (colon)
-            after each word in the list (see the Example below). Sensitivity
-            levels range between 0 and 100. A higher number results in the
-            engine being more conservative, resulting in a higher likelihood of
-            false rejections. The default sensitivity is 80% for words/phrases
-            without one specified.
+            constrain the possible output words to the ones specified which 
+            constrains the model for better accuracy. Note not all engines 
+            support this feature (only Sphinx and Google Cloud do at this time). 
+            A warning will be logged if the engine selected does not support this 
+            feature. CMU PocketSphinx has an additional feature where the 
+            sensitivity can be specified for each expected word. You can 
+            indicate the sensitivity level to use by putting a ``:`` after each 
+            word in the list (see the Example below). Sensitivity levels range 
+            between 0 and 100. A higher number results in the engine being more 
+            conservative, resulting in a higher likelihood of false rejections. 
+            The default sensitivity is 80% for words/phrases without one 
+            specified.
         config : dict or None
             Additional configuration options for the specified engine. These
             are specified using a dictionary (ex. `config={'pfilter': 1}` will
@@ -738,23 +1240,43 @@ class AudioClip:
 
         Notes
         -----
-        * Online transcription services (eg., Google) provide robust and
-          accurate speech recognition capabilities with broader language support
-          than offline solutions. However, these services may require a paid
-          subscription to use, reliable broadband internet connections, and may
-          not respect the privacy of your participants as their responses are
-          being sent to a third-party. Also consider that a track of audio data
-          being sent over the network can be large, users on metered connections
-          may incur additional costs to run your experiment.
-        * If the audio clip has multiple channels, they will be combined prior
-          to being passed to the transcription service if needed.
+        * The recommended transcriber is OpenAI Whisper which can be used locally
+          without an internet connection once a model is downloaded to cache. It 
+          can be selected by passing `engine='whisper'` to this function.
+        * Online transcription services (eg., Google) provide robust and accurate 
+          speech recognition capabilities with broader language support than 
+          offline solutions. However, these services may require a paid
+          subscription to use, reliable broadband internet connections, and may 
+          not respect the privacy of your participants as their responses are 
+          being sent to a third-party. Also consider that a track of audio data 
+          being sent over the network can be large, users on metered connections 
+          may incur additional costs to run your experiment. Offline 
+          transcription services (eg., CMU PocketSphinx and OpenAI Whisper) do not 
+          require an internet connection after the model has been downloaded and 
+          installed.
+        * If the audio clip has multiple channels, they will be combined prior to
+          being passed to the transcription service if needed.
 
         """
         # avoid circular import
-        from psychopy.sound.transcribe import transcribe
-        return transcribe(
+        from psychopy.sound.transcribe import (
+            getActiveTranscriber,
+            setupTranscriber)
+
+        # get the active transcriber
+        transcriber = getActiveTranscriber()
+        if transcriber is None:
+            logging.warning(
+                'No active transcriber, creating one now! If this happens in '
+                'a time sensitive part of your experiment, consider creating '
+                'the transcriber before the experiment begins by calling '
+                '`psychopy.sound.transcribe.setupTranscriber()` function.'
+            )
+            setupTranscriber(engine=engine, config=config)
+            transcriber = getActiveTranscriber()  # get again
+
+        return transcriber.transcribe(
             self,
-            engine=engine,
             language=language,
             expectedWords=expectedWords,
             config=config)
@@ -778,7 +1300,7 @@ def load(filename, codec=None):
     """
     # alias default names (so it always points to default.png)
     if filename in ft.defaultStim:
-        filename = Path(prefs.paths['resources']) / ft.defaultStim[filename]
+        filename = Path(prefs.paths['assets']) / ft.defaultStim[filename]
     return AudioClip.load(filename, codec)
 
 

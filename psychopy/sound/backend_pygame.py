@@ -19,6 +19,13 @@ except ImportError as err:
     raise DependencyError(repr(err))
 
 
+
+__all__ = [
+    "SoundPygame",
+    "Sound"
+]
+
+
 def getDevices(kind=None):
     """Get audio playback and recording devices via the backend's audio API.
 
@@ -150,9 +157,10 @@ class SoundPygame(_SoundBase):
     """
     def __init__(self, value="C", secs=0.5, octave=4, sampleRate=44100,
                  bits=16, name='', autoLog=True, loops=0, stereo=True,
-                 hamming=False):
+                 hamming=False, speaker=None):
         self.name = name  # only needed for autoLogging
         self.autoLog = autoLog
+        self.speaker = speaker
 
         if stereo == True:
             stereoChans = 2
@@ -171,6 +179,8 @@ class SoundPygame(_SoundBase):
             init()
             inits = mixer.get_init()
         self.sampleRate, self.format, self.isStereo = inits
+        self.startTime = 0
+        self.stopTime = secs
 
         if hamming:
             logging.warning("Hamming was requested using the 'pygame' sound "
@@ -268,7 +278,7 @@ class SoundPygame(_SoundBase):
     def _setSndFromFile(self, fileName):
         # alias default names (so it always points to default.png)
         if fileName in ft.defaultStim:
-            fileName = Path(prefs.paths['resources']) / ft.defaultStim[fileName]
+            fileName = Path(prefs.paths['assets']) / ft.defaultStim[fileName]
         # load the file
         if not path.isfile(fileName):
             msg = "Sound file %s could not be found." % fileName
@@ -284,9 +294,11 @@ class SoundPygame(_SoundBase):
             logging.error(msg % fileName)
             raise ValueError(msg % fileName)
 
-    def _setSndFromArray(self, thisArray):
-        # get a mixer.Sound object from an array of floats (-1:1)
+    def _setSndFromClip(self, clip):
+        self.clip = clip
+        thisArray = self.clip.samples
 
+        # get a mixer.Sound object from an array of floats (-1:1)
         # make stereo if mono
         if (self.isStereo == 2 and
                 (len(thisArray.shape) == 1 or
@@ -306,3 +318,6 @@ class SoundPygame(_SoundBase):
             thisArray = ((thisArray + 1) * 2**7).astype(numpy.uint8)
 
         self._snd = sndarray.make_sound(thisArray)
+
+
+Sound = SoundPygame

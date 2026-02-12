@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
-# Distributed under the terms of the GNU General Public License (GPL).
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2025 Open Science Tools Ltd.
+# Distributed under the terms of the MIT License.
 
 """Provides functions for logging error and other messages to one or more
 files and/or the console, using python's own logging module. Some warning
@@ -38,6 +38,8 @@ import atexit
 import sys
 import codecs
 import locale
+from pathlib import Path
+
 from psychopy import clock
 
 _packagePath = path.split(__file__)[0]
@@ -74,6 +76,9 @@ _levelNames = {
     'DEBUG': DEBUG,
     'NOTSET': NOTSET}
 
+# string to search for level names in a log message
+_levelNamesRe = "|".join(key for key in _levelNames if isinstance(key, str))
+
 _prefEncoding = locale.getpreferredencoding()
 
 def getLevel(level):
@@ -89,6 +94,10 @@ def getLevel(level):
 
     Otherwise, the string "Level %s" % level is returned.
     """
+    # use allcaps
+    if isinstance(level, str):
+        level = level.upper()
+
     return _levelNames.get(level, "Level %s" % level)
 
 
@@ -118,16 +127,14 @@ def setDefaultClock(clock):
 
 class _LogEntry():
 
-    def __init__(self, level, message, t=None, obj=None):
+    def __init__(self, level, message, t=None, obj=None, levelname=None):
         super(_LogEntry, self).__init__()
-        try:
-            "%0.4f" % (t)
-        except (ValueError, TypeError):
-            raise ValueError("Value \"%s\" of log message \"%s\" could not be coerced to string from numeric" % (t, message))
         self.t = t
         self.t_ms = t * 1000
         self.level = level
-        self.levelname = getLevel(level)
+        if levelname is None:
+            levelname = getLevel(level)
+        self.levelname = levelname
         self.message = message
         self.obj = obj
 
@@ -158,6 +165,8 @@ class LogFile():
         """
         super(LogFile, self).__init__()
         # work out if this is a filename or a stream to write to
+        if isinstance(f, Path):
+            f = str(f)
         if f is None:
             self.stream = 'stdout'
         elif hasattr(f, 'write'):
@@ -184,6 +193,10 @@ class LogFile():
     def setLevel(self, level):
         """Set a new minimal level for the log file/stream
         """
+        # if given a name, get corresponding integer value
+        if isinstance(level, str):
+            level = getLevel(level)
+        # make sure we (now) have an integer
         if type(level) is not int:
             raise TypeError("LogFile.setLevel() should be given an int, which"
                             "is usually one of logging.INFO (not logging.info)")
@@ -227,8 +240,8 @@ class _Logger():
 
     """
 
-    def __init__(self, format="%(t).4f \t%(levelname)s \t%(message)s"):
-        """The string-formatted elements %(xxxx)f can be used, where
+    def __init__(self, format="{t:.4f} \t{levelname} \t{message}"):
+        """The string-formatted elements {xxxx} can be used, where
         each xxxx is an attribute of the LogEntry.
         e.g. t, t_ms, level, levelname, message
         """
@@ -264,7 +277,7 @@ class _Logger():
         for target in self.targets:
             self.lowestTarget = min(self.lowestTarget, target.level)
 
-    def log(self, message, level, t=None, obj=None):
+    def log(self, message, level, t=None, obj=None, levelname=None):
         """Add the `message` to the log stack at the appropriate `level`
 
         If no relevant targets (files or console) exist then the message is
@@ -279,7 +292,7 @@ class _Logger():
             t = defaultClock.getTime()
         # add message to list
         self.toFlush.append(
-            _LogEntry(t=t, level=level, message=message, obj=obj))
+            _LogEntry(t=t, level=level, levelname=levelname, message=message, obj=obj))
 
     def flush(self):
         """Process all current messages to each target
@@ -292,7 +305,7 @@ class _Logger():
                 if thisEntry.level >= target.level:
                     if not thisEntry in formatted:
                         # convert the entry into a formatted string
-                        formatted[thisEntry] = self.format % thisEntry.__dict__
+                        formatted[thisEntry] = self.format.format(**thisEntry.__dict__)
                     target.write(formatted[thisEntry] + '\n')
             if hasattr(target.stream, 'flush'):
                 target.stream.flush()
@@ -301,7 +314,7 @@ class _Logger():
         self.toFlush = []  # a new empty list
 
 root = _Logger()
-console = LogFile()
+console = LogFile(level=WARNING)
 
 
 def flush(logger=root):
@@ -318,7 +331,7 @@ def critical(msg, t=None, obj=None):
     Send the message to any receiver of logging info (e.g. a LogFile)
     of level `log.CRITICAL` or higher
     """
-    root.log(msg, level=CRITICAL, t=t, obj=obj)
+    root.log(msg, level=CRITICAL, t=t, obj=obj, levelname="CRITICAL")
 fatal = critical
 
 
@@ -328,7 +341,7 @@ def error(msg, t=None, obj=None):
     Send the message to any receiver of logging info (e.g. a LogFile)
     of level `log.ERROR` or higher
     """
-    root.log(msg, level=ERROR, t=t, obj=obj)
+    root.log(msg, level=ERROR, t=t, obj=obj, levelname="ERROR")
 
 
 def warning(msg, t=None, obj=None):
@@ -337,7 +350,7 @@ def warning(msg, t=None, obj=None):
     Sends the message to any receiver of logging info (e.g. a LogFile)
     of level `log.WARNING` or higher
     """
-    root.log(msg, level=WARNING, t=t, obj=obj)
+    root.log(msg, level=WARNING, t=t, obj=obj, levelname="WARNING")
 warn = warning
 
 
@@ -350,7 +363,7 @@ def data(msg, t=None, obj=None):
     Sends the message to any receiver of logging info (e.g. a LogFile)
     of level `log.DATA` or higher
     """
-    root.log(msg, level=DATA, t=t, obj=obj)
+    root.log(msg, level=DATA, t=t, obj=obj, levelname="DATA")
 
 
 def exp(msg, t=None, obj=None):
@@ -363,7 +376,7 @@ def exp(msg, t=None, obj=None):
     Sends the message to any receiver of logging info (e.g. a LogFile)
     of level `log.EXP` or higher
     """
-    root.log(msg, level=EXP, t=t, obj=obj)
+    root.log(msg, level=EXP, t=t, obj=obj, levelname="EXP")
 
 
 def info(msg, t=None, obj=None):
@@ -375,7 +388,7 @@ def info(msg, t=None, obj=None):
     Sends the message to any receiver of logging info (e.g. a LogFile)
     of level `log.INFO` or higher
     """
-    root.log(msg, level=INFO, t=t, obj=obj)
+    root.log(msg, level=INFO, t=t, obj=obj, levelname="INFO")
 
 
 def debug(msg, t=None, obj=None):
@@ -388,7 +401,7 @@ def debug(msg, t=None, obj=None):
     Sends the message to any receiver of logging info (e.g. a LogFile)
     of level `log.DEBUG` or higher
     """
-    root.log(msg, level=DEBUG, t=t, obj=obj)
+    root.log(msg, level=DEBUG, t=t, obj=obj, levelname="DEBUG")
 
 
 def log(msg, level, t=None, obj=None):

@@ -6,11 +6,12 @@ as a special case of a :class:`~psychopy.visual.Polygon`
 """
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
-# Distributed under the terms of the GNU General Public License (GPL).
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2025 Open Science Tools Ltd.
+# Distributed under the terms of the MIT License.
 
 import psychopy  # so we can get the __path__
 
+from psychopy.tools.attributetools import undefined
 from psychopy.visual.polygon import Polygon
 
 
@@ -39,11 +40,6 @@ class Circle(Polygon):
     lineColor, fillColor : array_like, str, :class:`~psychopy.colors.Color` or None
         Color of the circle's outline and fill. If `None`, a fully
         transparent color is used which makes the fill or outline invisible.
-    lineColorSpace, fillColorSpace : str
-        Colorspace to use for the outline and fill. These change how the
-        values passed to `lineColor` and `fillColor` are interpreted.
-        *Deprecated*. Please use `colorSpace` to set both outline and fill
-        colorspace. These arguments may be removed in a future version.
     pos : array_like
         Initial position (`x`, `y`) of the circle on-screen relative to the
         origin located at the center of the window or buffer in `units`
@@ -78,9 +74,8 @@ class Circle(Polygon):
     interpolate : bool
         Enable smoothing (anti-aliasing) when drawing shape outlines. This
         produces a smoother (less-pixelated) outline of the shape.
-    lineRGB, fillRGB: array_like, :class:`~psychopy.colors.Color` or None
-        *Deprecated*. Please use `lineColor` and `fillColor`. These
-        arguments may be removed in a future version.
+    draggable : bool
+        Can this stimulus be dragged by a mouse click?
     name : str
         Optional name of the stimuli for logging.
     autoLog : bool
@@ -105,17 +100,14 @@ class Circle(Polygon):
 
     """
 
-    _defaultFillColor = "white"
-    _defaultLineColor = None
-
     def __init__(self,
                  win,
                  radius=.5,
                  edges="circle",
                  units='',
                  lineWidth=1.5,
-                 lineColor=False,
-                 fillColor=False,
+                 lineColor=None,
+                 fillColor="white",
                  colorSpace='rgb',
                  pos=(0, 0),
                  size=1.0,
@@ -125,15 +117,16 @@ class Circle(Polygon):
                  contrast=1.0,
                  depth=0,
                  interpolate=True,
-                 lineRGB=False,
-                 fillRGB=False,
+                 draggable=False,
                  name=None,
                  autoLog=None,
                  autoDraw=False,
                  # legacy
-                 color=False,
-                 fillColorSpace=None,
-                 lineColorSpace=None,
+                 lineRGB=undefined,
+                 fillRGB=undefined,
+                 color=undefined,
+                 fillColorSpace=undefined,
+                 lineColorSpace=undefined,
                  ):
 
         # what local vars are defined (these are the init params) for use by
@@ -149,9 +142,7 @@ class Circle(Polygon):
             units=units,
             lineWidth=lineWidth,
             lineColor=lineColor,
-            lineColorSpace=lineColorSpace,
             fillColor=fillColor,
-            fillColorSpace=fillColorSpace,
             pos=pos,
             size=size,
             anchor=anchor,
@@ -160,10 +151,15 @@ class Circle(Polygon):
             contrast=contrast,
             depth=depth,
             interpolate=interpolate,
+            draggable=draggable,
             lineRGB=lineRGB,
             fillRGB=fillRGB,
             name=name,
             autoLog=autoLog,
             autoDraw=autoDraw,
+            colorSpace=colorSpace,
+            # legacy
             color=color,
-            colorSpace=colorSpace)
+            fillColorSpace=fillColorSpace,
+            lineColorSpace=lineColorSpace,
+        )

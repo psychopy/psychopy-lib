@@ -3,10 +3,6 @@
 
 from pathlib import Path
 from psychopy.experiment.components import BaseComponent, Param, _translate
-from psychopy import prefs
-
-# only use _localized values for label values, nothing functional:
-_localized = {'name': _translate('Name')}
 
 
 class UnknownPluginComponent(BaseComponent):
@@ -21,16 +17,25 @@ class UnknownPluginComponent(BaseComponent):
     categories = ['Other']
     targets = ['PsychoPy']
     iconFile = Path(__file__).parent / 'unknownPlugin.png'
+    iconSVG = Path(__file__).parent / 'UnknownPluginComponent.svg'
     tooltip = _translate('Unknown: A component which comes from a plugin which you do not have installed & activated.')
+    # hide from the Components panel
+    hidden = True
 
-    def __init__(self, exp, parentName, name=''):
-        self.type = 'Unknown'
+    def __init__(self, exp, parentName, name='', compType="UnknownPluginComponent"):
         self.exp = exp  # so we can access the experiment if necess
         self.parentName = parentName  # to access the routine too if needed
         self.params = {}
         self.depends = []
         super(UnknownPluginComponent, self).__init__(exp, parentName, name=name)
-        self.order += []
+        # replace default type with the type given
+        self.type = compType
+
+    @property
+    def _xml(self):
+        # make XML node with tag from self.type rather than class name
+        return self.makeXmlNode(self.type)
+
     # make sure nothing gets written into experiment for an unknown object
     # class!
 

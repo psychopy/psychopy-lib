@@ -5,8 +5,8 @@
 """
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
-# Distributed under the terms of the GNU General Public License (GPL).
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2025 Open Science Tools Ltd.
+# Distributed under the terms of the MIT License.
 
 __all__ = ["MovieFrame", "NULL_MOVIE_FRAME_INFO", "MOVIE_FRAME_NOT_READY"]
 
@@ -62,7 +62,8 @@ class MovieFrame:
         "_audioSamples",
         "_audioChannels",
         "_movieLib",
-        "_userData"
+        "_userData",
+        '_keepAlive'
     ]
 
     def __init__(self,
@@ -76,7 +77,8 @@ class MovieFrame:
                  audioSamples=None,
                  metadata=None,
                  movieLib=u"",
-                 userData=None):
+                 userData=None,
+                 keepAlive=None):
 
         self.frameIndex = frameIndex
         self.absTime = absTime
@@ -89,6 +91,7 @@ class MovieFrame:
         self._metadata = metadata
         self.movieLib = movieLib
         self.userData = userData
+        self._keepAlive = keepAlive
 
     def __repr__(self):
         return (f"MovieFrame(frameIndex={self.frameIndex}, "

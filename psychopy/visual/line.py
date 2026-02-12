@@ -6,8 +6,8 @@
 """
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
-# Distributed under the terms of the GNU General Public License (GPL).
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2025 Open Science Tools Ltd.
+# Distributed under the terms of the MIT License.
 
 
 
@@ -17,11 +17,14 @@ from psychopy import logging
 import numpy
 
 from psychopy.visual.shape import ShapeStim
-from psychopy.tools.attributetools import attributeSetter, setAttribute
+from psychopy.tools.attributetools import attributeSetter, setAttribute, undefined
 
 
 class Line(ShapeStim):
-    """Creates a Line between two points.
+    """Creates a Line between two points. This is
+    a lazy-imported class, therefore import using full path 
+    `from psychopy.visual.line import Line` when
+    inheriting from it.
 
     `Line` accepts all input parameters, that :class:`~psychopy.visual.ShapeStim`
     accepts, except for `vertices`, `closeShape` and `fillColor`.
@@ -48,11 +51,6 @@ class Line(ShapeStim):
     lineColor : array_like, str, :class:`~psychopy.colors.Color` or None
         Color of the line. If `None`, a fully transparent color is used which
         makes the line invisible. *Deprecated* use `color` instead.
-    lineColorSpace : str or None
-        Colorspace to use for the line. These change how the values passed to
-        `lineColor` are interpreted. *Deprecated*. Please use `colorSpace` to
-        set the line colorspace. This arguments may be removed in a future
-        version.
     pos : array_like
         Initial translation (`x`, `y`) of the line on-screen relative to the
         origin located at the center of the window or buffer in `units`.
@@ -87,9 +85,8 @@ class Line(ShapeStim):
     interpolate : bool
         Enable smoothing (anti-aliasing) when drawing lines. This produces a
         smoother (less-pixelated) line.
-    lineRGB: array_like, :class:`~psychopy.colors.Color` or None
-        *Deprecated*. Please use `color` instead. This argument may be removed
-        in a future version.
+    draggable : bool
+        Can this stimulus be dragged by a mouse click?
     name : str
         Optional name of the stimuli for logging.
     autoLog : bool
@@ -118,16 +115,13 @@ class Line(ShapeStim):
 
     """
 
-    _defaultFillColor = None
-    _defaultLineColor = "white"
-
     def __init__(self,
                  win,
                  start=(-.5, -.5),
                  end=(.5, .5),
                  units=None,
                  lineWidth=1.5,
-                 lineColor=False,
+                 lineColor="white",
                  colorSpace='rgb',
                  pos=(0, 0),
                  size=1.0,
@@ -137,15 +131,16 @@ class Line(ShapeStim):
                  contrast=1.0,
                  depth=0,
                  interpolate=True,
+                 draggable=False,
                  name=None,
                  autoLog=None,
                  autoDraw=False,
                  # legacy
-                 color=False,
-                 fillColor=False,
-                 lineColorSpace=None,
-                 lineRGB=False,
-                 fillRGB=False,
+                 color=undefined,
+                 fillColor=undefined,
+                 lineColorSpace=undefined,
+                 lineRGB=undefined,
+                 fillRGB=undefined,
                  ):
 
         """
@@ -164,10 +159,7 @@ class Line(ShapeStim):
             units=units,
             lineWidth=lineWidth,
             lineColor=lineColor,
-            lineColorSpace=None,
-            fillColor=None,
-            fillColorSpace=lineColorSpace,  # have these set to the same
-            vertices=None,
+            vertices=(start, end),
             anchor=anchor,
             closeShape=False,
             pos=pos,
@@ -177,15 +169,19 @@ class Line(ShapeStim):
             contrast=contrast,
             depth=depth,
             interpolate=interpolate,
-            lineRGB=lineRGB,
-            fillRGB=fillRGB,
+            draggable=draggable,
             name=name,
             autoLog=autoLog,
             autoDraw=autoDraw,
+            colorSpace=colorSpace,
+            # legacy
             color=color,
-            colorSpace=colorSpace)
+            fillColor=fillColor,
+            lineColorSpace=lineColorSpace,
+            lineRGB=lineRGB,
+            fillRGB=fillRGB,
+        )
 
-        self._vertices.setas([start, end], self.units)
         del self._tesselVertices
 
     @property
