@@ -1800,7 +1800,8 @@ building = [
     { name = "bdist-mpkg", marker = "sys_platform == 'darwin'" },
     { name = "dmgbuild", version = "1.6.5", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.10' and sys_platform == 'darwin'" },
     { name = "dmgbuild", version = "1.6.7", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.10' and sys_platform == 'darwin'" },
-    { name = "py2app", marker = "sys_platform == 'darwin'" },
+    { name = "py2app", version = "0.28.9", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.10' and sys_platform == 'darwin'" },
+    { name = "py2app", version = "0.28.10", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.10' and sys_platform == 'darwin'" },
 ]
 docs = [
     { name = "jinja2" },
@@ -1945,15 +1946,37 @@ wheels = [
 name = "py2app"
 version = "0.28.9"
 source = { registry = "https://pypi.org/simple" }
+resolution-markers = [
+    "python_full_version < '3.10' and platform_machine == 'arm64' and sys_platform == 'darwin'",
+    "(python_full_version < '3.10' and platform_machine != 'arm64' and sys_platform == 'darwin') or (python_full_version < '3.10' and platform_machine != 'aarch64' and sys_platform == 'linux') or (python_full_version < '3.10' and sys_platform != 'darwin' and sys_platform != 'linux' and sys_platform != 'win32')",
+]
 dependencies = [
-    { name = "altgraph", marker = "(python_full_version < '3.10' and platform_machine != 'aarch64' and sys_platform == 'linux') or (python_full_version < '3.10' and sys_platform != 'linux' and sys_platform != 'win32') or sys_platform == 'darwin'" },
-    { name = "macholib", marker = "(python_full_version < '3.10' and platform_machine != 'aarch64' and sys_platform == 'linux') or (python_full_version < '3.10' and sys_platform != 'linux' and sys_platform != 'win32') or sys_platform == 'darwin'" },
-    { name = "modulegraph", marker = "(python_full_version < '3.10' and platform_machine != 'aarch64' and sys_platform == 'linux') or (python_full_version < '3.10' and sys_platform != 'linux' and sys_platform != 'win32') or sys_platform == 'darwin'" },
-    { name = "packaging", marker = "(python_full_version < '3.10' and platform_machine != 'aarch64' and sys_platform == 'linux') or (python_full_version < '3.10' and sys_platform != 'linux' and sys_platform != 'win32') or sys_platform == 'darwin'" },
+    { name = "altgraph", marker = "(python_full_version < '3.10' and platform_machine != 'aarch64' and sys_platform == 'linux') or (python_full_version < '3.10' and sys_platform != 'linux' and sys_platform != 'win32')" },
+    { name = "macholib", marker = "(python_full_version < '3.10' and platform_machine != 'aarch64' and sys_platform == 'linux') or (python_full_version < '3.10' and sys_platform != 'linux' and sys_platform != 'win32')" },
+    { name = "modulegraph", marker = "(python_full_version < '3.10' and platform_machine != 'aarch64' and sys_platform == 'linux') or (python_full_version < '3.10' and sys_platform != 'linux' and sys_platform != 'win32')" },
+    { name = "packaging", marker = "(python_full_version < '3.10' and platform_machine != 'aarch64' and sys_platform == 'linux') or (python_full_version < '3.10' and sys_platform != 'linux' and sys_platform != 'win32')" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/23/14/657162299713f5d33e4f90158f99da838013388ccb8f2529151735e3ee64/py2app-0.28.9.tar.gz", hash = "sha256:bcbddd3017c51203858428f4cd66a7d7ea1096c6d57f1257cc2fdb066927c7c5", size = 1236799, upload-time = "2025-11-29T11:54:11.951Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/22/3a/294a507d73b8e3f261f75d778bd804d9ec183bb56c7052a9123ee86f1a65/py2app-0.28.9-py2.py3-none-any.whl", hash = "sha256:e698a8cc8ee8e899672ce93fee3727088c08b3c9a765cfc6519c24ca8e3e63f8", size = 837077, upload-time = "2025-11-29T11:54:09.72Z" },
+]
+
+[[package]]
+name = "py2app"
+version = "0.28.10"
+source = { registry = "https://pypi.org/simple" }
+resolution-markers = [
+    "python_full_version >= '3.10' and sys_platform == 'darwin'",
+]
+dependencies = [
+    { name = "altgraph", marker = "python_full_version >= '3.10' and sys_platform == 'darwin'" },
+    { name = "macholib", marker = "python_full_version >= '3.10' and sys_platform == 'darwin'" },
+    { name = "modulegraph", marker = "python_full_version >= '3.10' and sys_platform == 'darwin'" },
+    { name = "packaging", marker = "python_full_version >= '3.10' and sys_platform == 'darwin'" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/93/82/79a2aaaf86c44c6018edce1a028cf821acec4c3ca63e2b5781f16822c99f/py2app-0.28.10.tar.gz", hash = "sha256:fd38f4a0083d4d1e91ea336eaef678b99d9e1b95ac6302315cad22fa5e859cb1", size = 1143601, upload-time = "2026-02-13T20:50:02.289Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/be/d8/a04a88b182613370a262f674929f0e284ea04e1803f2d38fc5639fbec2d7/py2app-0.28.10-py3-none-any.whl", hash = "sha256:bdb0cd2cbfa5160b5b11b8d612f6eb92d484a0282801e85b159f1930cd834714", size = 837349, upload-time = "2026-02-13T20:49:59.98Z" },
 ]
 
 [[package]]
