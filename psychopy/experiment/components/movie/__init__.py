@@ -3,7 +3,7 @@
 
 # Part of the PsychoPy library
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2025 Open Science Tools Ltd.
-# Distributed under the terms of the MIT License.
+# Distributed under the terms of the GNU General Public License (GPL).
 
 from pathlib import Path
 import copy
@@ -17,7 +17,6 @@ class MovieComponent(BaseVisualComponent):
     categories = ['Stimuli']
     targets = ['PsychoPy', 'PsychoJS']
     iconFile = Path(__file__).parent / 'movie.png'
-    iconSVG = Path(__file__).parent / 'MovieComponent.svg'
     tooltip = _translate('Movie: play movie files')
 
     def __init__(self, exp, parentName, name='movie', movie='',
@@ -72,10 +71,10 @@ class MovieComponent(BaseVisualComponent):
 
         self.depends.append(
             {"dependsOn": "No audio",  # must be param name
-             "condition": "==False",  # val to check for
+             "condition": "==True",  # val to check for
              "param": "volume",  # param property to alter
-             "true": "show",  # what to do with param if condition is True
-             "false": "hide",  # permitted: hide, show, enable, disable
+             "true": "hide",  # what to do with param if condition is True
+             "false": "show",  # permitted: hide, show, enable, disable
              }
         )
 

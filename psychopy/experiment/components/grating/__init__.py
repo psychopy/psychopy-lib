@@ -3,7 +3,7 @@
 
 # Part of the PsychoPy library
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2025 Open Science Tools Ltd.
-# Distributed under the terms of the MIT License.
+# Distributed under the terms of the GNU General Public License (GPL).
 
 from pathlib import Path
 from psychopy.experiment.components import BaseVisualComponent, Param, \
@@ -16,7 +16,6 @@ class GratingComponent(BaseVisualComponent):
     categories = ['Stimuli']
     targets = ['PsychoPy', 'PsychoJS']
     iconFile = Path(__file__).parent / 'grating.png'
-    iconSVG = Path(__file__).parent / 'GratingComponent.svg'
     tooltip = _translate('Grating: present cyclic textures, prebuilt or from a '
                          'file')
 

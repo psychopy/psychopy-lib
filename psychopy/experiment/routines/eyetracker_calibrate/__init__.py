@@ -10,7 +10,6 @@ class EyetrackerCalibrationRoutine(BaseStandaloneRoutine):
     targets = ["PsychoPy"]
     version = "2021.2.0"
     iconFile = Path(__file__).parent / "eyetracker_calib.png"
-    iconSVG = Path(__file__).parent / 'EyetrackerCalibrationRoutine.svg'
     tooltip = _translate("Calibration routine for eyetrackers")
     beta = True
 
@@ -121,7 +120,7 @@ class EyetrackerCalibrationRoutine(BaseStandaloneRoutine):
 
         self.params['colorSpace'] = Param(colorSpace,
                                           valType='str', inputType="choice", categ='Target',
-                                          allowedVals=['named', 'hex', 'rgb', 'dkl', 'lms', 'hsv'],
+                                          allowedVals=['rgb', 'dkl', 'lms', 'hsv'],
                                           hint=_translate(
                                               "In what format (color space) have you specified the colors? (rgb, dkl, lms, hsv)"),
                                           label=_translate("Color space"))
@@ -167,10 +166,10 @@ class EyetrackerCalibrationRoutine(BaseStandaloneRoutine):
         ):
             self.depends.append({
                 "dependsOn": 'useCustom',  # if...
-                "condition": "==False",  # meets...
+                "condition": "",  # meets...
                 "param": thisParam,  # then...
-                "true": "show",  # should...
-                "false": "hide",  # otherwise...
+                "true": "hide",  # should...
+                "false": "show",  # otherwise...
             })
 
         # Animation Params

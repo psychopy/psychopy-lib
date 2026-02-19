@@ -3,7 +3,7 @@
 
 # Part of the PsychoPy library
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2025 Open Science Tools Ltd.
-# Distributed under the terms of the MIT License.
+# Distributed under the terms of the GNU General Public License (GPL).
 
 import ast
 import sys
@@ -231,12 +231,6 @@ class pythonTransformer(ast.NodeTransformer):
 
         # transform the node func:
         node.func = pythonTransformer().visit(node.func)
-
-        # isinstance(x, list) -> x instanceof Array
-        if isinstance(node.func, ast.Name) and node.func.id == 'isinstance':
-            if len(node.args) == 2 and isinstance(node.args[1], ast.Name) and node.args[1].id == 'list':
-                node.args[1] = ast.Name(id='Array', ctx=ast.Load())
-                return node
 
         # substitutable transformation, e.g. Vector.append(5) --> Vector.push(5):
         if isinstance(node.func, ast.Attribute):  # and isinstance(node.func.value, ast.Name):

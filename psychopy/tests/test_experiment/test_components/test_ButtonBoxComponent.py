@@ -30,7 +30,7 @@ class TestButtonBoxComponent(BaseComponentTests):
 
         for profile in DeviceManager.getAvailableDevices("psychopy.hardware.button.KeyboardButtonBox"):
             device = KeyboardButtonBoxDeviceBackend(profile)
-            device.params['name'].val = "testButtonBox"
+            device.params['deviceLabel'].val = "testButtonBox"
             prefs.devices['testButtonBox'] = device
             break
     

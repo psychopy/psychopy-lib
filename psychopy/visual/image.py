@@ -5,7 +5,7 @@
 
 # Part of the PsychoPy library
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2025 Open Science Tools Ltd.
-# Distributed under the terms of the MIT License.
+# Distributed under the terms of the GNU General Public License (GPL).
 
 # Ensure setting pyglet.options['debug_gl'] to False is done prior to any
 # other calls to pyglet or pyglet submodules, otherwise it may not get picked
@@ -327,31 +327,6 @@ class ImageStim(BaseVisualStim, DraggingMixin, ContainerMixin, ColorMixin,
         """
         self.__dict__['image'] = self._imName = value
 
-        # handle a matplotlib object as image
-        if hasattr(value, 'canvas'):  # matplotlib figure
-            if hasattr(value.canvas, 'draw'):
-                value.canvas.draw()  # make sure the figure is drawn
-            figDPI = value.get_dpi()
-            figWidth = value.get_figwidth() * figDPI
-            figHeight = value.get_figheight() * figDPI
-            self._origSize = (int(figWidth), int(figHeight))
-            ncol, nrow = value.canvas.get_width_height()
-            value = numpy.flip(numpy.frombuffer(
-                value.canvas.tostring_argb(), dtype="uint8").reshape(
-                    int(nrow), int(ncol), 4), axis=0)
-            # value = value[..., [1, 2, 3, 0]]  # swizzle alpha channel
-            # discard alpha channel, keep RGB
-            value = value[..., 1:]
-            # convert to float32
-            value = numpy.ascontiguousarray(
-                value, dtype=numpy.float32) / 127.5 - 1
-            # pixFormat = GL.GL_RGBA
-        elif isinstance(value, colors.Color):
-            value = value.render('rgb1')
-        else:
-            pass
-
-        # determine data type
         wasLumImage = self.isLumImage
         if hasattr(value, 'colorTexture'):
             # reference to object that provides texture data

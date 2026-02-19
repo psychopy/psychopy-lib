@@ -56,7 +56,7 @@ Example usage
 
 # Part of the PsychoPy library
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2025 Open Science Tools Ltd.
-# Distributed under the terms of the MIT License.
+# Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import, division, print_function
 
@@ -385,12 +385,6 @@ class KeyboardDevice(BaseResponseDevice, aliases=["keyboard"]):
             KeyboardDevice._backend = 'event'
 
         logging.info('keyboard.Keyboard is using %s backend.' % KeyboardDevice._backend)
-
-        # Initialize _buffers and _devs for all backends to prevent AttributeError
-        if not hasattr(self, '_buffers'):
-            self._buffers = {}
-        if not hasattr(self, '_devs'):
-            self._devs = {}
 
         # array in which to store ongoing presses
         self._keysStillDown = deque()

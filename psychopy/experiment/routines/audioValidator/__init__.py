@@ -19,7 +19,6 @@ class AudioValidatorRoutine(BaseDeviceRoutine):
 
     categories = ['Validation']
     iconFile = Path(__file__).parent / 'audio_validator.png'
-    iconSVG = Path(__file__).parent / 'AudioValidatorRoutine.svg'
     tooltip = _translate(
         "Use a sound sensor to confirm that audio stimuli are presented when they should "
         "be."

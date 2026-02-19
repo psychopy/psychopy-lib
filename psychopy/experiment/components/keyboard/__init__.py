@@ -3,7 +3,7 @@
 
 # Part of the PsychoPy library
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2025 Open Science Tools Ltd.
-# Distributed under the terms of the MIT License.
+# Distributed under the terms of the GNU General Public License (GPL).
 
 from pathlib import Path
 
@@ -22,7 +22,6 @@ class KeyboardComponent(BaseComponent):
     categories = ['Responses']
     targets = ['PsychoPy', 'PsychoJS']
     iconFile = Path(__file__).parent / 'keyboard.png'
-    iconSVG = Path(__file__).parent / 'KeyboardComponent.svg'
     tooltip = _translate('Keyboard: check and record keypresses')
     legacyParams = [
         # as there's only ever 1 keyboard, it shouldn't interact with device manager

@@ -11,7 +11,6 @@ class ResourceManagerComponent(BaseComponent):
     categories = ['Custom']
     targets = ['PsychoJS']
     iconFile = Path(__file__).parent / "resource_manager.png"
-    iconSVG = Path(__file__).parent / 'ResourceManagerComponent.svg'
     tooltip = _translate("Pre-load some resources into memory so that components using them can start without having "
                          "to load first")
     beta = True
@@ -65,18 +64,26 @@ class ResourceManagerComponent(BaseComponent):
 
         self.depends.append(
              {"dependsOn": "actionType",  # must be param name
-              "condition": "in ['Start and Stop', 'Stop Only']",  # val to check for
+              "condition": "=='Start Only'",  # val to check for
               "param": "stop",  # param property to alter
-              "true": "show",  # what to do with param if condition is True
-              "false": "hide",  # permitted: hide, show, enable, disable
+              "true": "hide",  # what to do with param if condition is True
+              "false": "show",  # permitted: hide, show, enable, disable
               }
-         )
+        )
         self.depends.append(
              {"dependsOn": "actionType",  # must be param name
-              "condition": "in ['Start and Stop', 'Start Only']",  # val to check for
+              "condition": "=='Check Only'",  # val to check for
               "param": "start",  # param property to alter
-              "true": "show",  # what to do with param if condition is True
-              "false": "hide",  # permitted: hide, show, enable, disable
+              "true": "hide",  # what to do with param if condition is True
+              "false": "show",  # permitted: hide, show, enable, disable
+              }
+        )
+        self.depends.append(
+             {"dependsOn": "actionType",  # must be param name
+              "condition": "=='Check Only'",  # val to check for
+              "param": "start",  # param property to alter
+              "true": "hide",  # what to do with param if condition is True
+              "false": "show",  # permitted: hide, show, enable, disable
               }
         )
 

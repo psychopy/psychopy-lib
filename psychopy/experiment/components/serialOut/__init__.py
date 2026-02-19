@@ -3,7 +3,7 @@
 
 # Part of the PsychoPy library
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2025 Open Science Tools Ltd.
-# Distributed under the terms of the MIT License.
+# Distributed under the terms of the GNU General Public License (GPL).
 from copy import copy
 from pathlib import Path
 from psychopy.experiment.devices import DeviceBackend
@@ -18,7 +18,6 @@ class SerialOutComponent(BaseDeviceComponent):
     targets = ['PsychoPy']
     version = "2022.2.0"
     iconFile = Path(__file__).parent / 'serial.png'
-    iconSVG = Path(__file__).parent / 'SerialOutComponent.svg'
     tooltip = _translate('Serial out: send signals from a serial port')
     beta = False
     legacyParams = [

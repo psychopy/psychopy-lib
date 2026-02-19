@@ -3,7 +3,7 @@
 
 # Part of the PsychoPy library
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2025 Open Science Tools Ltd.
-# Distributed under the terms of the MIT License.
+# Distributed under the terms of the GNU General Public License (GPL).
 
 # Author: Jeremy R. Gray, 2012
 from pathlib import Path
@@ -23,7 +23,6 @@ class MicrophoneComponent(BaseDeviceComponent):
     targets = ['PsychoPy', 'PsychoJS']
     version = "2021.2.0"
     iconFile = Path(__file__).parent / 'microphone.png'
-    iconSVG = Path(__file__).parent / 'MicrophoneComponent.svg'
     tooltip = _translate('Microphone: basic sound capture (fixed onset & '
                          'duration), okay for spoken words')
 

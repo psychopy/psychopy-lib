@@ -3,7 +3,7 @@
 
 # Part of the PsychoPy library
 # Copyright (C) 2015 Jonathan Peirce
-# Distributed under the terms of the MIT License.
+# Distributed under the terms of the GNU General Public License (GPL).
 
 from pathlib import Path
 from psychopy.experiment.components import BaseVisualComponent, Param, \
@@ -40,7 +40,6 @@ class SliderComponent(BaseVisualComponent):
     categories = ['Responses']
     targets = ['PsychoPy', 'PsychoJS']
     iconFile = Path(__file__).parent / 'slider.png'
-    iconSVG = Path(__file__).parent / 'SliderComponent.svg'
     tooltip = _translate('Slider: A simple, flexible object for getting ratings')
 
     def __init__(self, exp, parentName,

@@ -3,7 +3,7 @@
 
 # Part of the PsychoPy library
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2025 Open Science Tools Ltd.
-# Distributed under the terms of the MIT License.
+# Distributed under the terms of the GNU General Public License (GPL).
 
 from pathlib import Path
 from psychopy.experiment.components import BaseComponent, Param, _translate
@@ -19,7 +19,6 @@ class JoystickComponent(BaseComponent):
     categories = ['Responses']
     targets = ['PsychoPy']
     iconFile = Path(__file__).parent / 'joystick.png'
-    iconSVG = Path(__file__).parent / 'JoystickComponent.svg'
     tooltip = _translate('Joystick: query joystick position and buttons')
 
     def __init__(self, exp, parentName, name='joystick',
@@ -166,7 +165,7 @@ class JoystickComponent(BaseComponent):
         buff.writeIndentedLines(code % self.params)
 
         buff.setIndentLevel(+1, relative=True)
-        code = ("numJoysticks = len(joysticklib.Joystick.getAvailableDevices())\n"
+        code = ("numJoysticks = joysticklib.getNumJoysticks()\n"
                 "if numJoysticks > 0:\n")
         buff.writeIndentedLines(code % self.params)
 
