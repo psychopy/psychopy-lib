@@ -1,6 +1,6 @@
 
 [project]
-name = "psychopy"
+name = "psychopy-lib"
 dynamic = ["version"]
 requires-python = ">=3.9, <3.12"
 description = "PsychoPy provides easy, precise, flexible experiments in behavioural sciences"
