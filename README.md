@@ -1,7 +1,12 @@
-# psychopy-lib
+# PsychoPy Library
 
-This repo is a test of deploying just the lib for PsychoPy (without the application) for the sake of runtime environments that may want to run a PsychoPy study without the application.
+`psychopy-lib` is a library-only implementation of [PsychoPy](https://pypi.python.org/pypi/PsychoPy), meaning that dependencies specific to running the PsychoPy app are removed for a faster installation.
 
-As a result of not bundling the application this no longer depends on wxPython making it easier to install.
+## More information about PsychoPy
 
-This is a work in progress and may not currently be synchronised with the main code in the psychopy repository.
+* Homepage: https://www.psychopy.org
+* PyPi: https://pypi.python.org/pypi/PsychoPy
+* GitHub: https://github.com/psychopy/psychopy
+* Forum: https://discourse.psychopy.org
+* Issue tracker: https://github.com/psychopy/psychopy/issues
+* Changelog: https://www.psychopy.org/changelog.html
