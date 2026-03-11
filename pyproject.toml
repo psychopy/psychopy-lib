@@ -59,7 +59,9 @@ dependencies = [
     "websockets",
     "markdown-it-py",
     "requests",
-    "future",
+    "future", # only to support legacy versions in useVersion
+    # supporting plugins
+    "setuptools==70.3.0",
     "cryptography",
     "astunparse",
     "jedi >= 0.16",
@@ -79,7 +81,6 @@ dependencies = [
     "packaging>=24.0",
     "moviepy",
     "pyarrow",
-    "setuptools>=82.0.1",
 ]
 
 [project.optional-dependencies]  # This is optional dependencies
