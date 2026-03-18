@@ -25,8 +25,8 @@ classifiers = [
     ]
     
 dependencies = [
-    "numpy", # use numpy<1.24 for psychopy<2023.1
-    "scipy < 1.15", # 1.15 fails to import scipy.special
+    "numpy",  # use numpy<1.24 for psychopy<2023.1
+    "scipy < 1.15",  # 1.15 fails to import scipy.special
     "matplotlib",
     "pyglet == 1.4.11; platform_system == \"Windows\"",
     "pyglet == 1.5.27; platform_system != \"Windows\"",
@@ -43,9 +43,9 @@ dependencies = [
     "psychtoolbox<3.0.20; platform_machine!='arm64'",
     # for iohub
     "pywinhook; platform_system == \"Windows\"",
-    "zope.event==5.0", # py2app+gevent complains about zope.event 5.1
-    "zope.interface==7.2", # needed for gevent on macos
-    "gevent==25.5.1", # macos wheels for >2.5.1 are py3.12 only
+    "zope.event==5.0",  # py2app+gevent complains about zope.event 5.1
+    "zope.interface==7.2",  # needed for gevent on macos
+    "gevent==25.5.1",  # macos wheels for >2.5.1 are py3.12 only
     "MeshPy",
     "psutil",
     "pyzmq>=22.2.1",
@@ -61,7 +61,7 @@ dependencies = [
     "markdown-it-py",
     "requests",
     "future",
-    "cryptography", # for sshkeys
+    "cryptography",  # for sshkeys
     # psychoJS conversions
     "astunparse",
     "jedi >= 0.16",
@@ -78,7 +78,7 @@ dependencies = [
     "zeroconf; platform_system == \"Darwin\"",
     "python-xlib; platform_system == \"Linux\"",
     "distro; platform_system == \"Linux\"",
-    'tables!=3.9.2', # 3.9.2 crashes on Rosetta
+    'tables!=3.9.2',  # 3.9.2 crashes on Rosetta
     "packaging>=24.0",
     "moviepy",
     "pyarrow",
