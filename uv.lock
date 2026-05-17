@@ -1908,7 +1908,8 @@ dependencies = [
     { name = "websockets", version = "16.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.10'" },
     { name = "xmlschema", version = "4.2.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.10'" },
     { name = "xmlschema", version = "4.3.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.10'" },
-    { name = "zeroconf", marker = "sys_platform == 'darwin'" },
+    { name = "zeroconf", version = "0.148.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.10' and sys_platform == 'darwin'" },
+    { name = "zeroconf", version = "0.149.3", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.10' and sys_platform == 'darwin'" },
     { name = "zope-event" },
 ]
 
@@ -5512,8 +5513,12 @@ wheels = [
 name = "zeroconf"
 version = "0.148.0"
 source = { registry = "https://pypi.org/simple" }
+resolution-markers = [
+    "python_full_version > '3.9' and python_full_version < '3.10' and sys_platform != 'win32'",
+    "python_full_version <= '3.9' and sys_platform != 'win32'",
+]
 dependencies = [
-    { name = "ifaddr", marker = "sys_platform != 'win32'" },
+    { name = "ifaddr", marker = "python_full_version < '3.10' and sys_platform != 'win32'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/67/46/10db987799629d01930176ae523f70879b63577060d63e05ebf9214aba4b/zeroconf-0.148.0.tar.gz", hash = "sha256:03fcca123df3652e23d945112d683d2f605f313637611b7d4adf31056f681702", size = 164447, upload-time = "2025-10-05T00:21:19.199Z" }
 wheels = [
@@ -5521,6 +5526,21 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/54/11/7c871eba676458e5f3943e45281db91c3b01743b8e7f5401640855ca863e/zeroconf-0.148.0-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:db24dc2e5367dc61bacbf302b7c85cc10ee1a9de8f1710380027992afd1ddcb4", size = 1682018, upload-time = "2025-10-05T01:07:33.879Z" },
     { url = "https://files.pythonhosted.org/packages/ff/81/1f838cd174ca2f4ab7dbf8b1792325505480fd8f9a5a47c6fb0b63d7b26b/zeroconf-0.148.0-cp39-cp39-macosx_10_9_x86_64.whl", hash = "sha256:3a6e61c5b3905efed2137a07d84953ba4419795646fd18eccbd17018da2e965d", size = 1713675, upload-time = "2025-10-05T01:09:28.001Z" },
     { url = "https://files.pythonhosted.org/packages/86/db/0eb06b898d1ca8875039f661279d1806e078fe6ed52885f9fd6e15b8dd45/zeroconf-0.148.0-cp39-cp39-macosx_11_0_arm64.whl", hash = "sha256:ae41805df91ff657dd70179089df1d03e7ab756feb13dbcbc8a412cd8c50623e", size = 1688019, upload-time = "2025-10-05T01:09:30.466Z" },
+]
+
+[[package]]
+name = "zeroconf"
+version = "0.149.3"
+source = { registry = "https://pypi.org/simple" }
+resolution-markers = [
+    "python_full_version >= '3.10' and sys_platform != 'win32'",
+]
+dependencies = [
+    { name = "ifaddr", marker = "python_full_version >= '3.10' and sys_platform != 'win32'" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/02/c9/6f709eff8433f587fe2ad2c7232e7b64cb2f4c25924b009bc2be493cea93/zeroconf-0.149.3.tar.gz", hash = "sha256:333a634ec67b00943063e7bb4410ae662da9fd25d2d059ccc454ff39991e760d", size = 167633, upload-time = "2026-05-17T00:42:53.094Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/d7/04/7762a2bc84630fdfe7b15bcdf7151d5f3aebb5d6a3816a3b5be2cc66a5cf/zeroconf-0.149.3-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:e336d888af92ac8c172738942ae84fb80fc8513c7957ecfc9788a3c090856898", size = 1655227, upload-time = "2026-05-17T01:10:11.641Z" },
 ]
 
 [[package]]
