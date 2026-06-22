@@ -1935,7 +1935,7 @@ dependencies = [
     { name = "xmlschema", version = "4.2.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.10'" },
     { name = "xmlschema", version = "4.3.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.10'" },
     { name = "zeroconf", version = "0.148.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.10' and sys_platform == 'darwin'" },
-    { name = "zeroconf", version = "0.149.16", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.10' and sys_platform == 'darwin'" },
+    { name = "zeroconf", version = "0.149.17", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.10' and sys_platform == 'darwin'" },
     { name = "zope-event" },
 ]
 
@@ -5589,7 +5589,7 @@ wheels = [
 
 [[package]]
 name = "zeroconf"
-version = "0.149.16"
+version = "0.149.17"
 source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
     "python_full_version >= '3.10' and sys_platform != 'win32'",
@@ -5597,9 +5597,9 @@ resolution-markers = [
 dependencies = [
     { name = "ifaddr", marker = "python_full_version >= '3.10' and sys_platform != 'win32'" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/83/34/c981e760690f7b7dc91532d4d4ad21e3922887aaa425a0e7bff8067152da/zeroconf-0.149.16.tar.gz", hash = "sha256:5e6b5a3b153c2cc2a8d9e6f6f189ec5638f7d9c86fc3e88a6c53eb6863761a5e", size = 196586, upload-time = "2026-05-21T14:04:17.781Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/7b/95/1be51e0a98f629bf8fc8dd8b038c0323f3a090969cb007cdcf436bd844d9/zeroconf-0.149.17.tar.gz", hash = "sha256:f10e58071bc5e749176b8dc8d7e7ed4d2e6b507dde20fd8169b760cf4f7f4c5a", size = 198435, upload-time = "2026-06-21T23:02:41.445Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/ef/d2/1d69613f0a05a13cf95e11ed49c018ec300a2929ac1adf650082a6dca716/zeroconf-0.149.16-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:d42d6726c9d010e51d57fce8c5d4627a1b3d0589dfedfc55277a8fe0d127f83f", size = 1676520, upload-time = "2026-05-21T14:31:14.144Z" },
+    { url = "https://files.pythonhosted.org/packages/04/c7/6a8b74fddb4783c03c20fa708671e13a56a9ed5e886cce8147e2d8584261/zeroconf-0.149.17-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:eaf1e116201c9301becf1315d743f8a7d6b1f8cde0caad3386303d596dc039ad", size = 1676043, upload-time = "2026-06-21T23:30:24.796Z" },
 ]
 
 [[package]]
