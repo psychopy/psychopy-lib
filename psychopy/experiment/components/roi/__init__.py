@@ -3,7 +3,7 @@
 
 # Part of the PsychoPy library
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2025 Open Science Tools Ltd.
-# Distributed under the terms of the GNU General Public License (GPL).
+# Distributed under the terms of the MIT License.
 
 from pathlib import Path
 
@@ -17,6 +17,7 @@ class RegionOfInterestComponent(PolygonComponent):
     targets = ['PsychoPy']
     version = "2021.2.0"
     iconFile = Path(__file__).parent / 'eyetracker_roi.png'
+    iconSVG = Path(__file__).parent / 'RegionOfInterestComponent.svg'
     tooltip = _translate('Region Of Interest: Define a region of interest for use with eyetrackers')
     beta = False
 
@@ -62,10 +63,10 @@ class RegionOfInterestComponent(PolygonComponent):
 
         self.depends.append(
             {"dependsOn": "endRoutineOn",  # must be param name
-             "condition": "=='none'",  # val to check for
+             "condition": "!='none'",  # val to check for
              "param": "lookDur",  # param property to alter
-             "true": "hide",  # what to do with param if condition is True
-             "false": "show",  # permitted: hide, show, enable, disable
+             "true": "show",  # what to do with param if condition is True
+             "false": "hide",  # permitted: hide, show, enable, disable
              }
         )
 

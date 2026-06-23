@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # Part of the PsychoPy library
 # Copyright (C) 2012-2020 iSolver Software Solutions (C) 2021 Open Science Tools Ltd.
-# Distributed under the terms of the GNU General Public License (GPL).
+# Distributed under the terms of the MIT License.
 
 import os
 import sys
@@ -428,7 +428,7 @@ class ioHubConnection():
                 self._sendToHubServer(('RPC', 'clearEventBuffer', [True, ]))
                 try:
                     self.getDevice('keyboard')._clearLocalEvents()
-                except:
+                except Exception:
                     pass
             else:
                 d = self.devices.getDevice(device_label)
@@ -439,7 +439,7 @@ class ioHubConnection():
             self._sendToHubServer(('RPC', 'clearEventBuffer', [False, ]))
             try:
                 self.getDevice('keyboard')._clearLocalEvents()
-            except:
+            except Exception:
                 pass
         else:
             raise ValueError(

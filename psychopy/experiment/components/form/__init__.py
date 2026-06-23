@@ -3,7 +3,7 @@
 
 # Part of the PsychoPy library
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2025 Open Science Tools Ltd.
-# Distributed under the terms of the GNU General Public License (GPL).
+# Distributed under the terms of the MIT License.
 
 from pathlib import Path
 from psychopy.experiment.components import Param, getInitVals, _translate, BaseVisualComponent
@@ -22,6 +22,7 @@ class FormComponent(BaseVisualComponent):
     targets = ['PsychoPy', 'PsychoJS']
     version = "2020.2.0"
     iconFile = Path(__file__).parent / 'form.png'
+    iconSVG = Path(__file__).parent / 'FormComponent.svg'
     tooltip = _translate('Form: a Psychopy survey tool')
     beta = False
 

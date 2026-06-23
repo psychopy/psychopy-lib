@@ -6,7 +6,7 @@
 
 # Part of the PsychoPy library
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
-# Distributed under the terms of the GNU General Public License (GPL).
+# Distributed under the terms of the MIT License.
 
 import re
 import ast
@@ -251,7 +251,7 @@ class CaseSwitcher:
 
 
 def wrap(value, chars, delim=r"\s|-"):
-    """
+    r"""
     Wrap a string at a number of characters.
 
     Parameters

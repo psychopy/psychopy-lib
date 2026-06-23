@@ -3,7 +3,7 @@
 
 # Part of the PsychoPy library
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2025 Open Science Tools Ltd.
-# Distributed under the terms of the GNU General Public License (GPL).
+# Distributed under the terms of the MIT License.
 
 """Extensible set of components for the PsychoPy Builder view.
 """
@@ -39,7 +39,7 @@ for filename in pycFiles:
     if not os.path.isfile(filename[:-2]):
         try:
             os.remove(filename)
-        except:
+        except OSError:
             pass  # may not have sufficient privs
 
 

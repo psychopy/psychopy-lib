@@ -4,7 +4,7 @@
 """
 Part of the PsychoPy library
 Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2025 Open Science Tools Ltd.
-Distributed under the terms of the GNU General Public License (GPL).
+Distributed under the terms of the MIT License.
 """
 
 from pathlib import Path
@@ -21,6 +21,7 @@ class SoundComponent(BaseDeviceComponent):
     categories = ['Stimuli']
     targets = ['PsychoPy', 'PsychoJS']
     iconFile = Path(__file__).parent / 'sound.png'
+    iconSVG = Path(__file__).parent / 'SoundComponent.svg'
     tooltip = _translate('Sound: play recorded files or generated sounds', )
     deviceClasses = ["psychopy.hardware.speaker.SpeakerDevice"]
     validatorClasses = ["AudioValidatorRoutine"]
@@ -65,6 +66,9 @@ class SoundComponent(BaseDeviceComponent):
         self.type = 'Sound'
         self.url = "https://www.psychopy.org/builder/components/sound.html"
         self.exp.requirePsychopyLibs(['sound'])
+        self.exp.requireImport(
+            importName='psychopy.hardware.speaker'
+        )
 
         # --- Basic params ---
         self.order += [
@@ -127,22 +131,35 @@ class SoundComponent(BaseDeviceComponent):
 
         # --- Testing ---
         self.params['validator'] = Param(
-            validator, valType="code", inputType="choice", categ="Testing",
-            allowedVals=self.getAllValidatorRoutineVals,
-            allowedLabels=self.getAllValidatorRoutineLabels,
+            validator, valType="code", inputType="validator", categ="Testing",
+            allowedVals=self.validatorClasses,
             label=_translate("Validate with..."),
             hint=_translate(
                 "Name of validator Component/Routine to use to check the timing of this stimulus."
             )
         )
 
+    def writePreCode(self, buff):
+        backend = self.exp.settings.params['Audio lib'].val
+        # figure out backend
+        if backend == "use prefs":
+            # get from prefs if requested
+            code = (
+                "# set audio backend\n"
+                "sound.Sound.backend = prefs.hardware['audioLib']\n"
+                "hardware.speaker.SpeakerDevice.backend = prefs.hardware['audioLib']\n"
+            )
+        else:
+            # otherwise use exp settings
+            code = (
+                f"# set audio backend\n"
+                f"sound.Sound.backend = '{backend}'\n"
+                f"hardware.speaker.SpeakerDevice.backend = '{backend}'\n"
+            )
+        # set backend (only once per exp)
+        buff.writeOnceIndentedLines(code)
+
     def writeInitCode(self, buff):
-        # set sound backend (only once per exp)
-        code = (
-            "# set audio backend\n"
-            "sound.Sound.backend = %(Audio lib)s\n"
-        )
-        buff.writeOnceIndentedLines(code % self.exp.settings.params)
         # replaces variable params with sensible defaults
         inits = getInitVals(self.params)
         if not canBeNumeric(inits['stopVal'].val):

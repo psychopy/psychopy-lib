@@ -1,6 +1,7 @@
 from psychopy import logging, constants, core
 from psychopy.hardware import base, DeviceManager, keyboard
 from psychopy.localization import _translate
+from psychopy.tools.arraytools import ExpandingList
 
 
 class ButtonResponse(base.BaseResponse):
@@ -33,7 +34,7 @@ class ButtonResponse(base.BaseResponse):
         if isinstance(other, dict):
             try:
                 return ButtonResponse(**other) == self
-            except:
+            except (TypeError, KeyError):
                 # if it can't instantiate a ButtonResponse, it's not the same as this
                 return False
         
@@ -48,7 +49,7 @@ class BaseButtonGroup(base.BaseResponseDevice):
         # store number of channels
         self.channels = channels
         # attribute in which to store current state
-        self.state = [None] * channels
+        self.state = ExpandingList([None] * channels)
 
         # start off with a status
         self.status = constants.NOT_STARTED

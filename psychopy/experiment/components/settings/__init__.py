@@ -9,7 +9,7 @@ import re
 from psychopy import logging, plugins
 from psychopy.preferences import prefs
 from psychopy.experiment.components import Param, _translate
-from psychopy.experiment.components.settings.eyetracking import knownEyetrackerBackends
+from psychopy.experiment.components.settings.eyetracking import knownEyetrackerBackends, MouseGazeEyetrackerBackend
 from psychopy.experiment.routines import Routine, BaseStandaloneRoutine
 from psychopy.experiment.routines.eyetracker_calibrate import EyetrackerCalibrationRoutine
 from psychopy.experiment import utils as exputils
@@ -57,7 +57,7 @@ participantIdAliases = ('participant', 'Participant', 'Subject', 'Observer')
 # class ProjIDParam(Param):
 #     @property
 #     def allowedVals(self):
-#         from psychopy.app.projects import catalog
+#         from psychopy.projects import catalog
 #         allowed = list(catalog.keys())
 #         # always allow the current val!
 #         if self.val not in allowed:
@@ -71,17 +71,13 @@ participantIdAliases = ('participant', 'Participant', 'Subject', 'Observer')
 #         pass
 
 
-def getSoundBackends():
-    from psychopy.sound.sound import Sound
-    return list(Sound.getBackends())
-
-
 class SettingsComponent:
     """This component stores general info about how to run the experiment
     """
     categories = ['Custom']
     targets = ['PsychoPy', 'PsychoJS']
     iconFile = Path(__file__).parent / 'settings.png'
+    iconSVG = Path(__file__).parent / 'SettingsComponent.svg'
     tooltip = _translate("Edit settings for this experiment")
     plugin = None
     version = "0.0.0"
@@ -142,9 +138,9 @@ class SettingsComponent:
         # if filename is the default value fetch the builder pref for the
         # folder instead
         if filename is None:
-            filename = ("u'xxxx/%s_%s_%s' % (expInfo['participant'], expName,"
-                        " expInfo['date'])")
-        if filename.startswith("u'xxxx"):
+            filename = ("'xxxx/' + expInfo['participant'] + '_' + expName + '_'"
+                        " + expInfo['date']")
+        if filename.startswith("'xxxx"):
             folder = self.exp.prefsBuilder['savedDataFolder'].strip()
             filename = filename.replace("xxxx", folder)
 
@@ -193,19 +189,9 @@ class SettingsComponent:
             )
         )
 
-        def getVersions():
-            """
-            Search for options locally available
-            """
-            import psychopy.tools.versionchooser as versions
-            available = versions._versionFilter(versions.versionOptions(), wx_version)
-            available += ['']
-            available += versions._versionFilter(versions.availableVersions(), wx_version)
-            return available
-
         self.params['Use version'] = Param(
-            useVersion, valType='str', inputType="choice",
-            allowedVals=getVersions,
+            useVersion, valType='str', inputType="version",
+            allowedVals="psychopy/psychopy-lib",
             hint=_translate(
                 "The version of PsychoPy to use when running the experiment."
             ),
@@ -278,10 +264,10 @@ class SettingsComponent:
         )
         self.depends.append({
             'dependsOn': "Full-screen window",  # if...
-            'condition': "",  # matches
+            'condition': "==False",  # matches
             'param': "Window size (pixels)",  # then...
-            'true': "hide",  # should...
-            'false': "show",  # otherwise...
+            'true': "show",  # should...
+            'false': "hide",  # otherwise...
         })
         self.params['Show mouse'] = Param(
             showMouse, valType='bool', inputType="bool", allowedTypes=[],
@@ -321,7 +307,7 @@ class SettingsComponent:
             colorSpace, valType='str', inputType="choice",
             hint=_translate("Needed if color is defined numerically (see "
                             "PsychoPy documentation on color spaces)"),
-            allowedVals=['rgb', 'dkl', 'lms', 'hsv', 'hex'],
+            allowedVals=['named', 'hex', 'rgb', 'dkl', 'lms', 'hsv'],
             label=_translate("Color space"), categ="Screen")
         self.params['backgroundImg'] = Param(
             backgroundImg, valType="str", inputType="file", categ="Screen",
@@ -367,10 +353,10 @@ class SettingsComponent:
         )
         self.depends.append({
                 "dependsOn": "measureFrameRate",  # if...
-                "condition": "",  # meets...
+                "condition": "==False",  # meets...
                 "param": "frameRate",  # then...
-                "true": "hide",  # should...
-                "false": "show",  # otherwise...
+                "true": "show",  # should...
+                "false": "hide",  # otherwise...
         })
         self.params['frameRateMsg'] = Param(
             frameRateMsg, valType="str", inputType="single", categ="Screen",
@@ -401,8 +387,9 @@ class SettingsComponent:
             hint=_translate("Force audio to stereo (2-channel) output"),
             label=_translate("Force stereo"))
         self.params['Audio lib'] = Param(
-            'ptb', valType='str', inputType="choice",
-            allowedVals=getSoundBackends,
+            "use prefs", valType='str', inputType="choice",
+            allowedVals=["use prefs", "ptb", "sounddevice"],
+            allowedLabels=[_translate("From preferences..."), "psychtoolbox", "sounddevice"],
             hint=_translate("Which Python sound engine do you want to play your sounds?"),
             label=_translate("Audio library"), categ='Audio')
 
@@ -548,39 +535,6 @@ class SettingsComponent:
         self.order += ["eyetracker",
                        "gpAddress", "gpPort",
                        "elModel", "elAddress", "elSimMode"]
-
-        # Hide params when not relevant to current eyetracker
-        trackerParams = {
-            "MouseGaze": ["mgMove", "mgBlink", "mgSaccade"],
-            "GazePoint": ["gpAddress", "gpPort"],
-            "SR Research Ltd": ["elModel", "elSimMode", "elSampleRate", "elTrackEyes", "elLiveFiltering",
-                                "elDataFiltering", "elTrackingMode", "elPupilMeasure", "elPupilAlgorithm",
-                                "elAddress"],
-            "Tobii Technology": ["tbModel", "tbLicenseFile", "tbSerialNo", "tbSampleRate"],
-            "Pupil Labs": ["plPupillometryOnly", "plSurfaceName", "plConfidenceThreshold",
-                           "plPupilRemoteAddress", "plPupilRemotePort", "plPupilRemoteTimeoutMs",
-                           "plPupilCaptureRecordingLocation"],
-            "Pupil Labs (Neon)": ["plCompanionAddress", "plCompanionPort"],
-            "EyeLogic": ["ecSampleRate"],
-        }
-        for tracker in trackerParams:
-            for depParam in trackerParams[tracker]:
-                self.depends.append(
-                    {"dependsOn": "eyetracker",  # must be param name
-                     "condition": "=='"+tracker+"'",  # val to check for
-                     "param": depParam,  # param property to alter
-                     "true": "show",  # what to do with param if condition is True
-                     "false": "hide",  # permitted: hide, show, enable, disable
-                     }
-                )
-        self.depends.append(
-            {"dependsOn": "eyetracker",  # must be param name
-             "condition": f" in {list(trackerParams)}",  # val to check for
-             "param": "Save hdf5 file",  # param property to alter
-             "true": "enable",  # what to do with param if condition is True
-             "false": "disable",  # permitted: hide, show, enable, disable
-             }
-        )
         # arrays for eyetracker backends
         backendValues = ["None"]
         backendLabels = ["None"]
@@ -595,7 +549,7 @@ class SettingsComponent:
                 if legKey not in backendValues:
                     backendValues.append(legKey)
                     backendLabels.append(legLbl)
-        except:
+        except Exception:
             # if it doesn't work, just stick with the known backends from plugins
             pass
 
@@ -627,161 +581,6 @@ class SettingsComponent:
                     'false': "hide",  # otherwise...
                 })
 
-        # as users with old versions of the plugin won't have params added dynamically, add legacy 
-        # params here manually
-
-        # gazepoint
-        self.params['gpAddress'] = Param(
-            gpAddress, valType='str', inputType="single",
-            hint=_translate("IP Address of the computer running GazePoint Control."),
-            label=_translate("GazePoint IP address"), categ="Eyetracking"
-        )
-
-        self.params['gpPort'] = Param(
-            gpPort, valType='num', inputType="single",
-            hint=_translate("Port of the GazePoint Control server. Usually 4242."),
-            label=_translate("GazePoint port"), categ="Eyetracking"
-        )
-        # eyelink
-        self.params['elModel'] = Param(
-            elModel, valType='str', inputType="choice",
-            allowedVals=['EYELINK 1000 DESKTOP', 'EYELINK 1000 TOWER', 'EYELINK 1000 REMOTE',
-                         'EYELINK 1000 LONG RANGE'],
-            hint=_translate("Eye tracker model."),
-            label=_translate("Model name"), categ="Eyetracking"
-        )
-        self.params['elSimMode'] = Param(
-            elSimMode, valType='bool', inputType="bool",
-            hint=_translate("Set the EyeLink to run in mouse simulation mode."),
-            label=_translate("Mouse simulation mode"), categ="Eyetracking"
-        )
-        self.params['elSampleRate'] = Param(
-            elSampleRate, valType='num', inputType="choice",
-            allowedVals=['250', '500', '1000', '2000'],
-            hint=_translate("Eye tracker sampling rate."),
-            label=_translate("Sampling rate"), categ="Eyetracking"
-        )
-        self.params['elTrackEyes'] = Param(
-            elTrackEyes, valType='str', inputType="choice",
-            allowedVals=['LEFT_EYE', 'RIGHT_EYE', 'BOTH'],
-            hint=_translate("Select with eye(s) to track."),
-            label=_translate("Track eyes"), categ="Eyetracking"
-        )
-        self.params['elLiveFiltering'] = Param(
-            elLiveFiltering, valType='str', inputType="choice",
-            allowedVals=['FILTER_LEVEL_OFF', 'FILTER_LEVEL_1', 'FILTER_LEVEL_2'],
-            hint=_translate("Filter eye sample data live, as it is streamed to the driving device. "
-                            "This may reduce the sampling speed."),
-            label=_translate("Live sample filtering"), categ="Eyetracking"
-        )
-        self.params['elDataFiltering'] = Param(
-            elDataFiltering, valType='str', inputType="choice",
-            allowedVals=['FILTER_LEVEL_OFF', 'FILTER_LEVEL_1', 'FILTER_LEVEL_2'],
-            hint=_translate("Filter eye sample data when it is saved to the output file. This will "
-                            "not affect the sampling speed."),
-            label=_translate("Saved sample filtering"), categ="Eyetracking"
-        )
-        self.params['elTrackingMode'] = Param(
-            elTrackingMode, valType='str', inputType="choice",
-            allowedVals=['PUPIL_CR_TRACKING', 'PUPIL_ONLY_TRACKING'],
-            hint=_translate("Track Pupil-CR or Pupil only."),
-            label=_translate("Pupil tracking mode"), categ="Eyetracking"
-        )
-        self.params['elPupilAlgorithm'] = Param(
-            elPupilAlgorithm, valType='str', inputType="choice",
-            allowedVals=['ELLIPSE_FIT', 'CENTROID_FIT'],
-            hint=_translate("Algorithm used to detect the pupil center."),
-            label=_translate("Pupil center algorithm"), categ="Eyetracking"
-        )
-        self.params['elPupilMeasure'] = Param(
-            elPupilMeasure, valType='str', inputType="choice",
-            allowedVals=['PUPIL_AREA', 'PUPIL_DIAMETER', 'NEITHER'],
-            hint=_translate("Type of pupil data to record."),
-            label=_translate("Pupil data type"), categ="Eyetracking"
-        )
-        self.params['elAddress'] = Param(
-            elAddress, valType='str', inputType="single",
-            hint=_translate("IP Address of the EyeLink *Host* computer."),
-            label=_translate("EyeLink IP address"), categ="Eyetracking"
-        )
-
-        # tobii
-        self.params['tbModel'] = Param(
-            tbModel, valType='str', inputType="single",
-            hint=_translate("Eye tracker model."),
-            label=_translate("Model name"), categ="Eyetracking"
-        )
-        self.params['tbLicenseFile'] = Param(
-            tbLicenseFile, valType='str', inputType="file",
-            hint=_translate("Eye tracker license file (optional)."),
-            label=_translate("License file"), categ="Eyetracking"
-        )
-        self.params['tbSerialNo'] = Param(
-            tbSerialNo, valType='str', inputType="single",
-            hint=_translate("Eye tracker serial number (optional)."),
-            label=_translate("Serial number"), categ="Eyetracking"
-        )
-        self.params['tbSampleRate'] = Param(
-            tbSampleRate, valType='num', inputType="single",
-            hint=_translate("Eye tracker sampling rate."),
-            label=_translate("Sampling rate"), categ="Eyetracking"
-        )
-
-        # pupil labs
-        self.params['plPupillometryOnly'] = Param(
-            plPupillometryOnly, valType='bool', inputType="bool",
-            hint=_translate("Subscribe to pupil data only, does not require calibration or surface setup"),
-            label=_translate("Pupillometry only"),
-            categ="Eyetracking"
-        )
-        self.params['plSurfaceName'] = Param(
-            plSurfaceName, valType='str', inputType="single",
-            hint=_translate("Name of the Pupil Capture surface"),
-            label=_translate("Surface name"), categ="Eyetracking"
-        )
-        self.params['plConfidenceThreshold'] = Param(
-            plConfidenceThreshold, valType='num', inputType="single",
-            hint=_translate("Gaze confidence threshold"),
-            label=_translate("Gaze confidence threshold"), categ="Eyetracking"
-        )
-        self.params['plPupilRemoteAddress'] = Param(
-            plPupilRemoteAddress, valType='str', inputType="single",
-            hint=_translate("Pupil remote address"),
-            label=_translate("Pupil remote address"), categ="Eyetracking"
-        )
-        self.params['plPupilRemotePort'] = Param(
-            plPupilRemotePort, valType='num', inputType="single",
-            hint=_translate("Pupil remote port"),
-            label=_translate("Pupil remote port"), categ="Eyetracking"
-        )
-        self.params['plPupilRemoteTimeoutMs'] = Param(
-            plPupilRemoteTimeoutMs, valType='num', inputType="single",
-            hint=_translate("Pupil remote timeout (ms)"),
-            label=_translate("Pupil remote timeout (ms)"), categ="Eyetracking"
-        )
-        self.params['plPupilCaptureRecordingLocation'] = Param(
-            plPupilCaptureRecordingLocation, valType='str', inputType="single",
-            hint=_translate("Pupil capture recording location"),
-            label=_translate("Pupil capture recording location"), categ="Eyetracking"
-        )
-        self.params['plCompanionAddress'] = Param(
-            plCompanionAddress, valType='str', inputType="single",
-            hint=_translate("Companion address"),
-            label=_translate("Companion address"), categ="Eyetracking"
-        )
-        self.params['plCompanionPort'] = Param(
-            plCompanionPort, valType='num', inputType="single",
-            hint=_translate("Companion port"),
-            label=_translate("Companion port"), categ="Eyetracking"
-        )
-
-        # EyeLogic
-        self.params['ecSampleRate'] = Param(
-            ecSampleRate, valType='str', inputType="single",
-            hint=_translate("Eyetracker sampling rate: 'default' or <integer>[Hz]. Defaults to tracking mode '0'."),
-            label=_translate("Sampling rate"), categ="Eyetracking"
-        )
-
         # Input
         self.params['keyboardBackend'] = Param(
             keyboardBackend, valType='str', inputType="choice",
@@ -789,6 +588,54 @@ class SettingsComponent:
             hint=_translate("What Python package should PsychoPy use to get keyboard input?"),
             label=_translate("Keyboard backend"), categ="Input"
         )
+    
+    @classmethod
+    def getTemplateJSON(cls):
+        from psychopy.experiment import Experiment
+        # include basic info
+        profile = {
+            '__class__': f"{cls.__module__}:{cls.__qualname__}",
+            '__name__': cls.__name__,
+            "categories": cls.categories,
+            "targets": cls.targets,
+            "plugin": cls.plugin,
+            "iconFile": cls.iconFile,
+            "tooltip": cls.tooltip,
+            "version": cls.version,
+            "beta": cls.beta,
+            "hidden": cls.hidden,
+            "params": {}
+        }
+        # make an object for defaults
+        exp = Experiment()
+        defaults = cls("", exp)
+        # order params
+        order = [
+            name for name in defaults.order if name in defaults.params
+        ] + [
+            name for name in defaults.params if name not in defaults.order
+        ]
+        # populate params in order
+        for name in order:
+            # make template
+            profile['params'][name] = defaults.params[name].getTemplateJSON(
+                name=name, depends=defaults.depends
+            )
+
+        return profile
+    
+    def getJSON(self):
+        # populate basic info
+        profile = {
+            'tag': type(self).__name__,
+            'plugin': self.plugin,
+            'params': {}
+        }
+        # populate params
+        for name, param in self.params.items():
+            profile['params'][name] = param.getJSON()
+        
+        return profile
 
     @property
     def _xml(self):
@@ -887,7 +734,7 @@ class SettingsComponent:
         return self.getType().replace('Component', '')
 
     def writeUseVersion(self, buff):
-        if self.params['Use version'].val:
+        if self.params['Use version'].val not in (None, "", "latest"):
             code = ('\nimport psychopy\n'
                     'psychopy.useVersion({})\n\n')
             val = repr(self.params['Use version'].val)
@@ -1292,14 +1139,19 @@ class SettingsComponent:
         buff.writeIndentedLines(code % params)
 
         # set up the ExperimentHandler
-        code = ("\n# an ExperimentHandler isn't essential but helps with data saving\n"
-                "thisExp = data.ExperimentHandler(\n"
-                "    name=expName, version=expVersion,\n"
-                "    extraInfo=expInfo, runtimeInfo=None,\n"
-                "    originPath=%(originPath)s,\n"
-                "    savePickle=%(Save psydat file)s, saveWideText=%(Save wide csv file)s,\n"
-                "    dataFileName=dataDir + os.sep + filename, sortColumns=%(sortColumns)s\n"
-                ")\n")
+        code = (
+            "\n"
+            "# an ExperimentHandler isn't essential but helps with data saving\n"
+            "thisExp = data.ExperimentHandler(\n"
+            "    name=expName, version=expVersion,\n"
+            "    extraInfo=expInfo, runtimeInfo=None,\n"
+            "    originPath=%(originPath)s,\n"
+            "    savePickle=%(Save psydat file)s, saveWideText=%(Save wide csv file)s,\n"
+            "    dataFileName=dataDir + os.sep + filename, sortColumns=%(sortColumns)s\n"
+            ")\n"
+            "# store pilot mode in data file\n"
+            "thisExp.addData('piloting', PILOTING, priority=priority.LOW)\n"
+        )
         buff.writeIndentedLines(code % params)
 
         # enforce dict on column priority param
@@ -1307,7 +1159,7 @@ class SettingsComponent:
         if isinstance(colPriority, str):
             try:
                 colPriority = ast.literal_eval(colPriority)
-            except:
+            except (ValueError, SyntaxError):
                 raise ValueError(_translate(
                     "Could not interpret value as dict: {}"
                 ).format(colPriority))
@@ -2122,6 +1974,10 @@ class SettingsComponent:
         buff.setIndentLevel(+1, relative=True)
         # Write code to end experiment
         code = (
+            "# stop any playback components\n"
+            "if thisExp.currentRoutine is not None:\n"
+            "    for comp in thisExp.currentRoutine.getPlaybackComponents():\n"
+            "        comp.stop()\n"
             "if win is not None:\n"
             "    # remove autodraw from all current components\n"
             "    win.clearAutoDraw()\n"

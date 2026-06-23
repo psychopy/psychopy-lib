@@ -3,7 +3,7 @@
 
 # Part of the PsychoPy library
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2025 Open Science Tools Ltd.
-# Distributed under the terms of the GNU General Public License (GPL).
+# Distributed under the terms of the MIT License.
 
 from pathlib import Path
 from psychopy.experiment.components import BaseVisualComponent, Param, getInitVals, _translate
@@ -17,6 +17,7 @@ class BrushComponent(BaseVisualComponent):
     categories = ['Responses']
     targets = ['PsychoPy', 'PsychoJS']
     iconFile = Path(__file__).parent / 'brush.png'
+    iconSVG = Path(__file__).parent / 'BrushComponent.svg'
     tooltip = _translate('Brush: a drawing tool')
 
     def __init__(self, exp, parentName, name='brush',

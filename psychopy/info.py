@@ -3,7 +3,7 @@
 
 # Part of the PsychoPy library
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2025 Open Science Tools Ltd.
-# Distributed under the terms of the GNU General Public License (GPL).
+# Distributed under the terms of the MIT License.
 
 """This module has tools for fetching data about the system or the current
 Python process. Such info can be useful for understanding the context in which
@@ -42,11 +42,13 @@ try:
 except ImportError:
     haveCtypes = False
 import hashlib
-import wx
 import locale
 import subprocess
 import psutil
-
+try:
+    import wx
+except ImportError:
+    wx = None
 from psychopy import visual, logging, core, data, web
 from psychopy.core import shellCall
 from psychopy.platform_specific import rush
@@ -536,7 +538,7 @@ class RunTimeInfo(dict):
         """
         self['pythonNumpyVersion'] = numpy.__version__
         self['pythonScipyVersion'] = scipy.__version__
-        self['pythonWxVersion'] = wx.version()
+        self['pythonWxVersion'] = '(no wx)' if wx is None else wx.version()
         self['pythonMatplotlibVersion'] = matplotlib.__version__
         self['pythonPygletVersion'] = pyglet.version
         try:

@@ -6,7 +6,7 @@
 
 # Part of the PsychoPy library
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2025 Open Science Tools Ltd.
-# Distributed under the terms of the GNU General Public License (GPL).
+# Distributed under the terms of the MIT License.
 
 __all__ = [
     'BaseDevice'
@@ -36,13 +36,13 @@ class BaseResponse:
         for key in self.fields:
             try:
                 attrs.append(f"{key}={getattr(self, key)}")
-            except:
+            except AttributeError:
                 continue
         attrs = ", ".join(attrs)
         # construct
         try:
             return f"<{type(self).__name__} from {self.getDeviceName()}: {attrs}>"
-        except:
+        except Exception:
             return f"<{type(self).__name__}: {attrs}>"
     
     def getDeviceName(self):
@@ -382,7 +382,7 @@ class BaseResponseDevice(BaseDevice):
         # try to dispatch messages
         try:
             self.dispatchMessages()
-        except:
+        except Exception:
             pass
         # clear resp list
         self.responses = []

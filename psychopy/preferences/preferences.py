@@ -4,6 +4,7 @@
 import errno
 import os
 import sys
+import argparse
 import platform
 from pathlib import Path
 from psychopy import logging
@@ -12,6 +13,11 @@ from .. import __version__
 
 from packaging.version import Version
 import shutil
+
+try:
+    import psychopy_app
+except:
+    psychopy_app = None
 
 try:
     import configobj
@@ -118,7 +124,10 @@ class Preferences:
         exePath = sys.executable
 
         # path to Resources (icons etc)
-        dirApp = join(dirPsychoPy, 'app')
+        if psychopy_app:
+            dirApp = Path(psychopy_app.__file__).parent
+        else:
+            dirApp = join(dirPsychoPy, 'app')
         if os.path.isdir(join(dirApp, 'Resources')):
             dirResources = join(dirApp, 'Resources')
         else:
@@ -187,9 +196,7 @@ class Preferences:
                 if err.errno != errno.EEXIST:
                     raise
         # make sure there's a device manager config file
-        deviceCfgFile = self.paths['deviceCfgFile'] = Path(self.paths['userPrefsDir']) / "devices.json"
-        if not deviceCfgFile.is_file():
-            deviceCfgFile.write_text("{}", encoding="utf-8")
+        self.paths['deviceCfgFile'] = Path(self.paths['userPrefsDir']) / "devices.json"
         # site-packages root directory for user-installed packages
         userPkgRoot = Path(self.paths['packages'])
 
@@ -356,14 +363,59 @@ class Preferences:
         
         return cfg
     
+    def fromJSON(self, file):
+        import json
+
+        # load params from JSON
+        with open(file, "r") as f:
+            spec = json.load(f)
+        params = spec['params']
+        # iterate through relevant sections
+        for section in [self.general, self.hardware, self.piloting]:
+            # iterate through keys
+            for key in section:
+                # if given in the JSON, set value
+                if key in params:
+                    # sanitize data
+                    val = params[key]['val']
+                    if val in ['True', 'true', 'TRUE', True]:
+                        val = True
+                    if val in ['False', 'false', 'FALSE', False]:
+                        val = False
+                    if val in ['None', 'none', None, ""]:
+                        val = None
+                    try:
+                        # attempt to un-stringify
+                        section[key] = json.loads(val)
+                    except (ValueError, TypeError):
+                        # use as-is if this fails
+                        section[key] = val
+    
     @property
     def devices(self):
         if not hasattr(self, "_devices"):
             self._devices = devices.DeviceConfig(
-            self.paths['deviceCfgFile']
-        )
+                self.paths['deviceCfgFile']
+            )
         
         return self._devices
+    
+    @devices.setter
+    def devices(self, value):
+        if isinstance(value, devices.DeviceConfig):
+            # if set with a DeviceConfig, use it directly
+            self._devices = value
+        else:
+            # otherwise, assume it's a path
+            self.setDevicesFile(value)
+    
+    def setDevicesFile(self, value):
+        # path-ise and store
+        self.paths['deviceCfgFile'] = Path(value)
+        # create alias object
+        self._devices = devices.DeviceConfig(
+            self.paths['deviceCfgFile']
+        )
 
     def saveUserPrefs(self):
         """Validate and save the various setting to the appropriate files
@@ -408,7 +460,7 @@ class Preferences:
                                         preserve_errors=True)
         self.restoreBadPrefs(cfg, resultOfValidate)
         # force favComponent level values to be integers
-        if 'favComponents' in cfg['builder']:
+        if 'builder' in cfg and 'favComponents' in cfg['builder']:
             for key in cfg['builder']['favComponents']:
                 _compKey = cfg['builder']['favComponents'][key]
                 cfg['builder']['favComponents'][key] = int(_compKey)
@@ -446,3 +498,17 @@ class Preferences:
                 print(msg % (', '.join(sectionList), cfg.filename))
 
 prefs = Preferences()
+# parse calling args for any which are prefs relevant
+parser = argparse.ArgumentParser(
+    prog="PsychoPy Preferences",
+    description="Parses arguments relevant to PsychoPy's preferences"
+)
+parser.add_argument(
+    "--prefs-json", 
+    type=Path, 
+    default=None
+)
+args = parser.parse_known_args()[0]
+# load prefs from JSON if one was given
+if args.prefs_json:
+    prefs.fromJSON(args.prefs_json)

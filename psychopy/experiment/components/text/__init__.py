@@ -3,7 +3,7 @@
 
 # Part of the PsychoPy library
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2025 Open Science Tools Ltd.
-# Distributed under the terms of the GNU General Public License (GPL).
+# Distributed under the terms of the MIT License.
 
 from pathlib import Path
 from psychopy.alerts import alerttools
@@ -17,6 +17,7 @@ class TextComponent(BaseVisualComponent):
     categories = ['Stimuli']
     targets = ['PsychoPy', 'PsychoJS']
     iconFile = Path(__file__).parent / 'text.png'
+    iconSVG = Path(__file__).parent / 'TextComponent.svg'
     tooltip = _translate('Text: present text stimuli')
 
     def __init__(self, exp, parentName, name='text',

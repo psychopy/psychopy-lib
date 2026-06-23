@@ -41,7 +41,7 @@ class LiaisonJSONEncoder(json.JSONEncoder):
 			# if object has a getJSON method, use it
 			if hasattr(o, "getJSON"):
 				return o.getJSON(asString=False)
-		except:
+		except Exception:
 			# if there's an error in the getJSON method, continue so we can try regular encoding
 			pass
 		# if object is an error, transform in standardised form
@@ -284,6 +284,10 @@ class WebSocketServer:
 			self.loop.add_signal_handler(signal.SIGINT, loopFuture.set_result, None)
 		# await loop's future to continuously serve
 		async with websockets.serve(self._connectionHandler, host, port, compression=None):
+			# send awake message to process stdout
+			sys.stdout.write(f"LIAISON.CONNECTED@{host}:{port}")
+			sys.stdout.flush()
+			# log awake message
 			self._logger.info(f"Liaison Server started on: {host}:{port}")
 			# run forever
 			await loopFuture

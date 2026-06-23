@@ -3,7 +3,7 @@
 
 # Part of the PsychoPy library
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2025 Open Science Tools Ltd.
-# Distributed under the terms of the GNU General Public License (GPL).
+# Distributed under the terms of the MIT License.
 
 from pathlib import Path
 
@@ -27,6 +27,7 @@ class ApertureComponent(PolygonComponent):
     categories = ['Stimuli']
     targets = ['PsychoPy']
     iconFile = Path(__file__).parent / 'aperture.png'
+    iconSVG = Path(__file__).parent / 'ApertureComponent.svg'
     tooltip = _translate('Aperture: restrict the drawing of stimuli to a given '
                          'region')
 

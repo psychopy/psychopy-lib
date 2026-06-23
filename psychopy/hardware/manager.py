@@ -6,7 +6,7 @@
 
 # Part of the PsychoPy library
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2025 Open Science Tools Ltd.
-# Distributed under the terms of the GNU General Public License (GPL).
+# Distributed under the terms of the MIT License.
 
 __all__ = [
     'deviceManager', 
@@ -151,23 +151,29 @@ class DeviceManager:
         """
         if deviceClass in (None, "*"):
             # resolve "any" flags to BaseDevice
-            deviceClass = "psychopy.hardware.base.BaseDevice"
+            deviceClass = "psychopy.hardware.base:BaseDevice"
         # if it's already a type, return as is
         if isinstance(deviceClass, type):
             return deviceClass
-        # get package and class names from deviceClass string
-        parts = deviceClass.split(".")
-        pkgName = ".".join(parts[:-1])
-        clsName = parts[-1]
+        # if in entry point syntax, split at :
+        if (":" in deviceClass):
+            pkgName, clsName = deviceClass.split(":", maxsplit=1)
+        else:
+            # otherwise split at last .
+            parts = deviceClass.split(".")
+            pkgName = ".".join(parts[:-1])
+            clsName = parts[-1]
         # import package
         try:
             pkg = importlib.import_module(pkgName)
-        except:
+        except (ImportError, ModuleNotFoundError):
             raise ModuleNotFoundError(
                 f"Could not find module: {pkgName}"
             )
         # get class
-        cls = getattr(pkg, clsName)
+        cls = pkg
+        for part in clsName.split("."):
+            cls = getattr(cls, part)
 
         return cls
 
@@ -817,7 +823,7 @@ class DeviceManager:
                         # import it so we can detect it
                         try:
                             DeviceManager._resolveClassString(cls.deviceClass)
-                        except:
+                        except Exception:
                             logging.warn(
                                 f"Failed to load class {cls.deviceClass} from specification in "
                                 f"{cls.__name__} ({emt.__name__})"

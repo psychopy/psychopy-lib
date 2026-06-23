@@ -3,7 +3,7 @@
 
 # Part of the PsychoPy library
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2025 Open Science Tools Ltd.
-# Distributed under the terms of the GNU General Public License (GPL).
+# Distributed under the terms of the MIT License.
 
 import os
 import re
@@ -324,7 +324,7 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
                                 raise err
                     # if it's all good, use received array
                     trialsArr = thisAttempt
-                except:
+                except Exception:
                     continue
                 else:
                     # if successful, check the variable names

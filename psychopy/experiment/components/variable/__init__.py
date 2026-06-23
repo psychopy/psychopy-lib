@@ -4,7 +4,7 @@
 """
 Part of the PsychoPy library
 Copyright (C) 2015 Jonathan Peirce
-Distributed under the terms of the GNU General Public License (GPL).
+Distributed under the terms of the MIT License.
 """
 
 from pathlib import Path
@@ -18,6 +18,7 @@ class VariableComponent(BaseComponent):
     categories = ['Custom']
     targets = ['PsychoPy']
     iconFile = Path(__file__).parent / 'variable.png'
+    iconSVG = Path(__file__).parent / 'VariableComponent.svg'
     tooltip = _translate('Variable: create a new variable')
 
     def __init__(self, exp, parentName,

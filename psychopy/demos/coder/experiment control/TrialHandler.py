@@ -1,64 +1,72 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
 """
-Demo of TrialHandler
+Shows how to use a TrialHandler object to manage running a trials loop in an experiment.
 
 The contents of this file are in the public domain.
-
 """
 
-from random import random
 
-from psychopy import data
+from psychopy import data, logging
+from numpy import random
 
-# create your list of stimuli
-# NB as of version 1.62 you could simply import an excel spreadsheet with this
-# using data.importConditions('someFile.xlsx')
-stimList = []
+# set logging level to "EXP" so we can see updates as each trial rolls past
+logging.console.setLevel(logging.EXP)
+
+# create your list of stimuli; if you prefer, you could also create a spreadsheet file and load 
+# it with data.importConditions
+conditions = []
 for ori in range(90, 180, 30):
     for sf in [0.5, 1.0, 2.0]:
-        # append a python 'dictionary' to the list
-        stimList.append({'sf': sf, 'ori': ori})
+        # each condition is a dict; this functions like a row of a spreadsheet with headers
+        conditions.append({
+            'sf': sf, 
+            'ori': ori
+        })
 
-# organize them with the trial handler
-trials = data.TrialHandler(stimList, 10,
-                           extraInfo={'participant': "Nobody", 'session':'001'})
+# create a TrialHandler object from these conditions
+trials = data.TrialHandler(
+    # our list of conditions from above
+    trialList=conditions, 
+    # this tells the trial handler to run through the full list of conditions 10 times
+    # we have 9 conditions, so this means 90 trials
+    nReps=10,
+    # these keys will be added to each row of the data file
+    extraInfo={
+        'participant': "Nobody", 
+        'session':'001'
+    }
+)
 
-# run the experiment
-nDone = 0
-for thisTrial in trials:  # handler can act like a for loop
-    # simulate some data
-    thisReactionTime = random() + float(thisTrial['sf']) / 2.0
-    thisChoice = round(random())
-    trials.data.add('RT', thisReactionTime)  # add the data to our set
-    trials.data.add('choice', thisChoice)
-    nDone += 1  # just for a quick reference
+# use a `for` loop to run the trials...
+for thisTrial in trials:
+    # let's add some data (and pretend it came from a participant...)
+    trials.data.add(
+        "RT", random.random() + float(thisTrial['sf']) / 2.0
+    )
+    trials.data.add(
+        "choice", str(random.choice(["right", "right"]))
+    )
+    # flush the log so we can see the trial
+    logging.flush()
 
-    msg = 'trial %i had position %s in the list (sf=%.1f)'
-    print(msg % (nDone, trials.thisIndex, thisTrial['sf']))
-
-# After the experiment, print a new line
-print('\n')
-
-# Write summary data to screen
-trials.printAsText(stimOut=['sf', 'ori'],
-                   dataOut=['RT_mean', 'RT_std', 'choice_raw'])
-
-# Write summary data to a text file ...
-trials.saveAsText(fileName='testData',
-                  stimOut=['sf', 'ori'],
-                  dataOut=['RT_mean', 'RT_std', 'choice_raw'])
-
-# ... or an xlsx file (which supports sheets)
-trials.saveAsExcel(fileName='testData',
-                   sheetName='rawData',
-                   stimOut=['sf', 'ori'],
-                   dataOut=['RT_mean', 'RT_std', 'choice_raw'])
-
-# Save a copy of the whole TrialHandler object, which can be reloaded later to
-# re-create the experiment.
-trials.saveAsPickle(fileName='testData')
-
-# Wide format is useful for analysis with R or SPSS.
-df = trials.saveAsWideText('testDataWide.txt')
+# save data to a CSV file
+trials.saveAsText(
+    fileName="TrialHandler_demo.csv",
+    stimOut=["sf", "ori"],
+    dataOut=["RT_mean", "RT_std", "choice_raw"]
+)
+# save data to an Excel file
+trials.saveAsExcel(
+    fileName="TrialHandler_demo.xlsx",
+    sheetName="rawData",
+    stimOut=["sf", "ori"],
+    dataOut=["RT_mean", "RT_std", "choice_raw"]
+)
+# save a copy of the whole TrialHandler object, which can be reloaded later to re-create the 
+# experiment
+trials.saveAsPickle(
+    fileName="trialHandler_demo"
+)
+# wide text format is useful for analysis in R, SPSS, Jasp, etc.
+df = trials.saveAsWideText(
+    fileName="trialHandler_demo.csv"
+)

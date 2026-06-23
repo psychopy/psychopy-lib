@@ -3,7 +3,7 @@
 
 # Part of the PsychoPy library
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2025 Open Science Tools Ltd.
-# Distributed under the terms of the GNU General Public License (GPL).
+# Distributed under the terms of the MIT License.
 
 import time
 import os
@@ -15,7 +15,7 @@ from wx.lib import intctrl
 
 from psychopy.localization import _translate
 from psychopy import monitors, hardware, logging
-from psychopy.app import dialogs
+from psychopy_app import dialogs
 
 DEBUG = False
 NOTEBOOKSTYLE = False
@@ -1086,9 +1086,9 @@ class CalibrationSetupDlg(wx.Dialog):
     Dialog getting params for a gamma calibration, which also runs said calibration
     """
     def __init__(self, parent):
-        from psychopy.app.builder.validators import WarningManager
+        from psychopy_app.builder.validators import WarningManager
         from psychopy.experiment.params import Param
-        from psychopy.app.builder.dialogs.paramCtrls import ParamCtrl, EVT_PARAM_CHANGED
+        from psychopy_app.builder.dialogs.paramCtrls import ParamCtrl, EVT_PARAM_CHANGED
 
         wx.Dialog.__init__(
             self, 
